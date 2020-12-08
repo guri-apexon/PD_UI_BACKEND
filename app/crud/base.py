@@ -33,6 +33,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> List[ModelType]:
         """Retrieves first 100 records by default and limit can be set"""
         return db.query(self.model).offset(skip).limit(limit).all()
+    
+    def get_by_user(self, db: Session, user: str) -> Optional[ModelType]:
+        """Retrieves a record based on primary key or id"""
+        return db.query(self.model).filter(self.model.user == user).all()
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         """Creates as record to DB table"""
@@ -70,3 +74,4 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.delete(obj)
         db.commit()
         return obj
+    
