@@ -2,3 +2,5 @@ from .pd_protocol_sponsor import ProtocolSponsor, ProtocolSponsorCreate, Protoco
 from .pd_indications import Indications, IndicationsCreate, IndicationsUpdate
 from .pd_protocols import Protocol, ProtocolCreate, ProtocolUpdate
 from .pd_user_protocol_documents import UserProtocolDocumentsCreate,UserProtocolDocumentsUpdate, UserProtocolDocuments
+from .pd_recent_search import RecentSearch, RecentSearchCreate, RecentSearchUpdate
+from .pd_saved_search import SavedSearch, SavedSearchCreate, SavedSearchUpdate
