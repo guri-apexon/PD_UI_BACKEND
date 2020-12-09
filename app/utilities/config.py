@@ -2,9 +2,9 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str
+    PROJECT_NAME: str = "PROTOCOL DIGITALIZATION"
     API: str = "/api"
-    SQLALCHEMY_DATABASE_URI: str
+    SQLALCHEMY_DATABASE_URI: str = 'mssql+pyodbc://APP_TMSDEV:app$tmsdev@USADC-VSSQLA0\SSQL03/PD_UI?driver=SQL+Server'
 
     class Config:
         env_file = ".env"

@@ -27,7 +27,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def get(self, db: Session, id: Any) -> Optional[ModelType]:
         """Retrieves a record based on primary key or id"""
         return db.query(self.model).filter(self.model.id == id).first()
-
+    
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
@@ -35,7 +35,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db.query(self.model).offset(skip).limit(limit).all()
     
     def get_by_user(self, db: Session, user: str) -> Optional[ModelType]:
-        """Retrieves a record based on primary key or id"""
+        """Retrieves a record based on user"""
         return db.query(self.model).filter(self.model.user == user).all()
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
