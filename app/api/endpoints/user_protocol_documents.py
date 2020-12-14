@@ -12,13 +12,12 @@ router = APIRouter()
 @router.get("/", response_model=List[schemas.UserProtocolDocuments])
 def read_user_protocol_document(
         db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
+        userId: str = "userId",
 ) -> Any:
     """
     Retrieve all Protocol Sponsors.
     """
-    user_protocol_documents = crud.pd_user_protocol_document.get_multi(db, skip=skip, limit=limit)
+    user_protocol_documents = crud.pd_user_protocol_document.get_by_userId(db, userId)
     return user_protocol_documents
 
 
