@@ -6,31 +6,77 @@ from pydantic import BaseModel
 
 # Shared properties
 class UserProtocolDocumentsBase(BaseModel):
-    protocol_id: Optional[int] = None
-    user_id: Optional[int] = None
-    protocol_document_name: Optional[str] = None
-    protocol_document_status_id: Optional[int] = None
-    protocol_source_document_id: Optional[int] = None
-    is_active: Optional[bool] = None
-    created_by: Optional[str] = None
-    created_on: Optional[datetime] = None
-    modified_by: Optional[str] = None
-    modified_on: Optional[datetime] = None
+    id: Optional[str] = None
+    userId: Optional[str] = None
+    fileName: Optional[str] = None
+    filePath: Optional[str] = None
+    Protocol: Optional[str] = None
+    ProtocolName: Optional[str] = None
+    ProjectId: Optional[int] = None
+    Sponser: Optional[str] = None
+    Indication: Optional[str] = None
+    Molecule: Optional[str] = None
+    Amendment: Optional[str] = None
+    VersionNumber: Optional[float] = None
+    DocumentStatus: Optional[str] = None
+    DraftVersion: Optional[float] = None
+    errorCode: Optional[int] = None
+    errorReason: Optional[str] = None
+    Status: Optional[str] = None
+    phase: Optional[str] = None
+    DigitizedConfidenceInterval: Optional[str] = None
+    CompletenessOfDigitization : Optional[str] = None
+    protocolTitle: Optional[str] = None
+    studyStatus: Optional[str] = None
+    sourceSystem: Optional[str] = None
+    environment: Optional[str] = None
+    uploadDate: Optional[datetime] = None
+    timeCreated: Optional[datetime] = None
+    timeUpdated: Optional[datetime] = None
+    userCreated: Optional[str] = None
+    userModified: Optional[str] = None
+    ApprovalDate: Optional[datetime] = None
+    isActive: Optional[bool] = None
+    iqvxmlpath: Optional[str] = None
+    NctId: Optional[str] = None
 
 
 
 # Properties to receive via API on creation
 class UserProtocolDocumentsCreate(UserProtocolDocumentsBase):
-    protocol_id: int
-    user_id: int
-    protocol_document_name: str
-    protocol_document_status_id: int
-    protocol_source_document_id: int
-    is_active: bool
-    created_by: str
-    created_on: datetime
-    modified_by: str
-    modified_on: datetime
+    id: str
+    userId: str
+    fileName: str  
+    filePath: str  
+    Protocol: str
+    ProtocolName: str  
+    ProjectId: int  
+    Sponser: str 
+    Indication: str  
+    Molecule: str  
+    Amendment: str 
+    VersionNumber: float
+    DocumentStatus: str  
+    DraftVersion: float 
+    errorCode: int  
+    errorReason: str  
+    Status: str 
+    phase: str  
+    DigitizedConfidenceInterval: str  
+    CompletenessOfDigitization : str  
+    protocolTitle: str
+    studyStatus: str  
+    sourceSystem: str  
+    environment: str  
+    uploadDate: datetime  
+    timeCreated: datetime  
+    timeUpdated: datetime 
+    userCreated: str
+    userModified: str  
+    ApprovalDate: datetime  
+    isActive: bool
+    iqvxmlpath: str  
+    NctId: int
 
 
 # Properties to receive via API on update
@@ -39,7 +85,7 @@ class UserProtocolDocumentsUpdate(UserProtocolDocumentsBase):
     pass
 
 class UserProtocolDocumentsInDBBase(UserProtocolDocumentsBase):
-    id: Optional[int] = None
+    id: Optional[str] = None
 
     class Config:
         orm_mode = True
