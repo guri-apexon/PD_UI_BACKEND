@@ -3,6 +3,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 
 from app.db.base import Base
 
@@ -28,6 +29,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """Retrieves a record based on primary key or id"""
         return db.query(self.model).filter(self.model.id == id).first()
     
+    def duplicate_check(self, db: Session, Sponser: str, Protocol: str, VersionNumber: float, Amendment: str, DocumentStatus: str) -> Optional[ModelType]:
+        """Duplicate check"""
+        return db.query(self.model).filter(self.model.DocumentStatus=="Final").filter(self.model.Amendment==Amendment).filter(self.model.VersionNumber==VersionNumber).filter(self.model.Sponser==Sponser).filter(self.model.Protocol==Protocol).first()
+        
+
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:

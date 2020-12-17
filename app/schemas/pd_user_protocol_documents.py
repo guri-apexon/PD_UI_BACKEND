@@ -81,7 +81,6 @@ class UserProtocolDocumentsCreate(UserProtocolDocumentsBase):
 
 # Properties to receive via API on update
 class UserProtocolDocumentsUpdate(UserProtocolDocumentsBase):
-    #sponsor_abbreviation: Optional[str] = None
     pass
 
 class UserProtocolDocumentsInDBBase(UserProtocolDocumentsBase):
@@ -93,4 +92,21 @@ class UserProtocolDocumentsInDBBase(UserProtocolDocumentsBase):
 
 # Additional properties to return via API
 class UserProtocolDocuments(UserProtocolDocumentsInDBBase):
+    pass
+
+class UserProtocolDocumentsDuplicateBase(BaseModel):   
+    Protocol: Optional[str] = None
+    Sponser: Optional[str] = None
+    VersionNumber: Optional[float] = None
+    Amendment: Optional[str] = None
+    Duplicate: str = "Duplicate Document!!..This document has been already processed"
+
+class UserProtocolDocumentsDuplicateInDBBase(UserProtocolDocumentsDuplicateBase):
+    pass
+
+    class Config:
+        orm_mode = True
+
+# Additional properties to return via Duplicate check API
+class UserProtocolDocumentsDuplicateCheck(UserProtocolDocumentsDuplicateInDBBase):
     pass
