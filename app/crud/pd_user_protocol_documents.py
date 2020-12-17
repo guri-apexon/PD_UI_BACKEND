@@ -62,6 +62,9 @@ class CRUDUserProtocolDocuments(CRUDBase[PD_User_Protocol_Documents, UserProtoco
         else:
             update_data = obj_in.dict(exclude_unset=True)
         return super().update(db, db_obj=db_obj, obj_in=update_data)
+    
+    def get_by_protocol(self, db: Session, Protocol: str) -> Optional[PD_User_Protocol_Documents]:
+        return db.query(PD_User_Protocol_Documents).filter(PD_User_Protocol_Documents.Protocol == Protocol).all()
 
 
 pd_user_protocol_document = CRUDUserProtocolDocuments(PD_User_Protocol_Documents)
