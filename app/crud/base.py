@@ -34,10 +34,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """Retrieves first 100 records by default and limit can be set"""
         return db.query(self.model).offset(skip).limit(limit).all()
     
-    def get_by_userId(self, db: Session, userId: str) -> Optional[ModelType]:
+    def get_by_userId(self, db: Session, userId: str) -> List[ModelType]:
         """Retrieves a record based on primary key or id"""
         return db.query(self.model).filter(self.model.userId == userId).all()
-    
+
     def get_by_user(self, db: Session, user: str) -> Optional[ModelType]:
         """Retrieves a record based on user"""
         return db.query(self.model).filter(self.model.user == user).all()

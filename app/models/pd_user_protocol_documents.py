@@ -9,7 +9,7 @@ class PD_User_Protocol_Documents(Base):
 
     __tablename__ = "pd_user_protocol_documents"
 
-    id = Column(String, nullable=False)
+    id = Column(String, primary_key=True, index=True)
     userId = Column(String, primary_key=True, index=True)
     fileName = Column(String, nullable=True)
     filePath = Column(String, nullable=True)
