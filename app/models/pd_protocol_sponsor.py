@@ -9,4 +9,3 @@ class PD_Protocol_Sponsor(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     sponsor_name = Column(String, nullable=True)
-    sponsor_abbreviation = Column(String, nullable=True)
