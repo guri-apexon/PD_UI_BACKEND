@@ -9,6 +9,7 @@ from app.api.endpoints import saved_search
 from app.api.endpoints import document_process
 from app.api.endpoints import protocol_attributes
 from app.api.endpoints import duplicate_check
+from app.api.endpoints import document_compare
 from app.api.endpoints import related_protocols
 
 api_router = APIRouter()
@@ -17,6 +18,7 @@ api_router.include_router(indications.router, prefix="/indications", tags=["Indi
 api_router.include_router(protocols.router, prefix="/protocols", tags=["Protocols"])
 api_router.include_router(protocol_metadata.router, prefix="/protocol_metadata",
                           tags=["Protocol Metadata"])
+api_router.include_router(document_compare.router, prefix="/document_compare", tags=["Compare Documents"])
 api_router.include_router(protocol_attributes.router, prefix="/protocol_attributes", tags=["Protocol Attributes"])
 api_router.include_router(recent_search.router, prefix="/recent_search", tags=["Recent Search"])
 api_router.include_router(saved_search.router, prefix="/saved_search", tags=["Saved Search"])

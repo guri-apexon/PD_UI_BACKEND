@@ -5,3 +5,4 @@ from .pd_protocol_metadata import ProtocolMetadataCreate,ProtocolMetadataUpdate,
 from .pd_recent_search import RecentSearch, RecentSearchCreate, RecentSearchUpdate
 from .pd_saved_search import SavedSearch, SavedSearchCreate, SavedSearchUpdate
 from .pd_document_process import DocumentProcess, DocumentProcessCreate, DocumentProcessUpdate
+from .pd_document_compare import DocumentCompare, DocumentCompareCreate, DocumentCompareUpdate

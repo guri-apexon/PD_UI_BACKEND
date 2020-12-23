@@ -29,9 +29,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """Retrieves a record based on primary key or id"""
         return db.query(self.model).filter(self.model.id == id).first()
     
-    def duplicate_check(self, db: Session, sponsor: str, protocol: str, versionNumber: str, amendment: str, documentStatus: str) -> Optional[ModelType]:
+    def duplicate_check(self, db: Session, sponsor: str, protocolNumber: str, versionNumber: str, amendmentNumber: str, documentStatus: str) -> Optional[ModelType]:
         """Duplicate check"""
-        return db.query(self.model).filter(self.model.documentStatus=="Final").filter(self.model.amendment==amendment).filter(self.model.versionNumber==versionNumber).filter(self.model.sponsor==sponsor).filter(self.model.protocol==protocol).first()
+        return db.query(self.model).filter(self.model.documentStatus=="Final").filter(self.model.amendment==amendmentNumber).filter(self.model.versionNumber==versionNumber).filter(self.model.sponsor==sponsor).filter(self.model.protocol==protocolNumber).first()
         
 
     def get_multi(

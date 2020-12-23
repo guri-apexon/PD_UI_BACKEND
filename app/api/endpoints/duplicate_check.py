@@ -13,13 +13,13 @@ router = APIRouter()
 def read_duplicate_attributes(
         db: Session = Depends(deps.get_db),
         sponsor: str = "sponsor",
-        protocol: str = "protocol",
+        protocolNumber: str = "protocolNumber",
         versionNumber: str = "versionNumber",
-        amendment: str = "amendment",
+        amendmentNumber: str = "amendmentNumber",
 ) -> Any:
     """
     Retrieve Duplicate Attributes.
     """
-    duplicate_attributes = crud.pd_protocol_metadata.duplicate_check(db, sponsor, protocol, versionNumber, amendment, documentStatus="Final")
+    duplicate_attributes = crud.pd_protocol_metadata.duplicate_check(db, sponsor, protocolNumber, versionNumber, amendmentNumber, documentStatus="Final")
     return duplicate_attributes
 
