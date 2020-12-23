@@ -9,13 +9,13 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.UserProtocolDocuments])
+@router.get("/", response_model=List[schemas.ProtocolMetadata])
 def read_related_protocols(
         db: Session = Depends(deps.get_db),
-        Protocol: str = "protocol",
+        protocol: str = "protocol",
 ) -> Any:
     """
     Retrieve Protocol Attributes.
     """
-    related_protocols = crud.pd_user_protocol_document.get_by_protocol(db, Protocol)
+    related_protocols = crud.pd_protocol_metadata.get_by_protocol(db, protocol)
     return related_protocols

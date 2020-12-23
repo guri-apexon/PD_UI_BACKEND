@@ -5,12 +5,12 @@ from pydantic import BaseModel
 
 # Shared properties
 class IndicationsBase(BaseModel):
-    indication_name: Optional[str] = None
+    indicationName: Optional[str] = None
 
 
 # Properties to receive via API on creation
 class IndicationsCreate(IndicationsBase):
-    indication_name: str
+    indicationName: str
 
 
 # Properties to receive via API on update
@@ -18,7 +18,7 @@ class IndicationsUpdate(IndicationsBase):
     pass
 
 class IndicationsInDBBase(IndicationsBase):
-    id: Optional[int] = None
+    indId: Optional[int] = None
 
     class Config:
         orm_mode = True

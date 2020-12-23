@@ -9,7 +9,7 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=schemas.UserProtocolDocuments)
+@router.get("/", response_model=schemas.ProtocolMetadata)
 def read_protocol_attributes(
         db: Session = Depends(deps.get_db),
         id: str = "id",
@@ -17,7 +17,7 @@ def read_protocol_attributes(
     """
     Retrieve Protocol Attributes.
     """
-    protocol_attributes = crud.pd_user_protocol_document.get(db, id)
+    protocol_attributes = crud.pd_protocol_metadata.get(db, id)
     return protocol_attributes
 
 

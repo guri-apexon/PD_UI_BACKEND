@@ -6,7 +6,7 @@ from pydantic import BaseModel
 # Shared properties
 class RecentSearchBase(BaseModel):
     keyword: Optional[str] = None
-    user: Optional[str] = None
+    userId: Optional[str] = None
     timeCreated: Optional[datetime] = None
     lastUpdated: Optional[datetime] = None
 
@@ -14,7 +14,7 @@ class RecentSearchBase(BaseModel):
 # Properties to receive via API on creation
 class RecentSearchCreate(RecentSearchBase):
     keyword: str
-    user: str
+    userId: str
     timeCreated : datetime
     lastUpdated : datetime
 
@@ -25,7 +25,7 @@ class RecentSearchUpdate(RecentSearchBase):
     
 
 class RecentSearchInDBBase(RecentSearchBase):
-    id: Optional[int] = None
+    sponsorId: Optional[int] = None
 
     class Config:
         orm_mode = True

@@ -9,15 +9,15 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.SavedSearch])
+@router.get("/", response_model=List[schemas.RecentSearch])
 def read_recent_search(
         db: Session = Depends(deps.get_db),
-        user: str = "user",
+        userId: str = "userId",
 ) -> Any:
     """
     Retrieve recent searches.
     """
-    recent_search = crud.pd_recent_search.get_by_user(db, user)
+    recent_search = crud.pd_recent_search.get_by_userId(db, userId)
     return recent_search
 
 
