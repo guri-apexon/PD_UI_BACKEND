@@ -6,37 +6,37 @@ from pydantic import BaseModel
 
 # Shared properties
 class ProtocolBase(BaseModel):
-    protocol_number: Optional[str] = None
-    protocol_title: Optional[str] = None
-    project_code: Optional[str] = None
-    phase: Optional[int] = None
+    protocol: Optional[str] = None
+    protocolTitle: Optional[str] = None
+    projectCode: Optional[str] = None
+    phase: Optional[str] = None
     indication: Optional[str] = None
-    protocol_status: Optional[int] = None
-    protocol_version: Optional[str] = None
-    protocol_sponsor: Optional[int] = None
-    is_active: Optional[bool] = None
-    created_by: Optional[str] = None
-    created_on: Optional[datetime] = None
-    modified_by: Optional[str] = None
-    modified_on: Optional[datetime] = None
+    protocolStatus: Optional[str] = None
+    protocolVersion: Optional[str] = None
+    protocolSponsor: Optional[str] = None
+    isActive: Optional[bool] = None
+    userCreated: Optional[str] = None
+    timeCreated: Optional[datetime] = None
+    userUpdated: Optional[str] = None
+    lastUpdated: Optional[datetime] = None
 
 
 
 # Properties to receive via API on creation
 class ProtocolCreate(ProtocolBase):
-    protocol_number: str
-    protocol_title: str
-    project_code: str
-    phase: int
+    protocol: str
+    protocolTitle: str
+    projectCode: str
+    phase: str
     indication: str
-    protocol_status: int
-    protocol_version: str
-    protocol_sponsor: int
-    is_active: bool
-    created_by: str
-    created_on: datetime
-    modified_by: str
-    modified_on: datetime
+    protocolStatus: str
+    protocolVersion: str
+    protocolSponsor: str
+    isActive: bool
+    userCreated: str
+    timeCreated: datetime
+    userUpdated: str
+    lastUpdated: datetime
 
 
 # Properties to receive via API on update

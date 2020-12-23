@@ -12,12 +12,12 @@ router = APIRouter()
 @router.get("/", response_model=List[schemas.SavedSearch])
 def read_saved_search(
         db: Session = Depends(deps.get_db),
-        user: str = "user",
+        userId: str = "userId",
 ) -> Any:
     """
     Retrieve saved searches.
     """
-    saved_search = crud.pd_saved_search.get_by_user(db, user)
+    saved_search = crud.pd_saved_search.get_by_userId(db, userId)
     return saved_search
 
 

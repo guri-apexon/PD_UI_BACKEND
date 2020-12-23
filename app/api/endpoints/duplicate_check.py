@@ -9,17 +9,17 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=schemas.UserProtocolDocumentsDuplicateCheck)
+@router.get("/", response_model=schemas.ProtocolMetadataDuplicateCheck)
 def read_duplicate_attributes(
         db: Session = Depends(deps.get_db),
-        sponser: str = "sponser",
+        sponsor: str = "sponsor",
         protocol: str = "protocol",
-        VersionNumber: float = 0.0,
-        Amendment: str = "Amendment",
+        versionNumber: str = "versionNumber",
+        amendment: str = "amendment",
 ) -> Any:
     """
     Retrieve Duplicate Attributes.
     """
-    duplicate_attributes = crud.pd_user_protocol_document.duplicate_check(db, sponser, protocol, VersionNumber, Amendment, DocumentStatus="Final")
+    duplicate_attributes = crud.pd_protocol_metadata.duplicate_check(db, sponsor, protocol, versionNumber, amendment, documentStatus="Final")
     return duplicate_attributes
 

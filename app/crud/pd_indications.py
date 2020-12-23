@@ -8,13 +8,11 @@ from app.schemas.pd_indications import IndicationsCreate, IndicationsUpdate, Ind
 
 
 class CRUDPDIndications(CRUDBase[PD_Protocol_Indication, IndicationsCreate, IndicationsUpdate]):
-    def get_by_id(self, db: Session, *, identification_id: int) -> Optional[PD_Protocol_Indication]:
-        return db.query(PD_Protocol_Indication).filter(
-            PD_Protocol_Indication.Protocol_Indication_Id == identification_id).first()
+    def get_by_id(self, db: Session, *, indId: int) -> Optional[PD_Protocol_Indication]:
+        return db.query(PD_Protocol_Indication).filter(PD_Protocol_Indication.indId == indId).first()
 
     def create(self, db: Session, *, obj_in: IndicationsCreate) -> PD_Protocol_Indication:
-        db_obj = PD_Protocol_Indication(indication_name=obj_in.indication_name,
-                                        indication_description=obj_in.indication_description, )
+        db_obj = PD_Protocol_Indication(indicationName=obj_in.indicationName, )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)

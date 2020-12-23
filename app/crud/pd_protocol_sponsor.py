@@ -8,12 +8,11 @@ from app.schemas.pd_protocol_sponsor import ProtocolSponsorCreate, ProtocolSpons
 
 
 class CRUDProtocolSponsor(CRUDBase[PD_Protocol_Sponsor, ProtocolSponsorCreate, ProtocolSponsorUpdate]):
-    def get_by_id(self, db: Session, *, sponsor_id: int) -> Optional[PD_Protocol_Sponsor]:
-        return db.query(PD_Protocol_Sponsor).filter(PD_Protocol_Sponsor.id == sponsor_id).first()
+    def get_by_id(self, db: Session, *, sponsorId: int) -> Optional[PD_Protocol_Sponsor]:
+        return db.query(PD_Protocol_Sponsor).filter(PD_Protocol_Sponsor.sponsorId == sponsorId).first()
 
     def create(self, db: Session, *, obj_in: ProtocolSponsorCreate) -> PD_Protocol_Sponsor:
-        db_obj = PD_Protocol_Sponsor(sponsor_name=obj_in.sponsor_name,
-                                     sponsor_abbreviation=obj_in.sponsor_abbreviation, )
+        db_obj = PD_Protocol_Sponsor(sponsorName=obj_in.sponsorName, )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)

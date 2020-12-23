@@ -8,12 +8,12 @@ from app.schemas.pd_saved_search import SavedSearchCreate, SavedSearchUpdate, Sa
 
 
 class CRUDSavedSearch(CRUDBase[PD_Protocol_Saved_Search, SavedSearchCreate, SavedSearchUpdate]):
-    def get_by_id(self, db: Session, *, search_id: int) -> Optional[PD_Protocol_Saved_Search]:
-        return db.query(PD_Protocol_Saved_Search).filter(PD_Protocol_Saved_Search.id == search_id).first()
+    def get_by_id(self, db: Session, *, saveId: int) -> Optional[PD_Protocol_Saved_Search]:
+        return db.query(PD_Protocol_Saved_Search).filter(PD_Protocol_Saved_Search.saveId == saveId).first()
 
     def create(self, db: Session, *, obj_in: SavedSearchCreate) -> PD_Protocol_Saved_Search:
         db_obj = PD_Protocol_Saved_Search(keyword=obj_in.keyword,
-                                        user=obj_in.user,
+                                        userId=obj_in.userId,
                                         timeCreated=obj_in.timeCreated,
                                         lastUpdated=obj_in.lastUpdated, )
         db.add(db_obj)

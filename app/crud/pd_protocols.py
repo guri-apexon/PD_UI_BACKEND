@@ -8,23 +8,23 @@ from app.schemas.pd_protocols import ProtocolCreate, ProtocolUpdate
 
 
 class CRUDProtocols(CRUDBase[PD_Protocols, ProtocolCreate, ProtocolUpdate]):
-    def get_by_id(self, db: Session, *, protocol_id: int) -> Optional[PD_Protocols]:
-        return db.query(PD_Protocols).filter(PD_Protocols.id == protocol_id).first()
+    def get_by_id(self, db: Session, *, protocolId: int) -> Optional[PD_Protocols]:
+        return db.query(PD_Protocols).filter(PD_Protocols.id == protocolId).first()
 
     def create(self, db: Session, *, obj_in: ProtocolCreate) -> PD_Protocols:
-        db_obj = PD_Protocols(protocol_number=obj_in.protocol_number,
-                                            protocol_title=obj_in.protocol_title,
-                                            project_code=obj_in.project_code,
+        db_obj = PD_Protocols(protocol=obj_in.protocol,
+                                            protocolTitle=obj_in.protocolTitle,
+                                            projectCode=obj_in.projectCode,
                                             phase=obj_in.phase,
                                             indication=obj_in.indication,
-                                            protocol_status=obj_in.protocol_status,
-                                            protocol_version=obj_in.protocol_version,
-                                            protocol_sponsor=obj_in.protocol_sponsor,
-                                            is_active=obj_in.is_active,
-                                            created_by=obj_in.created_by,
-                                            created_on=obj_in.created_on,
-                                            modified_by=obj_in.modified_by,
-                                            modified_on=obj_in.modified_on, )
+                                            protocolStatus=obj_in.protocolStatus,
+                                            protocolVersion=obj_in.protocolVersion,
+                                            protocolSponsor=obj_in.protocolSponsor,
+                                            isActive=obj_in.isActive,
+                                            userCreated=obj_in.userCreated,
+                                            timeCreated=obj_in.timeCreated,
+                                            userUpdated=obj_in.userUpdated,
+                                            lastUpdated=obj_in.lastUpdated, )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
