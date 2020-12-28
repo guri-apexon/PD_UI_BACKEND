@@ -6,3 +6,4 @@ from .pd_recent_search import RecentSearch, RecentSearchCreate, RecentSearchUpda
 from .pd_saved_search import SavedSearch, SavedSearchCreate, SavedSearchUpdate
 from .pd_document_process import DocumentProcess, DocumentProcessCreate, DocumentProcessUpdate
 from .pd_document_compare import DocumentCompare, DocumentCompareCreate, DocumentCompareUpdate
+from .pd_protocol_data import ProtocolData, ProtocolDataCreate, ProtocolDataUpdate, ProtocolDataReadIqvdataBase, ProtocolDataReadIqvdata
