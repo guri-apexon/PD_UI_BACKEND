@@ -6,7 +6,7 @@ from app.api.endpoints import protocols
 from app.api.endpoints import protocol_metadata
 from app.api.endpoints import recent_search
 from app.api.endpoints import saved_search
-from app.api.endpoints import document_process
+from app.api.endpoints import document_status
 from app.api.endpoints import protocol_attributes
 from app.api.endpoints import duplicate_check
 from app.api.endpoints import document_compare
@@ -26,7 +26,7 @@ api_router.include_router(protocol_data.router, prefix="/protocol_data", tags=["
 api_router.include_router(read_iqvdata.router, prefix="/read_iqvdata", tags=["Read Iqvdata"])
 api_router.include_router(recent_search.router, prefix="/recent_search", tags=["Recent Search"])
 api_router.include_router(saved_search.router, prefix="/saved_search", tags=["Saved Search"])
-api_router.include_router(document_process.router, prefix="/status", tags=["status"]) 
+api_router.include_router(document_status.router, prefix="/status", tags=["status"]) 
 api_router.include_router(duplicate_check.router, prefix="/duplicate_check", tags=["Duplicate check"])
 api_router.include_router(related_protocols.router, prefix="/Related_protocols", tags=["Related protocols"])
                       

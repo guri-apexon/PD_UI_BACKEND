@@ -3,7 +3,7 @@ from datetime import datetime
 from app.db.base_class import Base
 
 
-class PD_Document_Process(Base):
+class PD_Document_Status(Base):
 
     __tablename__ = "pd_document_process"
 
