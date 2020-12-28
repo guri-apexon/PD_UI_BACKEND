@@ -118,3 +118,25 @@ class ProtocolMetadataDuplicateInDBBase(ProtocolMetadataDuplicateBase):
 # Additional properties to return via Duplicate check API
 class ProtocolMetadataDuplicateCheck(ProtocolMetadataDuplicateInDBBase):
     pass
+
+class ProtocolStatusBase(BaseModel):   
+    id: Optional[str] = None
+    userId: Optional[str] = None
+    fileName: Optional[str] = None
+    documentFilePath: Optional[str] = None
+    percentComplete: Optional[str] = None
+    status: Optional[str] = None
+    errorCode: Optional[int] = None
+    errorReason: Optional[str] = None
+    timeCreated: Optional[datetime] = None
+    lastUpdated: Optional[datetime] = None
+
+class ProtocolStatusInDBBase(ProtocolStatusBase):
+    pass
+
+    class Config:
+        orm_mode = True
+
+# Additional properties to return via Duplicate check API
+class ProtocolStatus(ProtocolStatusInDBBase):
+    pass
