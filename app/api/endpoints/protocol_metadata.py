@@ -17,7 +17,7 @@ def read_protocol_metadata(
     """
     Retrieve all Protocol Sponsors.
     """
-    protocol_metadata = crud.pd_protocol_metadata.get_by_userId(db, userId)
+    protocol_metadata = crud.pd_protocol_metadata.get_metadata_by_userId(db, userId)
     return protocol_metadata
 
 
