@@ -13,6 +13,8 @@ from app.api.endpoints import document_compare
 from app.api.endpoints import related_protocols
 from app.api.endpoints import protocol_data
 from app.api.endpoints import read_iqvdata
+from app.api.endpoints import follow_protocol
+
 
 api_router = APIRouter()
 api_router.include_router(protocol_sponsor.router, prefix="/protocol_sponsor", tags=["Protocol Sponsors"])
@@ -29,4 +31,5 @@ api_router.include_router(saved_search.router, prefix="/saved_search", tags=["Sa
 api_router.include_router(document_status.router, prefix="/status", tags=["status"]) 
 api_router.include_router(duplicate_check.router, prefix="/duplicate_check", tags=["Duplicate check"])
 api_router.include_router(related_protocols.router, prefix="/Related_protocols", tags=["Related protocols"])
+api_router.include_router(follow_protocol.router, prefix="/follow_protocol", tags=["Follow Protocol"])
                       

@@ -6,3 +6,4 @@ from .pd_recent_search import pd_recent_search
 from .pd_saved_search import pd_saved_search
 from .pd_document_compare import pd_document_compare
 from .pd_protocol_data import pd_protocol_data
+from .pd_user_protocols import pd_user_protocols

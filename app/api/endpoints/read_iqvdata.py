@@ -19,3 +19,15 @@ def get_protocol_data(
     """
     protocol_data = crud.pd_protocol_data.get(db, id)
     return protocol_data
+
+@router.post("/", response_model=schemas.ProtocolData)
+def create_iqvdata(
+        *,
+        db: Session = Depends(deps.get_db),
+        protocol_data_in: schemas.ProtocolDataCreate,
+) -> Any:
+    """
+    Create a post status.
+    """
+    protocol_data = crud.pd_protocol_data.create(db, obj_in=protocol_data_in)
+    return protocol_data
