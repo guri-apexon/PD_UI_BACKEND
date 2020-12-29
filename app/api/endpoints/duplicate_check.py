@@ -23,7 +23,7 @@ def read_duplicate_attributes(
     """
     Retrieve Duplicate Attributes.
     """
-    duplicate_attributes = crud.pd_protocol_metadata.duplicate_check(db, sponsor, protocolNumber, versionNumber, amendmentNumber, documentStatus="Final")
+    duplicate_attributes = crud.pd_protocol_metadata.duplicate_check(db, sponsor, protocolNumber, versionNumber, amendmentNumber, documentStatus="final")
     return duplicate_attributes
 
 @router.get("/shows/")
