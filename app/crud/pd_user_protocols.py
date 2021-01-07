@@ -27,9 +27,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         db.refresh(db_obj)
         return db_obj
 
-    def update(
-            self, db: Session, *, db_obj: PD_User_Protocols, obj_in: Union[UserProtocolUpdate, Dict[str, Any]]
-    ) -> PD_User_Protocols:
+    def update(self, db: Session, *, db_obj:UserProtocolUpdate, obj_in: Union[UserProtocolUpdate, Dict[str, Any]]) -> PD_User_Protocols:
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
@@ -38,11 +36,13 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
 
     def remove_followed_protocols(self, db: Session, id: Any, userId: Any) -> PD_User_Protocols:
         """Deletes record in DB table"""
-        print(db.query(self.model).filter(PD_User_Protocols.id == id).filter(PD_User_Protocols.userId == userId))
         obj = db.query(self.model).filter(PD_User_Protocols.id == id).filter(PD_User_Protocols.userId == userId).first()
         db.delete(obj)
         db.commit()
         return obj
+    
+    def follow_protocol(self, db: Session, *, id: Any, userId: Any) -> Optional[PD_User_Protocols]:
+        return db.query(PD_User_Protocols).filter(PD_User_Protocols.id == id).filter(PD_User_Protocols.userId == userId).first()
 
 
 pd_user_protocols = CRUDUserProtocols(PD_User_Protocols)

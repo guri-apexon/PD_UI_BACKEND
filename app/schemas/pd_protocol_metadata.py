@@ -107,7 +107,7 @@ class ProtocolMetadataDuplicateBase(BaseModel):
     sponsor: Optional[str] = None
     versionNumber: Optional[str] = None
     amendment: Optional[str] = None
-    Duplicate: str = "Duplicate Document!!..This document has been already processed"
+    Duplicate: str = "This protocol document cannot be added to the library because it already exists."
 
 class ProtocolMetadataDuplicateInDBBase(ProtocolMetadataDuplicateBase):
     pass

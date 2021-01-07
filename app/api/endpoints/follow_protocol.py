@@ -9,16 +9,18 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.ProtocolData)
+@router.post("/", response_model=schemas.UserProtocol)
 def follow_user_protocol(
+        *,
         db: Session = Depends(deps.get_db),
-        id: str = "id",
+        follow_protocol_in: schemas.UserProtocolCreate,
 ) -> Any:
     """
-    Get protocol data.
+    push follow protocol data.
     """
-    user_protocol = crud.pd_user_protocols.get(db, id)
+    user_protocol = crud.pd_user_protocols.create(db, obj_in=follow_protocol_in)
     return user_protocol
+
 
 @router.delete("/", response_model=schemas.UserProtocol)
 def delete_followed_protocols(
