@@ -14,6 +14,7 @@ from app.api.endpoints import related_protocols
 from app.api.endpoints import protocol_data
 from app.api.endpoints import read_iqvdata
 from app.api.endpoints import follow_protocol
+from app.api.endpoints import download_file
 
 
 api_router = APIRouter()
@@ -32,4 +33,5 @@ api_router.include_router(document_status.router, prefix="/status", tags=["statu
 api_router.include_router(duplicate_check.router, prefix="/duplicate_check", tags=["Duplicate check"])
 api_router.include_router(related_protocols.router, prefix="/Related_protocols", tags=["Related protocols"])
 api_router.include_router(follow_protocol.router, prefix="/follow_protocol", tags=["Follow Protocol"])
+api_router.include_router(download_file.router, prefix="/download_file", tags=["Download Files"])
                       

@@ -22,9 +22,9 @@ class UserProtocolCreate(UserProtocolBase):
     isActive: bool
     id: str
     userId: str
-    userId: str
     protocol: str
-    follow: bool
+    follow: bool = True
+    userRole: str = "secondary"
     userCreated: str
     userCreated: str
     timeCreated: datetime  
