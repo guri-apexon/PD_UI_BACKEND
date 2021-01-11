@@ -12,10 +12,10 @@ router = APIRouter()
 @router.get("/", response_model=schemas.ProtocolMetadataDuplicateCheck)
 def read_duplicate_attributes(
         db: Session = Depends(deps.get_db),
-        sponsor: str = "sponsor",
-        protocolNumber: str = "protocolNumber",
-        versionNumber: str = "versionNumber",
-        amendmentNumber: str = "amendmentNumber",
+        sponsor: str = None,
+        protocolNumber: str = None,
+        versionNumber: str = None,
+        amendmentNumber: str = None,
 ) -> Any:
     """
     Retrieve Duplicate Attributes.
