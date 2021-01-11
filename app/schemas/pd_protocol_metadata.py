@@ -140,3 +140,19 @@ class ProtocolStatusInDBBase(ProtocolStatusBase):
 # Additional properties to return via Duplicate check API
 class ProtocolStatus(ProtocolStatusInDBBase):
     pass
+
+class ProtocolLatestRecordBase(BaseModel):   
+    protocol: Optional[str] = None
+    sponsor: Optional[str] = None
+    versionNumber: Optional[str] = None
+    documentStatus: Optional[str] = None
+
+class ProtocolLatestRecordInDBBase(ProtocolLatestRecordBase):
+    pass
+
+    class Config:
+        orm_mode = True
+
+# Additional properties to return latest protocol API
+class ProtocolLatestRecord(ProtocolLatestRecordInDBBase):
+    pass

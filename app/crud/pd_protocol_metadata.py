@@ -70,8 +70,20 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol).all()
     
     def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[PD_Protocol_Metadata]:
-        """Retrieves a record based on primary key or id"""
-        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.userId == userId).order_by(PD_Protocol_Metadata.timeCreated.desc()).all()
+        """Retrieves a record based on user id"""
+        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.userId == userId, PD_Protocol_Metadata.isActive == True).order_by(PD_Protocol_Metadata.timeCreated.desc()).all()
+
+    def get_latest_protocol(self, db: Session, protocol: str, versionNumber:str) -> Optional[PD_Protocol_Metadata]:
+        """Retrieves a record based on protocol and versionNumber"""
+        if versionNumber is None:
+            return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.isActive == True, 
+                                                        PD_Protocol_Metadata.status == "PROCESS_COMPLETED", 
+                                                        PD_Protocol_Metadata.protocol == protocol).order_by(PD_Protocol_Metadata.versionNumber.desc()).first()
+        else:
+            return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.isActive == True, 
+                                                        PD_Protocol_Metadata.status == "PROCESS_COMPLETED", 
+                                                        PD_Protocol_Metadata.protocol == protocol,
+                                                        PD_Protocol_Metadata.versionNumber >= versionNumber).order_by(PD_Protocol_Metadata.versionNumber.desc()).first()
 
 
 pd_protocol_metadata = CRUDProtocolMetadata(PD_Protocol_Metadata)
