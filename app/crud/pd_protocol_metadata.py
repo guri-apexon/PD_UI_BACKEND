@@ -56,6 +56,17 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         db.refresh(db_obj)
         return db_obj
 
+    def create_soft_delete(self, db: Session, *, obj_in: ProtocolMetadataCreate) -> PD_Protocol_Metadata:
+        db_obj = PD_Protocol_Metadata(id=obj_in.id,
+                                            userId=obj_in.userId,
+                                            protocol=obj_in.protocol,
+                                            projectId=obj_in.projectId,
+                                            sponsor=obj_in.sponsor,)
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
     def update(
             self, db: Session, *, db_obj: PD_Protocol_Metadata, obj_in: Union[ProtocolMetadataUpdate,
                                                                                     Dict[str, Any]]
@@ -87,7 +98,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                                         PD_Protocol_Metadata.versionNumber >= versionNumber).order_by(PD_Protocol_Metadata.versionNumber.desc()).first()
 
 
-    def get_metadata_by_deleteCondition(self, db: Session, *filter) -> Optional[PD_Protocol_Metadata]:
+    def get_metadata_by_deleteCondition_old(self, db: Session, *filter) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
         res = db.query(PD_Protocol_Metadata.id)
         delFilter=''
@@ -95,5 +106,21 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             if filt is not None:
                 delFilter= ('PD_Protocol_Metadata.{}=="{}",'.format(i, filt,delFilter))
         return res.filter(delFilter).all()
+
+    def get_records_by_filter_condition(self, db: Session, userId:str, protocol:str) -> Optional[PD_Protocol_Metadata]:
+        """get record from user_protocol table on userid and protocol fields"""
+        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.userId == userId, 
+                                                        PD_Protocol_Metadata.protocol == protocol).all()
+                                                
+    def get_metadata_by_deleteCondition(self, db: Session, records:Any) -> Optional[PD_Protocol_Metadata]:
+        """Retrieves a record based on user id"""
+        for record in records:
+            if record.isActive == True:
+                record.isActive = False
+            try:
+                db.commit()
+            except Exception as ex:
+                db.rollback()
+        return records
 
 pd_protocol_metadata = CRUDProtocolMetadata(PD_Protocol_Metadata)

@@ -159,11 +159,19 @@ class ProtocolLatestRecord(ProtocolLatestRecordInDBBase):
 
 # Soft delete
 class ProtocolMetadataSoftDelete(BaseModel):
+    id: Optional[str] = None
+    userId: Optional[str] = None
     protocol: Optional[str] = None
+    projectId: Optional[str] = None
     sponsor: Optional[str] = None
-    versionNumber: Optional[str] = None
-    amendment: Optional[str] = None
-    Duplicate: str = "This protocol document cannot be added to the library because it already exists."
+
+# Properties to receive via API on creation
+class ProtocolMetadataSoftDeleteCreate(ProtocolMetadataSoftDelete):
+    id: str
+    userId: str 
+    protocol: str 
+    projectId: str
+    sponsor: str 
 
 class UpdateMetadataSoftdelete(ProtocolMetadataSoftDelete):
     pass
