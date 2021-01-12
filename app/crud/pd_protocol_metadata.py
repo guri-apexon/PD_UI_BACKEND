@@ -83,7 +83,17 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.isActive == True, 
                                                         PD_Protocol_Metadata.status == "PROCESS_COMPLETED", 
                                                         PD_Protocol_Metadata.protocol == protocol,
+
                                                         PD_Protocol_Metadata.versionNumber >= versionNumber).order_by(PD_Protocol_Metadata.versionNumber.desc()).first()
 
+
+    def get_metadata_by_deleteCondition(self, db: Session, *filter) -> Optional[PD_Protocol_Metadata]:
+        """Retrieves a record based on user id"""
+        res = db.query(PD_Protocol_Metadata.id)
+        delFilter=''
+        for i, filt in enumerate(filter, 1):
+            if filt is not None:
+                delFilter= ('PD_Protocol_Metadata.{}=="{}",'.format(i, filt,delFilter))
+        return res.filter(delFilter).all()
 
 pd_protocol_metadata = CRUDProtocolMetadata(PD_Protocol_Metadata)

@@ -156,3 +156,21 @@ class ProtocolLatestRecordInDBBase(ProtocolLatestRecordBase):
 # Additional properties to return latest protocol API
 class ProtocolLatestRecord(ProtocolLatestRecordInDBBase):
     pass
+
+# Soft delete
+class ProtocolMetadataSoftDelete(BaseModel):
+    protocol: Optional[str] = None
+    sponsor: Optional[str] = None
+    versionNumber: Optional[str] = None
+    amendment: Optional[str] = None
+    Duplicate: str = "This protocol document cannot be added to the library because it already exists."
+
+class UpdateMetadataSoftdelete(ProtocolMetadataSoftDelete):
+    pass
+
+    class Config:
+        orm_mode = True
+
+# Additional properties to return latest protocol API
+class MetadataSoftdelete(UpdateMetadataSoftdelete):
+    pass
