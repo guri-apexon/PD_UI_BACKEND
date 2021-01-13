@@ -156,3 +156,43 @@ class ProtocolLatestRecordInDBBase(ProtocolLatestRecordBase):
 # Additional properties to return latest protocol API
 class ProtocolLatestRecord(ProtocolLatestRecordInDBBase):
     pass
+
+# Soft delete
+class ProtocolMetadataSoftDelete(BaseModel):
+    id: Optional[str] = None
+    userId: Optional[str] = None
+    protocol: Optional[str] = None
+    projectId: Optional[str] = None
+    #Opportunity no: Optional[str] = None
+    sponsor: Optional[str] = None
+    indication: Optional[str] = None
+    moleculeDevice: Optional[str] = None
+    amendment: Optional[str] = None
+    versionNumber: Optional[str] = None
+    documentStatus: Optional[str] = None
+    isActive:Optional[bool] = None
+# Properties to receive via API on creation
+class ProtocolMetadataSoftDeleteCreate(ProtocolMetadataSoftDelete):
+    id: str
+    userId: str
+    protocol: str
+    projectId: str
+    #Opportunity no: Optional[str] = None
+    sponsor: str
+    indication: str
+    moleculeDevice: str
+    amendment: str
+    versionNumber: str
+    documentStatus: str
+    isActive:bool
+# Properties to receive via API on creati
+
+class UpdateMetadataSoftdelete(ProtocolMetadataSoftDelete):
+    pass
+
+    class Config:
+        orm_mode = True
+
+# Additional properties to return latest protocol API
+class MetadataSoftdelete(UpdateMetadataSoftdelete):
+    pass

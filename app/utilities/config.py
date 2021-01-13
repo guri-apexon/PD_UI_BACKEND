@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     API: str = "/api"
     SQLALCHEMY_DATABASE_URI: str = 'mssql+pyodbc://pd_dev_dbo:$1457abxd@CA2SPDSQL01Q\PDSSQL001D/PD_Dev?driver=ODBC+Driver+17+for+SQL+Server'
     PROTOCOL_FOLDER : str = '//CA2SPDML06D/protocols'
+    # Added for elastic soft delete integration in backend
+    ELASTIC_HOST = 'ca2spdml04q'
+    ELASTIC_PORT = 9200
+    ELASTIC_INDEX = "pd-index"
     
     class Config:
         env_file = ".env"
