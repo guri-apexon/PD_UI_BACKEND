@@ -5,7 +5,21 @@ from sqlalchemy.orm import Session
 from app.crud.base import CRUDBase
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
+from sqlalchemy.sql import text
+from app import crud, schemas
+from elasticsearch import Elasticsearch
+from app.utilities.config import settings
 
+def update_elstic(es_dict,update_id):
+    try :
+        elasticsearches = Elasticsearch([{'host': settings.ELASTIC_HOST, 'port': settings.ELASTIC_PORT}])
+        elasticsearches.update(index= settings.ELASTIC_INDEX, body={'doc':es_dict}, id = update_id)
+        res=True
+    except Exception as e :
+        res=False
+
+    elasticsearches.close()
+    return (res)
 
 class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate,
                                          ProtocolMetadataUpdate]):
@@ -98,29 +112,30 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                                         PD_Protocol_Metadata.versionNumber >= versionNumber).order_by(PD_Protocol_Metadata.versionNumber.desc()).first()
 
 
-    def get_metadata_by_deleteCondition_old(self, db: Session, *filter) -> Optional[PD_Protocol_Metadata]:
+    def get_metadata_by_deleteCondition_old(self, db: Session,filter) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
-        res = db.query(PD_Protocol_Metadata.id)
+        res = db.query(PD_Protocol_Metadata)
         delFilter=''
-        for i, filt in enumerate(filter, 1):
+        for key, filt in filter.items():
             if filt is not None:
-                delFilter= ('PD_Protocol_Metadata.{}=="{}",'.format(i, filt,delFilter))
-        return res.filter(delFilter).all()
+                delFilter= ("{}='{}' and {}".format(key,filt,delFilter))
+        return (res.filter(text(delFilter[:-4])).all())
 
-    def get_records_by_filter_condition(self, db: Session, userId:str, protocol:str) -> Optional[PD_Protocol_Metadata]:
-        """get record from user_protocol table on userid and protocol fields"""
-        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.userId == userId, 
-                                                        PD_Protocol_Metadata.protocol == protocol).all()
-                                                
-    def get_metadata_by_deleteCondition(self, db: Session, records:Any) -> Optional[PD_Protocol_Metadata]:
+    def get_metadata_by_deleteCondition(self, db: Session, records:Any,is_Active) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
         for record in records:
-            if record.isActive == True:
-                record.isActive = False
+            pd_data=crud.pd_protocol_data.get_by_id(db,id=record.id)
+            record.isActive = is_Active
+            pd_data.isActive=is_Active
             try:
                 db.commit()
+                elastic_status= update_elstic(es_dict={'is_active':(1 if is_Active else 0)
+                                       },update_id=record.id)
+                if elastic_status==False:
+                    raise Exception
             except Exception as ex:
                 db.rollback()
+                records='Exception in Delete'
         return records
 
 pd_protocol_metadata = CRUDProtocolMetadata(PD_Protocol_Metadata)

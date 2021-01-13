@@ -163,15 +163,29 @@ class ProtocolMetadataSoftDelete(BaseModel):
     userId: Optional[str] = None
     protocol: Optional[str] = None
     projectId: Optional[str] = None
+    #Opportunity no: Optional[str] = None
     sponsor: Optional[str] = None
-
+    indication: Optional[str] = None
+    moleculeDevice: Optional[str] = None
+    amendment: Optional[str] = None
+    versionNumber: Optional[str] = None
+    documentStatus: Optional[str] = None
+    isActive:Optional[bool] = None
 # Properties to receive via API on creation
 class ProtocolMetadataSoftDeleteCreate(ProtocolMetadataSoftDelete):
     id: str
-    userId: str 
-    protocol: str 
+    userId: str
+    protocol: str
     projectId: str
-    sponsor: str 
+    #Opportunity no: Optional[str] = None
+    sponsor: str
+    indication: str
+    moleculeDevice: str
+    amendment: str
+    versionNumber: str
+    documentStatus: str
+    isActive:bool
+# Properties to receive via API on creati
 
 class UpdateMetadataSoftdelete(ProtocolMetadataSoftDelete):
     pass
