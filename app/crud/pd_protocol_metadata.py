@@ -112,16 +112,17 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                                         PD_Protocol_Metadata.versionNumber >= versionNumber).order_by(PD_Protocol_Metadata.versionNumber.desc()).first()
 
 
-    def get_metadata_by_deleteCondition_old(self, db: Session,filter) -> Optional[PD_Protocol_Metadata]:
+    def get_metadata_by_filter(self, db: Session,filter) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
         res = db.query(PD_Protocol_Metadata)
         delFilter=''
+        #Filter String is formed by query filtered passed with Not None values
         for key, filt in filter.items():
             if filt is not None:
                 delFilter= ("{}='{}' and {}".format(key,filt,delFilter))
         return (res.filter(text(delFilter[:-4])).all())
 
-    def get_metadata_by_deleteCondition(self, db: Session, records:Any,is_Active) -> Optional[PD_Protocol_Metadata]:
+    def execute_metadata_by_deleteCondition(self, db: Session, records:Any,is_Active:bool) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
         for record in records:
             pd_data=crud.pd_protocol_data.get_by_id(db,id=record.id)
@@ -135,7 +136,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                     raise Exception
             except Exception as ex:
                 db.rollback()
-                records='Exception in Delete'
+
         return records
 
 pd_protocol_metadata = CRUDProtocolMetadata(PD_Protocol_Metadata)

@@ -29,7 +29,6 @@ def get_metadata_on_delete_condition(
     """
     Get protocol data.
     """
-    #records = crud.pd_protocol_metadata.get_records_by_filter_condition(db, protocol,projectId,sponsor,indication,moleculeDevice,amendment,versionNumber,documentStatus)
     filter = {'id': id,
     'userId': userId,
     'protocol': protocol,
@@ -41,23 +40,12 @@ def get_metadata_on_delete_condition(
     'versionNumber': versionNumber,
     'documentStatus':documentStatus}
 
-    records=crud.pd_protocol_metadata.get_metadata_by_deleteCondition_old(db,filter)
+    records=crud.pd_protocol_metadata.get_metadata_by_filter(db,filter)
 
     if len(records) > 0:
-        deleted_data = crud.pd_protocol_metadata.get_metadata_by_deleteCondition(db, records,isActive)
+        deleted_data = crud.pd_protocol_metadata.execute_metadata_by_deleteCondition(db, records,isActive)
     else:
         raise HTTPException(status_code=404, detail="Item not found for Condition {}".format(filter))
 
     return deleted_data
-#
-# @router.post("/", response_model=schemas.MetadataSoftdelete)
-# def create_soft_delete(
-#         *,
-#         db: Session = Depends(deps.get_db),
-#         protocol_metadata_soft_delete_in: schemas.ProtocolMetadataSoftDeleteCreate,
-# ) -> Any:
-#     """
-#     Create a post status.
-#     """
-#     protocol_metadata = crud.pd_protocol_metadata.create_soft_delete(db, obj_in=protocol_metadata_soft_delete_in)
-#     return protocol_metadata
+
