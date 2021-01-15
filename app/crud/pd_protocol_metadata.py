@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Union
 
 from sqlalchemy.orm import Session
-
+from fastapi import HTTPException
 from app.crud.base import CRUDBase
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
@@ -120,6 +120,8 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
 
     def get_metadata_by_filter(self, db: Session,filter) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
+        if filter['protocol']==None and filter['projectId']==None:
+            raise HTTPException(status_code=404, detail="Both Protocol Number and Project Id can't be None pass atleast one")
         res = db.query(PD_Protocol_Metadata)
         delFilter=''
         #Filter String is formed by query filtered passed with Not None values
@@ -134,7 +136,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         for record in records:
             pd_data=crud.pd_protocol_data.get_by_id(db,id=record.id)
             record.isActive = is_Active
-            pd_data.isActive=is_Active
+            #pd_data.isActive=is_Active
             try:
                 db.commit()
                 elastic_status= update_elstic(es_dict={'is_active':(1 if is_Active else 0)
