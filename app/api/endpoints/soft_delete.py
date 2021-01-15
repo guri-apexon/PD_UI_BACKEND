@@ -5,26 +5,30 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
-
+from enum import Enum
 
 router = APIRouter()
 
 
+class documentStatus(str, Enum):
+    final = "final"
+    draft = "draft"
+
 @router.get("/", response_model=List[schemas.MetadataSoftdelete])
 def get_metadata_on_delete_condition(
-        db: Session = Depends(deps.get_db),
+        sponsor: str ,
+        indication: str ,
+        moleculeDevice: str ,
+        amendment: str ,
+        versionNumber: str ,
+        documentStatus: documentStatus,
+        isActive: bool,
         id: str = None,
         userId: str = None,
         protocol: str = None,
         projectId: str = None,
         #Opportunity no: str = None,
-        sponsor: str = None,
-        indication: str = None,
-        moleculeDevice: str = None,
-        amendment: str = None,
-        versionNumber: str = None,
-        documentStatus: str = None,
-        isActive: bool=None
+        db: Session = Depends(deps.get_db),
 ) -> Any:
     """
     Get protocol data.
@@ -43,7 +47,7 @@ def get_metadata_on_delete_condition(
     records=crud.pd_protocol_metadata.get_metadata_by_filter(db,filter)
 
     if len(records) > 0:
-        deleted_data = crud.pd_protocol_metadata.execute_metadata_by_deleteCondition(db, records,isActive)
+        deleted_data = crud.pd_protocol_metadata.execute_metadata_by_deleteCondition(db,records,isActive)
     else:
         raise HTTPException(status_code=404, detail="Item not found for Condition {}".format(filter))
 
