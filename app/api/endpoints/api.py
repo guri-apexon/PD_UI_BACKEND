@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import APIRouter
 
 from app.api.endpoints import indications
@@ -17,7 +18,7 @@ from app.api.endpoints import follow_protocol
 from app.api.endpoints import download_file
 from app.api.endpoints import mCRA
 from app.api.endpoints import soft_delete
-import uvicorn
+from app.api.endpoints import latest_approved_document
 
 
 api_router = APIRouter()
@@ -39,6 +40,7 @@ api_router.include_router(follow_protocol.router, prefix="/follow_protocol", tag
 api_router.include_router(download_file.router, prefix="/download_file", tags=["Download Files"])
 api_router.include_router(mCRA.router, prefix="/latest_protocols", tags=["latest_protocols"])
 api_router.include_router(soft_delete.router, prefix="/soft_delete", tags=["soft_delete"])
+api_router.include_router(latest_approved_document.router, prefix="/latest_approved_document", tags=["Latest Approved Documents"])
 
 
                       

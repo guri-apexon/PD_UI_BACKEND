@@ -25,9 +25,12 @@ class CRUDProtocols(CRUDBase[PD_Protocols, ProtocolCreate, ProtocolUpdate]):
                                             timeCreated=obj_in.timeCreated,
                                             userUpdated=obj_in.userUpdated,
                                             lastUpdated=obj_in.lastUpdated, )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except Exception as ex:
+            db.rollback()
         return db_obj
 
     def update(
