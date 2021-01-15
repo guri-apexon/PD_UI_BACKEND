@@ -21,9 +21,12 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
                                     iqvdataSoaStd=obj_in.iqvdataSoaStd, 
                                     iqvdataSummary=obj_in.iqvdataSummary,
                                     iqvdata=obj_in.iqvdata, )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except Exception as ex:
+            db.rollback()
         return db_obj
 
     def update(

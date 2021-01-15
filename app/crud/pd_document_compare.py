@@ -34,9 +34,13 @@ class CRUDDocumentCompare(CRUDBase[PD_Document_Compare, DocumentCompareCreate, D
                                     compareIqvXmlPath=obj_in.compareIqvXmlPath,
                                     updatedIqvXmlPath=obj_in.updatedIqvXmlPath,
                                     similarityScore=obj_in.similarityScore, )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except Exception as ex:
+            db.rollback()
         return db_obj
 
     def update(

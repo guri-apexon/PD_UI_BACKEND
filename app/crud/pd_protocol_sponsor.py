@@ -13,9 +13,13 @@ class CRUDProtocolSponsor(CRUDBase[PD_Protocol_Sponsor, ProtocolSponsorCreate, P
 
     def create(self, db: Session, *, obj_in: ProtocolSponsorCreate) -> PD_Protocol_Sponsor:
         db_obj = PD_Protocol_Sponsor(sponsorName=obj_in.sponsorName, )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except Exception as ex:
+            db.rollback()
         return db_obj
 
     def update(

@@ -6,6 +6,7 @@ from app.crud.base import CRUDBase
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
 from sqlalchemy.sql import text
+from sqlalchemy import or_
 from app import crud, schemas
 from elasticsearch import Elasticsearch
 from app.utilities.config import settings
@@ -76,9 +77,12 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                             protocol=obj_in.protocol,
                                             projectId=obj_in.projectId,
                                             sponsor=obj_in.sponsor,)
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except Exception as ex:
+            db.rollback()
         return db_obj
 
     def update(
@@ -94,9 +98,11 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
     def get_by_protocol(self, db: Session, protocol: str) -> Optional[PD_Protocol_Metadata]:
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol).all()
     
+
     def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.userId == userId, PD_Protocol_Metadata.isActive == True).order_by(PD_Protocol_Metadata.timeCreated.desc()).all()
+
 
     def get_latest_protocol(self, db: Session, protocol: str, versionNumber:str) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on protocol and versionNumber"""
@@ -122,6 +128,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                 delFilter= ("{}='{}' and {}".format(key,filt,delFilter))
         return (res.filter(text(delFilter[:-4])).all())
 
+
     def execute_metadata_by_deleteCondition(self, db: Session, records:Any,is_Active:bool) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
         for record in records:
@@ -138,5 +145,11 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                 db.rollback()
 
         return records
+    
 
+    def get_latest_approved_document(self, db: Session, protocol: str) -> Optional[PD_Protocol_Metadata]:
+        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol).filter(or_(PD_Protocol_Metadata.amendment == 'N',
+                PD_Protocol_Metadata.amendment == 'Y')).filter(PD_Protocol_Metadata.documentStatus == 'final').all()
+
+            
 pd_protocol_metadata = CRUDProtocolMetadata(PD_Protocol_Metadata)

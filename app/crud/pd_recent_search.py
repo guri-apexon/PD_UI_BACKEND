@@ -16,9 +16,12 @@ class CRUDRecentSearch(CRUDBase[PD_Protocol_Recent_Search, RecentSearchCreate, R
                                         userId=obj_in.userId,
                                         timeCreated=obj_in.timeCreated,
                                         lastUpdated=obj_in.lastUpdated, )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except Exception as ex:
+            db.rollback()
         return db_obj
 
     def update(

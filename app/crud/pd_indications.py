@@ -13,9 +13,12 @@ class CRUDPDIndications(CRUDBase[PD_Protocol_Indication, IndicationsCreate, Indi
 
     def create(self, db: Session, *, obj_in: IndicationsCreate) -> PD_Protocol_Indication:
         db_obj = PD_Protocol_Indication(indicationName=obj_in.indicationName, )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except Exception as ex:
+            db.rollback()
         return db_obj
 
     def update(

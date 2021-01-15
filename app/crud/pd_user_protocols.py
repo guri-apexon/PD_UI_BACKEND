@@ -22,9 +22,12 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                             timeCreated=obj_in.timeCreated,
                                             userUpdated=obj_in.userUpdated,
                                             lastUpdated=obj_in.lastUpdated, )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except Exception as ex:
+            db.rollback()
         return db_obj
 
     def update(self, db: Session, *, db_obj:UserProtocolUpdate, obj_in: Union[UserProtocolUpdate, Dict[str, Any]]) -> PD_User_Protocols:
