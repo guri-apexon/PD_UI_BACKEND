@@ -35,6 +35,9 @@ def download(file_path):
     Download file for given path.
     """
     if os.path.isfile(file_path):
-        shutil.copy(file_path, settings.PROTOCOL_FOLDER)
+        try:
+            shutil.copy(file_path, settings.PROTOCOL_FOLDER)
+        except Exception as ex:
+            return "Downloading error"
         return FileResponse(path=file_path)
     return None
