@@ -9,7 +9,7 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.ProtocolMetadata])
+@router.get("/", response_model=schemas.ProtocolMetadata)
 def read_lastest_apporved_document_metadata(
         db: Session = Depends(deps.get_db),
         protocol: str = None,

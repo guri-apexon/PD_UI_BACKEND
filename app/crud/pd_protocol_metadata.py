@@ -151,7 +151,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
 
     def get_latest_approved_document(self, db: Session, protocol: str) -> Optional[PD_Protocol_Metadata]:
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol).filter(or_(PD_Protocol_Metadata.amendment == 'N',
-                PD_Protocol_Metadata.amendment == 'Y')).filter(PD_Protocol_Metadata.documentStatus == 'final').all()
+                PD_Protocol_Metadata.amendment == 'Y')).filter(PD_Protocol_Metadata.documentStatus == 'final').order_by(PD_Protocol_Metadata.uploadDate.desc()).first()
 
             
 pd_protocol_metadata = CRUDProtocolMetadata(PD_Protocol_Metadata)
