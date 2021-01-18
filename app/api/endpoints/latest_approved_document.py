@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=schemas.ProtocolMetadata)
-def read_lastest_apporved_document_metadata(
+def read_latest_approved_document_metadata(
         db: Session = Depends(deps.get_db),
         protocol: str = None,
 ) -> Any:
