@@ -96,7 +96,8 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return super().update(db, db_obj=db_obj, obj_in=update_data)
     
     def get_by_protocol(self, db: Session, protocol: str) -> Optional[PD_Protocol_Metadata]:
-        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol).all()
+        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol, PD_Protocol_Metadata.isActive == True, 
+                                                        PD_Protocol_Metadata.status == "PROCESS_COMPLETED").all()
     
 
     def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[PD_Protocol_Metadata]:
