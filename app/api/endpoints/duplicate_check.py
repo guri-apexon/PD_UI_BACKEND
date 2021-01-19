@@ -16,9 +16,10 @@ def read_duplicate_attributes(
         protocolNumber: str = None,
         versionNumber: str = None,
         amendmentNumber: str = None,
+        documentStatus: str = None,
 ) -> Any:
     """
     Retrieve Duplicate Attributes.
     """
-    duplicate_attributes = crud.pd_protocol_metadata.duplicate_check(db, sponsor, protocolNumber, versionNumber, amendmentNumber, documentStatus="final")
+    duplicate_attributes = crud.pd_protocol_metadata.duplicate_check(db, sponsor, protocolNumber, versionNumber, amendmentNumber, documentStatus)
     return duplicate_attributes
