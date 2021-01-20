@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # Added for elastic soft delete integration in backend
     ELASTIC_HOST = 'ca2spdml04q'
     ELASTIC_PORT = 9200
-    ELASTIC_INDEX = "pd-index"
+    ELASTIC_INDEX = "pd-index-3"
     
     class Config:
         env_file = ".env"
