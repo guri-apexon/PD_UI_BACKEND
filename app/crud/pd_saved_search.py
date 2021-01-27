@@ -32,6 +32,9 @@ class CRUDSavedSearch(CRUDBase[PD_Protocol_Saved_Search, SavedSearchCreate, Save
         else:
             update_data = obj_in.dict(exclude_unset=True)
         return super().update(db, db_obj=db_obj, obj_in=update_data)
-
+    
+    def get_by_userId(self, db: Session, userId: str) -> Optional[PD_Protocol_Saved_Search]:
+        """Retrieves a record based on primary key or id"""
+        return db.query(PD_Protocol_Saved_Search).filter(PD_Protocol_Saved_Search.userId == userId).order_by(PD_Protocol_Saved_Search.timeCreated.desc()).all()
 
 pd_saved_search = CRUDSavedSearch(PD_Protocol_Saved_Search)
