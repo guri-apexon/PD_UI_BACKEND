@@ -12,7 +12,7 @@ router = APIRouter()
 @router.get("/", response_model=List[schemas.ProtocolMetadata])
 def read_protocol_metadata(
         db: Session = Depends(deps.get_db),
-        userId: str = "userId",
+        userId: str = None,
 ) -> Any:
     """
     Retrieve all Protocol Sponsors.
