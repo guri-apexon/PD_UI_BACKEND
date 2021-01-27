@@ -5,8 +5,9 @@ from fastapi import HTTPException
 from app.crud.base import CRUDBase
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
+from app.models.pd_user_protocols import PD_User_Protocols
 from sqlalchemy.sql import text
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from app import crud, schemas
 from elasticsearch import Elasticsearch
 from app.utilities.config import settings
@@ -99,14 +100,15 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol, PD_Protocol_Metadata.isActive == True, 
                                                         PD_Protocol_Metadata.status == "PROCESS_COMPLETED").all()
 
-
+    # used in comparison of associated documents by protocol  
     def associated_docs_by_protocol(self, db: Session, protocol: str) -> Optional[PD_Protocol_Metadata]:
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol, PD_Protocol_Metadata.isActive == True).all()
-    
-
+        
     def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
-        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.userId == userId, PD_Protocol_Metadata.isActive == True).order_by(PD_Protocol_Metadata.timeCreated.desc()).all()
+        return db.query(PD_Protocol_Metadata).filter(and_(or_(PD_Protocol_Metadata.protocol.in_(db.query(
+                        PD_User_Protocols.protocol).filter(PD_User_Protocols.userId == userId).subquery()), 
+                        PD_Protocol_Metadata.userId == userId), PD_Protocol_Metadata.isActive == True)).order_by(PD_Protocol_Metadata.timeCreated.desc()).all()
 
 
     def get_latest_protocol(self, db: Session, protocol: str, versionNumber:str) -> Optional[PD_Protocol_Metadata]:
