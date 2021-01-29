@@ -12,13 +12,11 @@ router = APIRouter()
 @router.get("/", response_model=List[schemas.ProtocolSponsor])
 def read_protocol_sponsors(
         db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
 ) -> Any:
     """
     Retrieve all Protocol Sponsors.
     """
-    protocol_sponsors = crud.pd_protocol_sponsor.get_multi(db, skip=skip, limit=limit)
+    protocol_sponsors = crud.pd_protocol_sponsor.get_all(db)
     return protocol_sponsors
 
 

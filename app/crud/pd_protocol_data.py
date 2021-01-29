@@ -10,6 +10,10 @@ from app.schemas.pd_protocol_data import ProtocolDataCreate, ProtocolDataUpdate,
 class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDataUpdate]):
     def get_by_id(self, db: Session, *, id: Any) -> Optional[PD_Protocol_Data]:
         return db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id).first()
+    
+    def get(self, db: Session, id: Any) -> Optional[PD_Protocol_Data]:
+        """Retrieves a record based on primary key or id"""
+        return db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id, PD_Protocol_Data.isActive == True).first()
 
     def create(self, db: Session, *, obj_in: ProtocolDataCreate) -> PD_Protocol_Data:
         db_obj = PD_Protocol_Data(id=obj_in.id,

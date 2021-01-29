@@ -12,13 +12,11 @@ router = APIRouter()
 @router.get("/", response_model=List[schemas.Indications])
 def read_indications(
         db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
 ) -> Any:
     """
     Retrieve users.
     """
-    indications = crud.pd_indication.get_multi(db, skip=skip, limit=limit)
+    indications = crud.pd_indication.get_all(db)
     return indications
 
 
