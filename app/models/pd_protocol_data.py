@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import Column, DateTime, Integer, String, Boolean
 from datetime import datetime
 from app.db.base_class import Base
 
@@ -16,3 +16,4 @@ class PD_Protocol_Data(Base):
     iqvdataSoaStd = Column(String, nullable=True)
     iqvdataSummary = Column(String, nullable=True)
     iqvdata = Column(String, nullable=True)
+    isActive = Column(Boolean, default=True)

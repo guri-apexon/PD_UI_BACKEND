@@ -14,6 +14,7 @@ class ProtocolDataBase(BaseModel):
     iqvdataSoaStd: Optional[str] = None
     iqvdataSummary: Optional[str] = None
     iqvdata: Optional[str] = None
+    isActive: Optional[bool] = None
 
 
 # Properties to receive via API on creation
@@ -27,6 +28,7 @@ class ProtocolDataCreate(ProtocolDataBase):
     iqvdataSoaStd: str
     iqvdataSummary: str
     iqvdata: str
+    isActive: bool
 
 
 # Properties to receive via API on update
