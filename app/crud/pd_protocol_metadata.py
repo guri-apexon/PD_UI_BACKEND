@@ -28,6 +28,10 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
 
     def get_by_id(self, db: Session, *, id: int) -> Optional[PD_Protocol_Metadata]:
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == id).first()
+    
+    def get(self, db: Session, id: Any) -> Optional[PD_Protocol_Metadata]:
+        """Retrieves a record based on primary key or id"""
+        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()
 
     def create(self, db: Session, *, obj_in: ProtocolMetadataCreate) -> PD_Protocol_Metadata:
         db_obj = PD_Protocol_Metadata(id=obj_in.id,
