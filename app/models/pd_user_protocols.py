@@ -12,7 +12,7 @@ class PD_User_Protocols(Base):
     userId = Column(String, primary_key=True)
     protocol = Column(String, nullable=True)
     projectId = Column(String, nullable=False)
-    sponsor = Column(String, nullable=False)
+    #sponsor = Column(String, nullable=False)
     follow = Column(Boolean, default=False)
     userRole = Column(String, default="primary")
     timeCreated = Column(DateTime(timezone=True), nullable=True)

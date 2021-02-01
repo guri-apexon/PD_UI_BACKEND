@@ -5,31 +5,35 @@ from pydantic import BaseModel
 
 # Shared properties
 class UserProtocolBase(BaseModel):
-    isActive: Optional[bool] = None
-    id: Optional[str] = None
     userId: Optional[str] = None
     protocol: Optional[str] = None
-    follow: Optional[bool] = None
     userRole: Optional[str] = None
     userCreated: Optional[str] = None
-    timeCreated: Optional[datetime] = None
-    lastUpdated: Optional[datetime] = None
     userUpdated: Optional[str] = None
 
 
 # Properties to receive via API on creation
 class UserProtocolCreate(UserProtocolBase):
     isActive: bool
-    id: str
     userId: str
     protocol: str
     follow: bool = True
     userRole: str = "secondary"
     userCreated: str
     userCreated: str
-    timeCreated: datetime  
-    lastUpdated: datetime 
+    timeCreated: datetime
+    lastUpdated: datetime
     userUpdated: str 
+
+
+class UserProtocolAdd(UserProtocolBase):
+    userId: str
+    protocol: str
+    projectId: str
+    userRole: str
+    userCreated: str
+    userUpdated: str
+
 
 
 
