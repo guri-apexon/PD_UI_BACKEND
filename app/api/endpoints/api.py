@@ -20,6 +20,7 @@ from app.api.endpoints import mCRA
 from app.api.endpoints import soft_delete
 from app.api.endpoints import latest_approved_document
 from app.api.endpoints import associated_docs
+from app.api.endpoints import user_protocol
 
 
 api_router = APIRouter()
@@ -43,5 +44,6 @@ api_router.include_router(mCRA.router, prefix="/latest_protocols", tags=["latest
 api_router.include_router(soft_delete.router, prefix="/soft_delete", tags=["soft_delete"])
 api_router.include_router(latest_approved_document.router, prefix="/latest_approved_document", tags=["Latest Approved Documents"])
 api_router.include_router(associated_docs.router, prefix="/associated_docs", tags=["Associated Documents by protocols"])
+api_router.include_router(user_protocol.router, prefix="/user_protocol", tags=["User Protocol"])
 
                       
