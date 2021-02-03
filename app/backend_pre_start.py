@@ -6,6 +6,8 @@ import logging
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
 
 from app.db.session import SessionLocal
+from app.logger_config import initialize_logger
+from app.utilities.config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,6 +37,8 @@ def db_status() -> None:
 
 
 def main() -> None:
+    initialize_logger(settings.PROJECT_NAME)
+    logger.info("Logger Initialized")
     logger.info("Initializing service")
     db_status()
     logger.info("Service finished initializing")

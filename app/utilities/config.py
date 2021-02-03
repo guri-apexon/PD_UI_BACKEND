@@ -10,6 +10,12 @@ class Settings(BaseSettings):
     ELASTIC_HOST: str
     ELASTIC_PORT: int
     ELASTIC_INDEX: str
+    # Logstash for Kibana
+    LOGSTASH_HOST: str
+    LOGSTASH_PORT: int
+    LOGSTASH_ENABLED: bool
+
+    DEBUG: bool
     
     class Config:
         env_file = ".env"
