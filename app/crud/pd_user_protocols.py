@@ -81,7 +81,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
     def get_by_userid_protocol(self, db: Session, userid: Any, protocol: Any) -> PD_User_Protocols:
         """Deletes record in DB table"""
         return db.query(self.model).filter(PD_User_Protocols.userId == userid).filter(
-            PD_User_Protocols.protocol == protocol).first()
+            PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive=='1').first()
 
 
 pd_user_protocols = CRUDUserProtocols(PD_User_Protocols)
