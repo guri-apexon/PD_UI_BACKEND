@@ -4,6 +4,6 @@ from fastapi.responses import PlainTextResponse
 router = APIRouter()
 
 
-@router.get("/healthcheck", response_class=PlainTextResponse)
+@router.get("/", response_class=PlainTextResponse)
 def healthcheck():
     return "ACCEPTING_REQUEST"
