@@ -6,4 +6,4 @@ router = APIRouter()
 
 @router.get("/", response_class=PlainTextResponse)
 def healthcheck():
-    return "ACCEPTING_REQUEST"
+    return "F5-UP"
