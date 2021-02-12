@@ -33,7 +33,8 @@ class CRUDDocumentCompare(CRUDBase[PD_Document_Compare, DocumentCompareCreate, D
                                     baseIqvXmlPath=obj_in.baseIqvXmlPath,
                                     compareIqvXmlPath=obj_in.compareIqvXmlPath,
                                     updatedIqvXmlPath=obj_in.updatedIqvXmlPath,
-                                    similarityScore=obj_in.similarityScore, )
+                                    similarityScore=obj_in.similarityScore,
+                                    swap=obj_in.swap, )
         
         try:
             db.add(db_obj)
@@ -53,7 +54,24 @@ class CRUDDocumentCompare(CRUDBase[PD_Document_Compare, DocumentCompareCreate, D
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
     def get_by_docId(self, db: Session, id1: Any, id2: Any) -> Optional[PD_Document_Compare]:
-        return db.query(PD_Document_Compare).filter(PD_Document_Compare.id1 == id1).filter(PD_Document_Compare.id2 == id2).first()
-
-
+        record = db.query(PD_Document_Compare).filter(PD_Document_Compare.id1 == id1).filter(PD_Document_Compare.id2 == id2).first()
+        if record:
+            record.swap = False
+            try:
+                db.add(record)
+                db.commit()
+                return db.query(PD_Document_Compare).filter(PD_Document_Compare.id1 == id1).filter(PD_Document_Compare.id2 == id2).first()
+            except Exception as ex:
+                db.rollback()    
+        else:
+            record = db.query(PD_Document_Compare).filter(PD_Document_Compare.id1 == id2).filter(PD_Document_Compare.id2 == id1).first()
+            record.swap = True
+            try:
+                db.add(record)
+                db.commit()
+                return db.query(PD_Document_Compare).filter(PD_Document_Compare.id1 == id2).filter(PD_Document_Compare.id2 == id1).first()
+            except Exception as ex:
+                db.rollback()    
+        
+    
 pd_document_compare = CRUDDocumentCompare(PD_Document_Compare)
