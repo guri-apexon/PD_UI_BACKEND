@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, String, VARCHAR
+from sqlalchemy import Column, DateTime, Integer, String, VARCHAR, Boolean
 from datetime import datetime
 from app.db.base_class import Base
 
@@ -8,7 +8,7 @@ class PD_Document_Compare(Base):
     __tablename__ = "pd_document_compare"
 
     
-    compareId = Column(String, primary_key=True)
+    compareId = Column(String)
     id1 = Column(String, primary_key=True)
     protocolNumber = Column(String, nullable=True)
     projectId = Column(String, nullable=True)
@@ -30,3 +30,5 @@ class PD_Document_Compare(Base):
     compareIqvXmlPath = Column(String, nullable=True)
     updatedIqvXmlPath = Column(String, nullable=True)
     similarityScore = Column(Integer, nullable=True)
+    swap = Column(Boolean, nullable=True)
+    
