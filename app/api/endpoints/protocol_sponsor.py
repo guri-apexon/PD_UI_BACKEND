@@ -16,7 +16,7 @@ def read_protocol_sponsors(
     """
     Retrieve all Protocol Sponsors.
     """
-    protocol_sponsors = crud.pd_protocol_sponsor.get_all(db)
+    protocol_sponsors = crud.pd_protocol_sponsor.get_all_sponsors_sorted(db)
     return protocol_sponsors
 
 
