@@ -16,7 +16,7 @@ def read_indications(
     """
     Retrieve users.
     """
-    indications = crud.pd_indication.get_all(db)
+    indications = crud.pd_indication.get_all_indications_sorted(db)
     return indications
 
 
