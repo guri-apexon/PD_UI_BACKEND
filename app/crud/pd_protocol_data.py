@@ -10,21 +10,21 @@ from app.schemas.pd_protocol_data import ProtocolDataCreate, ProtocolDataUpdate,
 class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDataUpdate]):
     def get_by_id(self, db: Session, *, id: Any) -> Optional[PD_Protocol_Data]:
         return db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id).first()
-    
+
     def get(self, db: Session, id: Any) -> Optional[PD_Protocol_Data]:
         """Retrieves a record based on primary key or id"""
         return db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id, PD_Protocol_Data.isActive == True).first()
 
     def create(self, db: Session, *, obj_in: ProtocolDataCreate) -> PD_Protocol_Data:
         db_obj = PD_Protocol_Data(id=obj_in.id,
-                                    userId=obj_in.userId,
-                                    fileName=obj_in.fileName,
-                                    documentFilePath=obj_in.documentFilePath,
-                                    iqvdataToc=obj_in.iqvdataToc,
-                                    iqvdataSoa=obj_in.iqvdataSoa,
-                                    iqvdataSoaStd=obj_in.iqvdataSoaStd, 
-                                    iqvdataSummary=obj_in.iqvdataSummary,
-                                    iqvdata=obj_in.iqvdata, )
+                                  userId=obj_in.userId,
+                                  fileName=obj_in.fileName,
+                                  documentFilePath=obj_in.documentFilePath,
+                                  iqvdataToc=obj_in.iqvdataToc,
+                                  iqvdataSoa=obj_in.iqvdataSoa,
+                                  iqvdataSoaStd=obj_in.iqvdataSoaStd,
+                                  iqvdataSummary=obj_in.iqvdataSummary,
+                                  iqvdata=obj_in.iqvdata, )
         try:
             db.add(db_obj)
             db.commit()
@@ -42,5 +42,10 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
             update_data = obj_in.dict(exclude_unset=True)
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
+    def save_qc_data_to_db(self, db: Session, aidoc_id: str, iqvdata_qc_file_path: str):
+        pass
+
+    def generate_iqvdata_xlsx_file(self, db: Session, aidoc_id: str):
+        pass
 
 pd_protocol_data = CRUDProtocolData(PD_Protocol_Data)
