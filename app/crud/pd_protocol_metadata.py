@@ -124,7 +124,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
     def get_qc_protocols(self, db: Session, status: str) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on user id"""
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.status == status,
-                                                     PD_Protocol_Metadata.isActive == 0).order_by(
+                                                     PD_Protocol_Metadata.isActive == 1).order_by(
             PD_Protocol_Metadata.timeCreated.desc()).all()
 
     def activate_protocol(self, db: Session, aidoc_id: str) -> Any:
