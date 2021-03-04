@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List
 
 from sqlalchemy.orm import Session
 
@@ -11,9 +11,14 @@ class CRUDProtocolSponsor(CRUDBase[PD_Protocol_Sponsor, ProtocolSponsorCreate, P
     def get_by_id(self, db: Session, *, sponsorId: int) -> Optional[PD_Protocol_Sponsor]:
         return db.query(PD_Protocol_Sponsor).filter(PD_Protocol_Sponsor.sponsorId == sponsorId).first()
 
+    def get_all_sponsors_sorted(
+            self, db: Session) -> List[PD_Protocol_Sponsor]:
+        """Retrieves all records by default and limit can be set"""
+        return db.query(self.model).order_by(self.model.sponsorName).all()
+
     def create(self, db: Session, *, obj_in: ProtocolSponsorCreate) -> PD_Protocol_Sponsor:
         db_obj = PD_Protocol_Sponsor(sponsorName=obj_in.sponsorName, )
-        
+
         try:
             db.add(db_obj)
             db.commit()

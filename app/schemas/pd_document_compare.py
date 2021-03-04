@@ -26,6 +26,7 @@ class DocumentCompareBase(BaseModel):
     compareIqvXmlPath: Optional[str] = None
     updatedIqvXmlPath: Optional[str] = None
     similarityScore: Optional[int] = None
+    swap: Optional[bool] = None
 
 
 # Properties to receive via API on creation
@@ -52,6 +53,7 @@ class DocumentCompareCreate(DocumentCompareBase):
     compareIqvXmlPath: str
     updatedIqvXmlPath: str
     similarityScore: int
+    swap: bool
 
 # Properties to receive via API on update
 class DocumentCompareUpdate(DocumentCompareBase):
@@ -69,3 +71,4 @@ class DocumentCompareInDBBase(DocumentCompareBase):
 # Additional properties to return via API
 class DocumentCompare(DocumentCompareInDBBase):
     pass
+    

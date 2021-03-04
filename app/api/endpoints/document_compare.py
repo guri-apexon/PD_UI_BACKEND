@@ -18,8 +18,8 @@ def get_compare_doc(
     """
     Get status.
     """
-    doucment_process = crud.pd_document_compare.get_by_docId(db, id1, id2)
-    return doucment_process
+    document_process = crud.pd_document_compare.get_by_docId(db, id1, id2)
+    return document_process
 
 @router.post("/", response_model=schemas.DocumentCompare)
 def create_compare_doc(
@@ -33,3 +33,4 @@ def create_compare_doc(
     document_compare = crud.pd_document_compare.create(db, obj_in=document_compare_in)
     return document_compare
 
+    

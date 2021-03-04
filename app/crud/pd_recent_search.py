@@ -1,5 +1,6 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List
 
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
@@ -11,11 +12,16 @@ class CRUDRecentSearch(CRUDBase[PD_Protocol_Recent_Search, RecentSearchCreate, R
     def get_by_id(self, db: Session, *, sponsorId: int) -> Optional[PD_Protocol_Recent_Search]:
         return db.query(PD_Protocol_Recent_Search).filter(PD_Protocol_Recent_Search.sponsorId == sponsorId).first()
 
+    def get_recent_search_by_userId(self, db: Session, userId: str) -> List[RecentSearch]:
+        """Retrieves a record based on primary key or id"""
+        return db.query(self.model).filter(self.model.userId == userId).order_by(desc(self.model.timeCreated)).\
+            limit(20).all()
+
     def create(self, db: Session, *, obj_in: RecentSearchCreate) -> PD_Protocol_Recent_Search:
         db_obj = PD_Protocol_Recent_Search(keyword=obj_in.keyword,
-                                        userId=obj_in.userId,
-                                        timeCreated=obj_in.timeCreated,
-                                        lastUpdated=obj_in.lastUpdated, )
+                                           userId=obj_in.userId,
+                                           timeCreated=obj_in.timeCreated,
+                                           lastUpdated=obj_in.lastUpdated, )
         try:
             db.add(db_obj)
             db.commit()

@@ -57,3 +57,23 @@ def delete_user_protocol(
     except Exception as ex:
         db.rollback()
     return user_protocol
+
+@router.get("/is_primary_user")
+def is_user_primary(
+        *,
+        db: Session = Depends(deps.get_db),
+        userId: str = "id",
+        protocol: str = "Protocol",
+) -> Any:
+    """
+    Check whether the given user with protocol is primary or not
+    """
+    user_protocol = crud.pd_user_protocols.get_by_userid_protocol(db, userId, protocol)
+    # if the user_protocol doesnt exist in DB
+    if not user_protocol:
+        return 0
+    else:
+        if user_protocol.userRole == "primary":
+            return 1
+        else:
+            return 0

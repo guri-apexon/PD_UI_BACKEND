@@ -15,9 +15,9 @@ def read_recent_search(
         userId: str = "userId",
 ) -> Any:
     """
-    Retrieve recent searches.
+    Retrieve top 20 recently added search keywords
     """
-    recent_search = crud.pd_recent_search.get_by_userId(db, userId)
+    recent_search = crud.pd_recent_search.get_recent_search_by_userId(db, userId)
     return recent_search
 
 
