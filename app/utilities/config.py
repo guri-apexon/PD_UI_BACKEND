@@ -3,9 +3,12 @@ from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str
+    LOGGER_NAME: str
     API: str 
     SQLALCHEMY_DATABASE_URI: str 
-    PROTOCOL_FOLDER : str
+    PROTOCOL_FOLDER: str
+
+    PROCESSING_DIR: str
     # Added for elastic soft delete integration in backend
     ELASTIC_HOST: str
     ELASTIC_PORT: int
