@@ -133,10 +133,6 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
 
     def qc_approve(self, db: Session, aidoc_id: str) -> Any:
         """QC approves for the protocol with given qid"""
-        is_qc_protocol_active = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == aidoc_id,
-                                                                  PD_Protocol_Data.isActive == 1).first()
-        if is_qc_protocol_active:
-            raise HTTPException(status_code=200, detail="Protocol is already Active")
         try:
             qc_protocol = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == aidoc_id).first()
             if not qc_protocol:
@@ -150,7 +146,7 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
                     db.rollback()
                     raise HTTPException(status_code=401,
                                         detail=f"Exception occured during updating isActive in DB{str(ex)}")
-            qc_protocol_metadata = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata == aidoc_id).first()
+            qc_protocol_metadata = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id).first()
             if not qc_protocol_metadata:
                 raise HTTPException(status_code=401, detail="Record not found for the given aidoc id")
             else:

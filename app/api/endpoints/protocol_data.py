@@ -97,9 +97,9 @@ def read_protocol_metadata(
     """
     if aidoc_id is not None:
         try:
-            protocol_metadata = crud.pd_protocol_data.qc_approve(db, aidoc_id)
-            return protocol_metadata
+            crud.pd_protocol_data.qc_approve(db, aidoc_id)
+            return True
         except Exception as ex:
-            raise HTTPException(status_code=403, detail=f'Exception occured {ex}')
+            raise HTTPException(status_code=403, detail=f'Exception occured in qc_approve {ex}')
     else:
         raise HTTPException(status_code=404, detail="No aidoc_id provided.")
