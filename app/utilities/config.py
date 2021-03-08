@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     PROTOCOL_FOLDER: str
 
     PROCESSING_DIR: str
+    PROTOCOL_DATA_API_URL: str
     # Added for elastic soft delete integration in backend
     ELASTIC_HOST: str
     ELASTIC_PORT: int

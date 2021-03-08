@@ -1,16 +1,17 @@
 from typing import Any, Dict, Optional, Union
 
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
-from app.crud.base import CRUDBase
-from app.models.pd_protocol_metadata import PD_Protocol_Metadata
-from app.models.pd_protocol_data import PD_Protocol_Data
-from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
-from app.models.pd_user_protocols import PD_User_Protocols
-from sqlalchemy.sql import text
-from sqlalchemy import or_, and_
-from app import crud, schemas
 from elasticsearch import Elasticsearch
+from fastapi import HTTPException
+from sqlalchemy import or_, and_
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
+
+from app import crud
+from app.crud.base import CRUDBase
+from app.models.pd_protocol_data import PD_Protocol_Data
+from app.models.pd_protocol_metadata import PD_Protocol_Metadata
+from app.models.pd_user_protocols import PD_User_Protocols
+from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
 from app.utilities.config import settings
 
 
@@ -177,30 +178,35 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                                                 PD_Protocol_Metadata.status == "QC1").first()
         is_protocol_inactive = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Data.id == aidoc_id,
                                                                      PD_Protocol_Data.isActive == 0).first()
-        if is_protocol_qc1:
-            raise HTTPException(status_code=200, detail="Protocol is already in QC2 status")
-
-        if is_protocol_inactive:
-            raise HTTPException(status_code=200, detail="Protocol is already in de-active state")
-
-        qc_protocol_metadata = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id,
-                                                                     PD_Protocol_Metadata.status == "QC2").first()
-        qc_protocol_data = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == aidoc_id,
-                                                             PD_Protocol_Data.isActive == 1).first()
-        if not qc_protocol_metadata or qc_protocol_data:
-            raise HTTPException(status_code=401, detail="No QC record found for the given aidoc id for rejection")
-        else:
+        if not is_protocol_qc1:
+            qc_protocol_metadata = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id,
+                                                                         PD_Protocol_Metadata.status == "QC2").first()
+            if not qc_protocol_metadata:
+                raise HTTPException(status_code=401, detail="No QC record found for the given aidoc id for rejection")
             try:
                 qc_protocol_metadata.status = "QC1"
-                qc_protocol_data.isActive = 0
                 db.commit()
                 db.refresh(qc_protocol_metadata)
+                return True
+            except Exception as ex:
+                db.rollback()
+                raise HTTPException(status_code=401,
+                                    detail=f"Exception occured during updating QC Rejection Process {str(ex)}")
+        if not is_protocol_inactive:
+            qc_protocol_data = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == aidoc_id,
+                                                                 PD_Protocol_Data.isActive == 1).first()
+            if not qc_protocol_data:
+                raise HTTPException(status_code=401,
+                                    detail="No QC record found for the given aidoc id in qc_protocol_data")
+            try:
+                qc_protocol_data.isActive = 0
+                db.commit()
                 db.refresh(qc_protocol_data)
                 return True
             except Exception as ex:
                 db.rollback()
                 raise HTTPException(status_code=401,
-                                    detail=f"Exception occured during updating QC1 to QC2 in DB{str(ex)}")
+                                    detail=f"Exception occured during updating QC Rejection Process {str(ex)}")
 
     def get_latest_protocol(self, db: Session, protocol: str, versionNumber: str) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on protocol and versionNumber"""
