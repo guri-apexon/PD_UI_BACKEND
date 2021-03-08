@@ -6,9 +6,12 @@ import logging
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
 
 from app.db.session import SessionLocal
+from app.loggerconfig import initialize_logger
+
+from app.utilities.config import settings
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 max_tries = 60 * 5  # 5 minutes
 wait_seconds = 1
@@ -35,6 +38,8 @@ def db_status() -> None:
 
 
 def main() -> None:
-    logger.info("Initializing service")
+    initialize_logger()
+    logger.info("pd-ui-backend: Logger Initialized")
+    logger.info("pd-ui-backend: Initializing service")
     db_status()
-    logger.info("Service finished initializing")
+    logger.info("pd-ui-backend: Service finished initializing")
