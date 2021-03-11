@@ -174,39 +174,31 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
 
     def qc_reject(self, db: Session, aidoc_id: str) -> Any:
         """Retrieves a record based on user id"""
-        is_protocol_qc1 = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id,
-                                                                PD_Protocol_Metadata.status == "QC1").first()
-        is_protocol_inactive = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Data.id == aidoc_id,
-                                                                     PD_Protocol_Data.isActive == 0).first()
-        if not is_protocol_qc1:
-            qc_protocol_metadata = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id,
-                                                                         PD_Protocol_Metadata.status == "QC2").first()
-            if not qc_protocol_metadata:
-                raise HTTPException(status_code=401, detail="No QC record found for the given aidoc id for rejection")
-            try:
-                qc_protocol_metadata.status = "QC1"
-                db.commit()
-                db.refresh(qc_protocol_metadata)
-                return True
-            except Exception as ex:
-                db.rollback()
-                raise HTTPException(status_code=401,
-                                    detail=f"Exception occured during updating QC Rejection Process {str(ex)}")
-        if not is_protocol_inactive:
-            qc_protocol_data = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == aidoc_id,
-                                                                 PD_Protocol_Data.isActive == 1).first()
-            if not qc_protocol_data:
-                raise HTTPException(status_code=401,
-                                    detail="No QC record found for the given aidoc id in qc_protocol_data")
-            try:
-                qc_protocol_data.isActive = 0
-                db.commit()
-                db.refresh(qc_protocol_data)
-                return True
-            except Exception as ex:
-                db.rollback()
-                raise HTTPException(status_code=401,
-                                    detail=f"Exception occured during updating QC Rejection Process {str(ex)}")
+        qc_protocol_metadata = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id).first()
+        if not qc_protocol_metadata:
+            raise HTTPException(status_code=401, detail="No QC record found for the given aidoc id for rejection")
+        try:
+            qc_protocol_metadata.status = "QC1"
+            db.commit()
+            db.refresh(qc_protocol_metadata)
+        except Exception as ex:
+            db.rollback()
+            raise HTTPException(status_code=401,
+                                detail=f"Exception occured during updating QC Rejection Process {str(ex)}")
+
+        qc_protocol_data = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == aidoc_id).first()
+        if not qc_protocol_data:
+            raise HTTPException(status_code=401,
+                                detail="No QC record found for the given aidoc id in qc_protocol_data")
+        try:
+            qc_protocol_data.isActive = 0
+            db.commit()
+            db.refresh(qc_protocol_data)
+        except Exception as ex:
+            db.rollback()
+            raise HTTPException(status_code=401,
+                                detail=f"Exception occured during updating QC Rejection Process {str(ex)}")
+        return True
 
     def get_latest_protocol(self, db: Session, protocol: str, versionNumber: str) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on protocol and versionNumber"""

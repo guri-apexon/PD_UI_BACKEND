@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -8,6 +9,8 @@ from fastapi import UploadFile, HTTPException
 from starlette import status
 
 from app.utilities.config import settings
+
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 
 def save_request_file(_id, upload_file: UploadFile):
@@ -32,40 +35,52 @@ def save_request_file(_id, upload_file: UploadFile):
         raise FileNotFoundError("The Uploaded file was not been saved properly, please try again")
 
 
-def validate_qc_protocol_file(doc_id: str, file_content_type: str,
+def validate_qc_protocol_file(file_content_type: str,
                               ):
     """
-    Validates the xml file type content before processing
+    Validates the Uploaded file type content before processing
     """
-    if not (file_content_type in ['application/vnd.ms-excel',
-                                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                  'application/json']):
+    if not (file_content_type in ['application/json']):
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Invalid file uploaded received - only json or excel files are accepted",
+            detail="Invalid File Format - only json file will be accepted",
         )
 
 
 def write_data_to_json(aidoc_id: str, data: str):
-    json_object = json.dumps(data, indent=4)
-    json_file_name = os.path.join(settings.PROCESSING_DIR, aidoc_id + ".json")
-    with open(json_file_name, "w") as outfile:
-        outfile.write(json_object)
-    return json_file_name
+    try:
+        json_object = json.dumps(data, indent=4)
+        json_file_name = os.path.join(settings.PROCESSING_DIR, aidoc_id + ".json")
+        with open(json_file_name, "w") as outfile:
+            outfile.write(json_object)
+        logger.info("Writing data to JSON file completed")
+        return json_file_name
+    except Exception as ex:
+        logger.exception(f"Exception occured in writing Data to JSON file {str(ex)}")
+        raise HTTPException(status_code=401, detail=f"Exception occured in writing data to JSON file {str(ex)}")
 
 
 def write_data_to_xlsx(aidoc_id: str, data: str):
-    json_object = json.dumps(data, indent=4)
-    json_file_name = os.path.join(settings.PROCESSING_DIR, aidoc_id + ".json")
-    with open(json_file_name, "w") as outfile:
-        outfile.write(json_object)
-    excel_file_name = os.path.join(settings.PROCESSING_DIR, aidoc_id + ".xlsx")
+    """
+    Currently writes iqvdataToc and iqvdataSummary into Excel file
+    """
     try:
-        json_file_obj = open(json_file_name)
-        json_data = json.load(json_file_obj)
-        file_df = pd.DataFrame(data=list(json_data.items()))
-        file_df_transpose = file_df.T
-        file_df_transpose.to_excel(excel_file_name, index=False, engine='xlsxwriter')
+        json_object = json.dumps(data, indent=4)
+        json_file_name = os.path.join(settings.PROCESSING_DIR, aidoc_id + ".json")
+        with open(json_file_name, "w") as outfile:
+            outfile.write(json_object)
+
+        excel_file_name = os.path.join(settings.PROCESSING_DIR, aidoc_id + ".xlsx")
+        toc_file_obj = open(json_file_name)
+        full_json = json.load(toc_file_obj)
+        toc_details = json.loads(json.loads(full_json['iqvdataToc']))
+        toc_df = pd.DataFrame(data=toc_details['data'], columns=toc_details['columns'])
+
+        with pd.ExcelWriter(excel_file_name) as writer:
+            toc_df.to_excel(writer, index=False, sheet_name="TOC")
+            writer.save()
+        logger.info(f"Writing data to XLSX file completed : {excel_file_name}")
+        return excel_file_name
     except Exception as ex:
-        raise HTTPException(status_code=403, detail=f"Exception Occurred : {str(ex)}")
-    return excel_file_name
+        logger.exception(f"Exception occured in writing Data to XLSX file {str(ex)}")
+        raise HTTPException(status_code=401, detail=f"Exception occured in writing data to XLSX file {str(ex)}")
