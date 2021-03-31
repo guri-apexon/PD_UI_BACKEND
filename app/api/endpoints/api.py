@@ -22,6 +22,7 @@ from app.api.endpoints import latest_approved_document
 from app.api.endpoints import associated_docs
 from app.api.endpoints import user_protocol
 from app.api.endpoints import health_check
+from app.api.endpoints import keyword_search
 
 
 api_router = APIRouter()
@@ -47,5 +48,4 @@ api_router.include_router(soft_delete.router, prefix="/soft_delete", tags=["soft
 api_router.include_router(latest_approved_document.router, prefix="/latest_approved_document", tags=["Latest Approved Documents"])
 api_router.include_router(associated_docs.router, prefix="/associated_docs", tags=["Associated Documents by protocols"])
 api_router.include_router(user_protocol.router, prefix="/user_protocol", tags=["User Protocol"])
-
-                      
+api_router.include_router(keyword_search.router, prefix="/keyword_search", tags=["Keyword Search"])

@@ -12,3 +12,4 @@ from .pd_document_compare import DocumentCompare, DocumentCompareCreate, Documen
 from .pd_protocol_data import ProtocolData, ProtocolDataCreate, ProtocolDataUpdate, ProtocolDataReadIqvdataBase, \
     ProtocolDataReadIqvdata
 from .pd_user_protocols import UserProtocol, UserProtocolCreate, UserProtocolUpdate, UserProtocolBase, UserProtocolAdd
+from .pd_search import SearchJson
