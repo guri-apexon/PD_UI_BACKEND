@@ -95,7 +95,7 @@ def create_sort_query(sortField, sortOrder):
         sort_orders = ["asc", "desc"]
         sort_query = list()
         if sortField in sort_fields and sortOrder in sort_orders:
-            query = {sortField + ".keyword": {"order": "asc"}}
+            query = {sortField + ".keyword": {"order": sortOrder}}
             sort_query.append(query)
         else:
             sort_query = False
