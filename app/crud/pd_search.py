@@ -42,7 +42,7 @@ def create_keyword_filter_query(keyword_list, field):
 
 def create_date_range_query(dateFrom, dateTo, dateType):
     try:
-        date_type_values = ["uploadDate", "approvalDate"]
+        date_type_values = ["uploadDate", "approval_date"]
         if dateType == "uploadDate" and len(dateFrom) == 8:
             dateFrom = dateFrom + "000000"
         if dateType == "uploadDate" and len(dateTo) == 8:
