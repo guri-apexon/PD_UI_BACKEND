@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     LOGSTASH_HOST: str
     LOGSTASH_PORT: int
     LOGSTASH_ENABLED: bool
+    MANAGEMENT_SERVICE_URL: str
+    MANAGEMENT_SERVICE_HEALTH_URL:str
 
     DEBUG: bool
     
