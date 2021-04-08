@@ -9,7 +9,8 @@ from starlette import status
 from app import crud, schemas
 from app.api import deps
 from app.utilities.config import settings
-from app.utilities.file_utils import validate_qc_protocol_file, save_request_file
+from app.utilities.file_utils import validate_qc_protocol_file, save_request_file, \
+    post_qc_approval_complete_to_mgmt_service
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -104,17 +105,21 @@ async def qc1_protocol_upload(*,
 def read_protocol_metadata(
         db: Session = Depends(deps.get_db),
         aidoc_id: str = None,
+        approvedBy: str = None,
 ) -> Any:
     """
     Retrieve all Protocol Sponsors.
     """
-    if aidoc_id is not None:
+    if aidoc_id is not None and approvedBy is not None:
         try:
             crud.pd_protocol_data.qc_approve(db, aidoc_id)
+            logger.info(f'pd-ui-backend {aidoc_id}: qc_approve completed')
+            # Make a post call to management service end point with aidoc_id and approvedBy
+            post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
             return True
         except Exception as ex:
-            logger.exception(f'pd-ui-backend: Exception occured in qc_approve {str(ex)}')
-            raise HTTPException(status_code=403, detail=f'Exception occured in qc_approve {str(ex)}')
+            logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred in qc_approve {str(ex)}')
+            raise HTTPException(status_code=403, detail=f'Exception occurred in qc_approve {str(ex)}')
     else:
-        logger.exception(f'pd-ui-backend: Exception occured - no aidoc_id provided')
+        logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred - no aidoc_id / approvedBy is provided')
         raise HTTPException(status_code=404, detail="No aidoc_id provided.")
