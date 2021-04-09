@@ -150,9 +150,9 @@ def query_elastic(search_json_in: schemas.SearchJson):
             res = False
 
         if dynamic_filter_res:
-            phases = list({val['_source']['phase'] for val in dynamic_filter_res['hits']['hits']})
-            indications = list({val['_source']['Indication'] for val in dynamic_filter_res['hits']['hits']})
-            sponsors = list({val['_source']['SponsorName'] for val in dynamic_filter_res['hits']['hits']})
+            phases = list({val['_source']['phase'] for val in dynamic_filter_res['hits']['hits'] if 'phase' in val['_source']})
+            indications = list({val['_source']['Indication'] for val in dynamic_filter_res['hits']['hits'] if 'Indication' in val['_source']})
+            sponsors = list({val['_source']['SponsorName'] for val in dynamic_filter_res['hits']['hits'] if 'SponsorName' in val['_source']})
         else:
             phases = []
             indications = []
