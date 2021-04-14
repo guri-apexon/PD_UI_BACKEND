@@ -169,12 +169,12 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
             res = res['hits']['hits']
             res = {"data": [val["_source"] for val in res]}
             for row in res['data']:
-                t = follow_dict.get(row['ProtocolNo'], '0')
-                if t == '0':
-                    row['Follow'] = '0'
+                t = follow_dict.get(row['ProtocolNo'], False)
+                if t == False:
+                    row['Follow'] = False
                     row['UserRole'] = 'secondary'
                 else:
-                    row['Follow'] = t.get('follow', '0')
+                    row['Follow'] = t.get('follow', False)
                     row['UserRole'] = t.get('userRole', 'secondary')
             res["count"] = len(res["data"])
             res["pageNo"] = search_json_in.pageNo
