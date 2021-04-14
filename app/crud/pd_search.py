@@ -1,8 +1,12 @@
 import logging
 
+import concurrent.futures
 from app import schemas
 from app.utilities.config import settings
 from app.utilities.elastic_utilities import search_elastic
+from app.models.pd_user_protocols import PD_User_Protocols
+
+import pandas as pd
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -104,8 +108,14 @@ def create_sort_query(sortField, sortOrder):
         sort_query = False
     return sort_query
 
+def get_follow_by_qid(params):
+    qID, db = params
+    return db.query(PD_User_Protocols.userId,
+                    PD_User_Protocols.protocol,
+                    PD_User_Protocols.follow,
+                    PD_User_Protocols.userRole).filter(PD_User_Protocols.userId == qID).all()
 
-def query_elastic(search_json_in: schemas.SearchJson):
+def query_elastic(search_json_in: schemas.SearchJson, db):
     try:
         dynamic_filter_query = dict()
         dynamic_filter_query["from"] = (search_json_in.pageNo - 1) * search_json_in.pageSize
@@ -136,12 +146,36 @@ def query_elastic(search_json_in: schemas.SearchJson):
         dynamic_filter_query['_source'] = ["SponsorName", "Indication", "phase"]
         logger.info(search_query)
 
-        res = search_elastic(search_query)
-        dynamic_filter_res = search_elastic(dynamic_filter_query)
+        # user_protocols = get_follow_by_qid((search_json_in.qID, db))
+        # res = search_elastic(search_query)
+        # dynamic_filter_res = search_elastic(dynamic_filter_query)
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            user_protocols = executor.submit(get_follow_by_qid, (search_json_in.qID, db))
+            res = executor.submit(search_elastic, search_query)
+            dynamic_filter_res = executor.submit(search_elastic, dynamic_filter_query)
+
+            user_protocols = user_protocols.result()
+            res = res.result()
+            dynamic_filter_res = dynamic_filter_res.result()
+            executor.shutdown()
+
+
+        follow_dict = dict()
+        for row in user_protocols:
+            follow_dict[row.protocol] = {'follow': row.follow, 'userRole': row.userRole}
         if res:
             total_len = res['hits']['total']['value']
             res = res['hits']['hits']
             res = {"data": [val["_source"] for val in res]}
+            for row in res['data']:
+                t = follow_dict.get(row['ProtocolNo'], '0')
+                if t == '0':
+                    row['Follow'] = '0'
+                    row['UserRole'] = 'secondary'
+                else:
+                    row['Follow'] = t.get('follow', '0')
+                    row['UserRole'] = t.get('userRole', 'secondary')
             res["count"] = len(res["data"])
             res["pageNo"] = search_json_in.pageNo
             res["sortField"] = search_json_in.sortField
