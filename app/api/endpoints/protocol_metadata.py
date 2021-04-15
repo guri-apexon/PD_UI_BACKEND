@@ -1,16 +1,19 @@
-from typing import Any, List
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints.protocol_attributes import read_protocol_attributes
 from app.utilities.config import settings
+
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
 
-@router.get("/", response_model=List[schemas.ProtocolMetadata])
+
+@router.get("/")
 def read_protocol_metadata(
         db: Session = Depends(deps.get_db),
         userId: str = None,
@@ -28,7 +31,18 @@ def read_protocol_metadata(
                 raise HTTPException(status_code=403, detail=f'Exception occured {str(ex)}')
         else:
             try:
-                protocol_metadata = crud.pd_protocol_metadata.get_metadata_by_userId(db, userId)
+                protocol_metadata = []
+                aidoc_id_list = []
+                logger.info(f'pd-ui-backend: Getting Metadata for the userID {userId}')
+                protocol_metadata_aidoc_ids = crud.pd_protocol_metadata.get_metadata_by_userId(db, userId)
+                if protocol_metadata_aidoc_ids is not None:
+                    # Get the list of all aidoc-ids for the given userID with the earlier logic
+                    for ele in range(len(protocol_metadata_aidoc_ids)):
+                        aidoc_id_list.append(protocol_metadata_aidoc_ids[ele][0])
+                    # Call the protocol_attributes updated method with all the list of aidoc-ids
+                    for aidoc_id in aidoc_id_list:
+                        logger.info(f'pd-ui-backend: Getting Metadata to the aidocId: {aidoc_id} for userId: {userId}')
+                        protocol_metadata.append(read_protocol_attributes(db, aidoc_id))
             except Exception as ex:
                 logger.exception(f'pd-ui-backend: Exception occured in read_protocol_metadata {str(ex)}')
                 raise HTTPException(status_code=403, detail=f'Exception occured in read_protocol_metadata {str(ex)}')
@@ -69,6 +83,7 @@ def activate_protocol(
     else:
         logger.exception("pd-ui-backend: No aidoc_id provided in input")
         raise HTTPException(status_code=404, detail="No aidoc_id provided.")
+
 
 @router.put("/qc1_to_qc2", response_model=bool)
 def change_qc1_to_qc2(
