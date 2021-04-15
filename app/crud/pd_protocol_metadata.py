@@ -38,6 +38,30 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == id,
                                                      PD_Protocol_Metadata.isActive == True).first()
 
+    def get_protocol_attributes(self, db: Session, id: Any) -> Optional[PD_Protocol_Metadata]:
+        """Retrieves a record based on primary key or id"""
+        return db.query(PD_Protocol_Metadata.id,
+                        PD_Protocol_Metadata.amendment,
+                        PD_Protocol_Metadata.completenessOfDigitization,
+                        PD_Protocol_Metadata.digitizedConfidenceInterval,
+                        PD_Protocol_Metadata.documentFilePath,
+                        PD_Protocol_Metadata.documentStatus,
+                        PD_Protocol_Metadata.draftVersion,
+                        PD_Protocol_Metadata.errorCode,
+                        PD_Protocol_Metadata.errorReason,
+                        PD_Protocol_Metadata.fileName,
+                        PD_Protocol_Metadata.indication,
+                        PD_Protocol_Metadata.percentComplete,
+                        PD_Protocol_Metadata.projectId,
+                        PD_Protocol_Metadata.protocol,
+                        PD_Protocol_Metadata.sponsor,
+                        PD_Protocol_Metadata.status,
+                        PD_Protocol_Metadata.uploadDate,
+                        PD_Protocol_Metadata.userId,
+                        PD_Protocol_Metadata.versionNumber
+                        ).filter(PD_Protocol_Metadata.id == id,
+                                                                PD_Protocol_Metadata.isActive == True).first()
+
     def create(self, db: Session, *, obj_in: ProtocolMetadataCreate) -> PD_Protocol_Metadata:
         db_obj = PD_Protocol_Metadata(id=obj_in.id,
                                       userId=obj_in.userId,
@@ -115,9 +139,9 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol,
                                                      PD_Protocol_Metadata.isActive == True).all()
 
-    def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[PD_Protocol_Metadata]:
+    def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[str]:
         """Retrieves a record based on user id"""
-        return db.query(PD_Protocol_Metadata).filter(and_(or_(PD_Protocol_Metadata.protocol.in_(db.query(
+        return db.query(PD_Protocol_Metadata.id).filter(and_(or_(PD_Protocol_Metadata.protocol.in_(db.query(
             PD_User_Protocols.protocol).filter(PD_User_Protocols.userId == userId).subquery()),
                                                               PD_Protocol_Metadata.userId == userId),
                                                           PD_Protocol_Metadata.isActive == True)).order_by(
