@@ -58,7 +58,10 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                         PD_Protocol_Metadata.status,
                         PD_Protocol_Metadata.uploadDate,
                         PD_Protocol_Metadata.userId,
-                        PD_Protocol_Metadata.versionNumber
+                        PD_Protocol_Metadata.versionNumber,
+                        PD_Protocol_Metadata.protocolTitle,
+                        PD_Protocol_Metadata.moleculeDevice,
+                        PD_Protocol_Metadata.phase
                         ).filter(PD_Protocol_Metadata.id == id,
                                                                 PD_Protocol_Metadata.isActive == True).first()
 

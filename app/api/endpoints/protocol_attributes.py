@@ -47,6 +47,9 @@ def read_protocol_attributes(
             pd_attributes_for_dashboard['userId'] = attributes_from_protocol_metadata.userId
             pd_attributes_for_dashboard['status'] = attributes_from_protocol_metadata.status
             pd_attributes_for_dashboard['uploadDate'] = attributes_from_protocol_metadata.uploadDate
+            pd_attributes_for_dashboard['moleculeDevice'] = attributes_from_protocol_metadata.moleculeDevice
+            pd_attributes_for_dashboard['phase'] = attributes_from_protocol_metadata.phase
+            pd_attributes_for_dashboard['protocolTitle'] = attributes_from_protocol_metadata.protocolTitle
         else:
             logger.error(f'pd-ui-backend: No Protocol metadata found for the given aidocID')
             raise HTTPException(status_code=401, detail=f"No Protocol metadata found for the given aidocID")
@@ -55,20 +58,17 @@ def read_protocol_attributes(
         if attributes_from_protocol_qc_summary_data is not None:
             pd_attributes_for_dashboard['amendmentNumber'] = attributes_from_protocol_qc_summary_data.amendmentNumber
             pd_attributes_for_dashboard['approvalDate'] = attributes_from_protocol_qc_summary_data.approvalDate
-            pd_attributes_for_dashboard['moleculeDevice'] = attributes_from_protocol_qc_summary_data.moleculeDevice
-            pd_attributes_for_dashboard['phase'] = attributes_from_protocol_qc_summary_data.trialPhase
-            pd_attributes_for_dashboard['protocolTitle'] = attributes_from_protocol_qc_summary_data.protocolTitle
             if attributes_from_protocol_metadata.percentComplete == "100" and \
                     attributes_from_protocol_metadata.status == "PROCESS_COMPLETED":
                 pd_attributes_for_dashboard['indication'] = attributes_from_protocol_qc_summary_data.indications
                 pd_attributes_for_dashboard['sponsor'] = attributes_from_protocol_qc_summary_data.sponsor
                 pd_attributes_for_dashboard['versionNumber'] = attributes_from_protocol_qc_summary_data.versionNumber
+                pd_attributes_for_dashboard['moleculeDevice'] = attributes_from_protocol_qc_summary_data.moleculeDevice
+                pd_attributes_for_dashboard['phase'] = attributes_from_protocol_qc_summary_data.trialPhase
+                pd_attributes_for_dashboard['protocolTitle'] = attributes_from_protocol_qc_summary_data.protocolTitle
         else:
             pd_attributes_for_dashboard['amendmentNumber'] = None
             pd_attributes_for_dashboard['approvalDate'] = None
-            pd_attributes_for_dashboard['moleculeDevice'] = None
-            pd_attributes_for_dashboard['phase'] = None
-            pd_attributes_for_dashboard['protocolTitle'] = None
         return pd_attributes_for_dashboard
     except Exception as ex:
         logger.exception(f"pd-ui-backend: Exception occured in reading protocol attributes for the aidocId: {id}")
