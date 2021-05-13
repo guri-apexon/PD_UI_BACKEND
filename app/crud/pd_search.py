@@ -144,7 +144,7 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
         search_query['query']['bool']['must_not'] = {"term": {"is_active": 0}}
         search_query['_source'] = return_fields
         dynamic_filter_query['_source'] = ["SponsorName", "Indication", "phase"]
-        logger.info(search_query)
+        # logger.info(search_query)
 
         # user_protocols = get_follow_by_qid((search_json_in.qID, db))
         # res = search_elastic(search_query)
@@ -152,24 +152,27 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             user_protocols = executor.submit(get_follow_by_qid, (search_json_in.qID, db))
-            res = executor.submit(search_elastic, search_query)
+            es_res = executor.submit(search_elastic, search_query)
             dynamic_filter_res = executor.submit(search_elastic, dynamic_filter_query)
 
             user_protocols = user_protocols.result()
-            res = res.result()
+            es_res = es_res.result()
             dynamic_filter_res = dynamic_filter_res.result()
             executor.shutdown()
 
 
         follow_dict = dict()
         for row in user_protocols:
-            follow_dict[row.protocol] = {'follow': row.follow, 'userRole': row.userRole}
-        if res:
-            total_len = res['hits']['total']['value']
-            res = res['hits']['hits']
-            res = {"data": [val["_source"] for val in res]}
+            follow_dict[row.protocol.lower()] = {'follow': row.follow, 'userRole': row.userRole}
+        if es_res:
+            total_len = es_res['hits']['total']['value']
+            es_res = es_res['hits']['hits']
+            res = dict()
+            res['ResponseCode'] = 200
+            res['Message'] = 'Success'
+            res["data"] = [val["_source"] for val in es_res]
             for row in res['data']:
-                t = follow_dict.get(row['ProtocolNo'], False)
+                t = follow_dict.get(row['ProtocolNo'].lower(), False)
                 if t == False:
                     row['Follow'] = False
                     row['UserRole'] = 'secondary'
@@ -181,7 +184,14 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
             res["sortField"] = search_json_in.sortField
             res["total_count"] = total_len
         else:
-            res = False
+            res = dict()
+            res['ResponseCode'] = 200
+            res['Message'] = 'Success'
+            res['data'] = dict()
+            res["count"] = 0
+            res["pageNo"] = 0
+            res["sortField"] = 0
+            res["total_count"] = 0
 
         if dynamic_filter_res:
             phases = list({val['_source']['phase'] for val in dynamic_filter_res['hits']['hits'] if 'phase' in val['_source']})
@@ -198,5 +208,8 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
 
     except Exception as e:
         logger.exception("Exception Inside query_elastic", e)
-        res = False
+        res = dict()
+        res['ResponseCode'] = 500
+        res['Message'] = 'Internal Server Error'
+
     return res

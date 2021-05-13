@@ -14,7 +14,6 @@ class SearchBase(BaseModel):
     dateType: Optional[str] = None  # "uploadDate"
     dateFrom: Optional[str] = None  # "20210301"
     dateTo: Optional[str] = None  # "20210304"
-
     sortField: Optional[str] = None  # uploadDate, approval_date, relevancy
     sortOrder: Optional[str] = None  # asc, desc
     pageNo: Optional[int] = None
@@ -33,7 +32,6 @@ class SearchJson(SearchBase):
     dateType: str
     dateFrom: str
     dateTo: str
-
     sortField: str
     sortOrder: str
     pageNo: int

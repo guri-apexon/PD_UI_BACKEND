@@ -6,17 +6,19 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.api import deps
 from app.utilities.config import settings
-import json
+
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
 
+
 @router.post("/")
-def search_elastic(search_json_in: schemas.SearchJson, db: Session = Depends(deps.get_db)):
+def search_elastic(aidocid: str = "aidocid", db: Session = Depends(deps.get_db)):
     try:
-        logger.info("Received request in ES keyword_search: {}".format(search_json_in))
-        res = crud.query_elastic(search_json_in, db)
+        print(aidocid)
+        logger.info("Received qc elastic update request: " + str(aidocid))
+        res = crud.qc_update_elastic(aidocid, db)
     except Exception as e:
-        logger.info("Exception = ", e)
+        logger.error("Exception = ", e)
         res = dict()
         res['ResponseCode'] = 500
         res['Message'] = 'Internal Server Error'

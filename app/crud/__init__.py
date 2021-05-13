@@ -6,5 +6,6 @@ from .pd_protocol_sponsor import pd_protocol_sponsor
 from .pd_protocols import pd_protocols
 from .pd_recent_search import pd_recent_search
 from .pd_saved_search import pd_saved_search
-from .pd_search import query_elastic
 from .pd_user_protocols import pd_user_protocols
+from .pd_search import query_elastic
+from .qc_update_elastic import qc_update_elastic
