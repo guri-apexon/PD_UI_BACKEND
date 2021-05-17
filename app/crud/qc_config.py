@@ -12,16 +12,3 @@ summary_es_key_list = {
     "secondary_objectives":"Secondary Objectives", "study_status":"StudyStatus",
     "study_population":"Population", "molecule_device":"MoleculeDevice"
 }
-
-# es_metadata_mapping = {
-#     "ProtocolTitle": "protocol_title", "ShortTitle": "protocol_title_short", "AmendmentNumber": "amendment_number",
-#     "IsAmendment":"is_amendment", "phase": "trial_phase", "SponsorName": "sponsor", "SponsorAddress": "sponsor_address",
-#     "Drug": "drug", "approval_date": "approval_date", "VersionNumber": "version_number", "VersionDate": "version_date",
-#     "Blinding": "blinded", "Compound": "compound_number", "Control": "control", "Investigator": "investigator",
-#     "StudyId": "study_id", "NumberOfSubjects": "number_of_subjects", "ParticipantAge": "participant_age",
-#     "ParticipantSex": "participant_sex", "ExclusionSection": "exclusion_criteria", "InclusionSection": "inclusion_criteria",
-#     "Indication": "indication", "ObjectivesSection": "objectives_section", "Population": "study_population",
-#     "EntitiesInAssessments": "entities_in_assessments", "SoaEpochs": "soa_epochs", "SoaFootnote": "assessment_footnote",
-#     "uploadDate": "upload_date", "ProtocolNo": "protocol_number", "StudyStatus": "study_status",
-#     "MoleculeDevice": "molecule_device"
-# }

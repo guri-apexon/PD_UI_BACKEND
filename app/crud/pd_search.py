@@ -17,6 +17,9 @@ return_fields = ["AiDocId", "ProtocolNo", "ProtocolTitle", "SponsorName", "Indic
 
 
 def create_keyword_query(search_json_in: schemas.SearchJson):
+    """
+        Query json for keyword i.e. text entered by user in search bar is created and returned.
+    """
     try:
         if search_json_in.key is None or search_json_in.key == '':
             return False
@@ -33,6 +36,9 @@ def create_keyword_query(search_json_in: schemas.SearchJson):
 
 
 def create_keyword_filter_query(keyword_list, field):
+    """
+    Query json for filter field selected by user is created and returned.
+    """
     try:
         if keyword_list:
             query = {'terms': {field + '.keyword': keyword_list}}
@@ -45,6 +51,10 @@ def create_keyword_filter_query(keyword_list, field):
 
 
 def create_date_range_query(dateFrom, dateTo, dateType):
+    """
+    Creates json for date range query. dateType is uploadDate and length of the date is 8, 000000 is added at end of dateFrom
+    and 235959 is to end of dateTo. Else the date values received in the request is used in the query without modification.
+    """
     try:
         date_type_values = ["uploadDate", "approval_date"]
         if dateType == "uploadDate" and len(dateFrom) == 8:
@@ -62,6 +72,14 @@ def create_date_range_query(dateFrom, dateTo, dateType):
 
 
 def create_filter_query(search_json_in: schemas.SearchJson):
+    """
+    Query json for filters selected by user is created and returned. Filter values that can be selected by user are for
+    1. Indication
+    2. Sponsor
+    3. Phase
+    4. Document Status
+    5. Date range
+    """
     try:
         filter_query = list()
         # Indication filter
@@ -94,6 +112,11 @@ def create_filter_query(search_json_in: schemas.SearchJson):
 
 
 def create_sort_query(sortField, sortOrder):
+    """
+    The create_sort_query function creates a json for the Elastic Search request to sort the response in either
+    ascending or descending order of approval or upload date. If the sortField is not the one requested in the sort_fields
+    list, the json is not created and defaults to Elastic Search sorting mechanism which is according to the search score.
+    """
     try:
         sort_fields = ["uploadDate", "approval_date"]
         sort_orders = ["asc", "desc"]
@@ -109,13 +132,28 @@ def create_sort_query(sortField, sortOrder):
     return sort_query
 
 def get_follow_by_qid(params):
-    qID, db = params
-    return db.query(PD_User_Protocols.userId,
-                    PD_User_Protocols.protocol,
-                    PD_User_Protocols.follow,
-                    PD_User_Protocols.userRole).filter(PD_User_Protocols.userId == qID).all()
+    """
+    Get the all protocol number, role a user is following.
+    """
+    try:
+        qID, db = params
+        return db.query(PD_User_Protocols.userId,
+                        PD_User_Protocols.protocol,
+                        PD_User_Protocols.follow,
+                        PD_User_Protocols.userRole).filter(PD_User_Protocols.userId == qID).all()
+    except Exception as e:
+        logger.exception("Exception Inside get_follow_by_qid:", e)
+        return False
 
 def query_elastic(search_json_in: schemas.SearchJson, db):
+    """
+    1. Creates the search json to query Elastic Search with keyword passed, all the filters and sort query.
+    2. Creates the search json to query Elastic Search with keyword passed to create the dynamic filter for Indication,
+    Sponsor and Phase.
+    3. Get the protocol numbers and corresponding user roles for the documents user is following.
+    4. Populate the user role and follow status for the protocol results obtained.
+    5. Populate the dynamic filter values in the result json.
+    """
     try:
         dynamic_filter_query = dict()
         dynamic_filter_query["from"] = (search_json_in.pageNo - 1) * search_json_in.pageSize
@@ -144,11 +182,6 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
         search_query['query']['bool']['must_not'] = {"term": {"is_active": 0}}
         search_query['_source'] = return_fields
         dynamic_filter_query['_source'] = ["SponsorName", "Indication", "phase"]
-        # logger.info(search_query)
-
-        # user_protocols = get_follow_by_qid((search_json_in.qID, db))
-        # res = search_elastic(search_query)
-        # dynamic_filter_res = search_elastic(dynamic_filter_query)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             user_protocols = executor.submit(get_follow_by_qid, (search_json_in.qID, db))
