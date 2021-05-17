@@ -1,4 +1,5 @@
 import json
+import requests
 import logging
 import os
 import shutil
@@ -84,3 +85,18 @@ def write_data_to_xlsx(aidoc_id: str, data: str):
     except Exception as ex:
         logger.exception(f"Exception occured in writing Data to XLSX file {str(ex)}")
         raise HTTPException(status_code=401, detail=f"Exception occured in writing data to XLSX file {str(ex)}")
+
+
+def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy: str):
+    """
+    Make a post call to management service after QC is completed with the aidoc_id and approvedBy details
+    """
+    try:
+        management_api_url = settings.MANAGEMENT_SERVICE_URL + "pd_qc_check_update"
+        parameters = {'aidoc_id': aidoc_id, 'qcApprovedBy': qcApprovedBy}
+        requests.post(management_api_url, data=parameters)
+        logger.info(f"QC Approval Complete request sent to Management service")
+    except Exception as ex:
+        logger.exception(f"Exception occured in posting QC Approval complete to management service {str(ex)}")
+        raise HTTPException(status_code=401,
+                            detail=f"Exception occured in posting QC Approval complete to management service {str(ex)}")
