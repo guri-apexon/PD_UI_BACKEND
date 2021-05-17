@@ -4,8 +4,8 @@ from pydantic import BaseSettings
 class Settings(BaseSettings):
     PROJECT_NAME: str
     LOGGER_NAME: str
-    API: str 
-    SQLALCHEMY_DATABASE_URI: str 
+    API: str
+    SQLALCHEMY_DATABASE_URI: str
     PROTOCOL_FOLDER: str
 
     PROCESSING_DIR: str
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     MANAGEMENT_SERVICE_HEALTH_URL:str
 
     DEBUG: bool
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = True

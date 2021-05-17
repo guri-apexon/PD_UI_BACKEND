@@ -22,7 +22,8 @@ from app.api.endpoints import latest_approved_document
 from app.api.endpoints import associated_docs
 from app.api.endpoints import user_protocol
 from app.api.endpoints import health_check
-
+from app.api.endpoints import keyword_search
+from app.api.endpoints import qc_es_update
 
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
@@ -48,4 +49,6 @@ api_router.include_router(latest_approved_document.router, prefix="/latest_appro
 api_router.include_router(associated_docs.router, prefix="/associated_docs", tags=["Associated Documents by protocols"])
 api_router.include_router(user_protocol.router, prefix="/user_protocol", tags=["User Protocol"])
 
-                      
+api_router.include_router(keyword_search.router, prefix="/keyword_search", tags=["Keyword Search"])
+api_router.include_router(qc_es_update.router, prefix="/qc_es_update", tags=["QC ES Update"])
+
