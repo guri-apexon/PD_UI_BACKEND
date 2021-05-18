@@ -1,0 +1,67 @@
+variables:
+  BUILD_ENV: "pd-build-ui-backend-373"
+  RUNNING_ENV: "pd-ci-ui-backend-373"
+  PYTHON_PATH: "/D/Projects/PD/softwares/python/python-3.7.3"
+  BASE_PYTHON_PATH: "D:/Projects/PD/softwares/python/python-3.7.3"
+  VE_PATH: "${CI_BUILDS_DIR}/${RUNNING_ENV}/Scripts/activate.ps1"
+  NSSM_PATH: "/D/Projects/PD/softwares/nssm/nssm-2.24/win64/nssm.exe"
+  SERVICE_NAME: "pd-ci-ui-backend"
+  PACKAGE: "pd-ui-backend"
+  GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+  CI_DEBUG_TRACE: "false"
+
+
+stages:
+  - static_analysis
+  - build
+  - deploy
+
+default:
+  before_script:
+    - sh app/ci_scripts/create_venv.sh
+    - . $VE_PATH
+
+flake8:
+  tags:
+    - pd-dev-windows-ml01q
+  stage: static_analysis
+  script:
+    - flake8 --ignore=E ui-backend
+  allow_failure: true # Remove it, when ready
+  only:
+    - develop
+    - merge_requests
+  
+  
+build:
+  tags:
+    - pd-dev-windows-ml01q
+  stage: build
+  before_script:
+    - sh app/ci_scripts/create_venv.sh
+    - . $VE_PATH 
+  script:
+    - python setup.py sdist
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - develop
+    - merge_requests
+  
+    
+deploy-dev:
+  tags:
+    - pd-dev-windows-ml01q
+  stage: deploy
+  before_script:
+    - . $VE_PATH
+  variables:
+    VERIFICATION_URL: "http://ca2spdml01q:8000/api/health/"  
+  script:
+    - sh app/ci_scripts/deploy.sh dev
+  environment:
+    name: dev
+  only:
+    - develop
+
