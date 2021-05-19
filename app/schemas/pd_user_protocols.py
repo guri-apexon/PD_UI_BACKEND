@@ -25,6 +25,12 @@ class UserProtocolCreate(UserProtocolBase):
     lastUpdated: datetime
     userUpdated: str 
 
+class UserFollowProtocol(BaseModel):
+    userId: str
+    protocol: str
+    follow: bool = True
+    userRole: Optional[str] = "secondary"
+
 
 class UserProtocolAdd(UserProtocolBase):
     userId: str
