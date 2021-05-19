@@ -21,6 +21,7 @@ default:
     - sh app/ci_scripts/create_venv.sh
     - . $VE_PATH
 
+
 flake8:
   tags:
     - pd-dev-windows-ml01q
@@ -32,13 +33,11 @@ flake8:
     - develop
     - merge_requests
   
-  
 build:
   tags:
     - pd-dev-windows-ml01q
   stage: build
   before_script:
-    - sh app/ci_scripts/create_venv.sh
     - . $VE_PATH 
   script:
     - python setup.py sdist
@@ -49,13 +48,10 @@ build:
     - develop
     - merge_requests
   
-    
-deploy-dev:
+deploy-dev1:
   tags:
     - pd-dev-windows-ml01q
   stage: deploy
-  before_script:
-    - . $VE_PATH
   variables:
     VERIFICATION_URL: "http://ca2spdml01q:8000/api/health/"  
   script:
@@ -64,4 +60,19 @@ deploy-dev:
     name: dev
   only:
     - develop
+
+deploy-dev2:
+  tags:
+    - pd-dev-windows-ml06d
+  stage: deploy
+  variables:
+    VERIFICATION_URL: "http://ca2spdml06d:8000/api/health/"  
+  script:
+    - sh app/ci_scripts/deploy.sh dev
+  environment:
+    name: dev2
+  only:
+    - develop
+
+
 
