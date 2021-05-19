@@ -13,12 +13,13 @@ router = APIRouter()
 def follow_user_protocol(
         *,
         db: Session = Depends(deps.get_db),
-        follow_protocol_in: schemas.UserProtocolCreate,
+        follow_protocol_in: schemas.UserFollowProtocol,
 ) -> Any:
     """
     push follow protocol data.
     """
-    user_protocol = crud.pd_user_protocols.create(db, obj_in=follow_protocol_in)
+    #user_protocol = crud.pd_user_protocols.create(db, obj_in=follow_protocol_in)
+    user_protocol = crud.pd_user_protocols.follow_unfollow(db, obj_in=follow_protocol_in)
     return user_protocol
 
 

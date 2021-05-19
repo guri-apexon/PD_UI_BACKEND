@@ -4,7 +4,6 @@ from app.db.base_class import Base
 
 
 class PD_User_Protocols(Base):
-
     __tablename__ = "pd_user_protocols"
 
     isActive = Column(Boolean)
@@ -15,7 +14,7 @@ class PD_User_Protocols(Base):
     #sponsor = Column(String, nullable=False)
     follow = Column(Boolean, default=False)
     userRole = Column(String, default="primary")
-    timeCreated = Column(DateTime(timezone=True), nullable=True)
-    lastUpdated = Column(DateTime(timezone=True), nullable=True)
+    timeCreated = Column(DateTime(timezone=True), default=datetime.utcnow)
+    lastUpdated = Column(DateTime(timezone=True), default=datetime.utcnow)
     userCreated = Column(String, nullable=True)
     userUpdated = Column(String, nullable=True)

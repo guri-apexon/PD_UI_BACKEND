@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
 from app.models.pd_user_protocols import PD_User_Protocols
-from app.schemas.pd_user_protocols import UserProtocolCreate, UserProtocolUpdate, UserProtocolAdd
+from app.schemas.pd_user_protocols import UserProtocolCreate, UserProtocolUpdate, UserProtocolAdd, UserFollowProtocol
+from app import config
 
 
 class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProtocolUpdate]):
@@ -24,7 +25,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                    userCreated=obj_in.userCreated,
                                    timeCreated=obj_in.timeCreated,
                                    userUpdated=obj_in.userUpdated,
-                                   lastUpdated=obj_in.lastUpdated, )
+                                   lastUpdated=obj_in.lastUpdated)
         try:
             db.add(db_obj)
             db.commit()
@@ -32,6 +33,44 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         except Exception as ex:
             db.rollback()
         return db_obj
+
+    def follow_unfollow(self, db: Session, *, obj_in: UserFollowProtocol) -> PD_User_Protocols:
+        user_role = config.FOLLOW_DEFAUTL_ROLE if obj_in.userRole.lower() not in config.FOLLOW_ALLOWED_ROLES else obj_in.userRole
+
+        # check if record exists for the given userId and Protocol, if exists update else create new record
+        user_protocol_obj = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == obj_in.userId,
+            PD_User_Protocols.protocol == obj_in.protocol).first()
+        if user_protocol_obj:
+            try:
+                user_protocol_obj.isActive = True
+                user_protocol_obj.follow = obj_in.follow
+                user_protocol_obj.userRole = user_role
+                user_protocol_obj.lastUpdated = datetime.utcnow()
+                db.commit()
+                db.refresh(user_protocol_obj)
+            except Exception as ex:
+                db.rollback()
+                raise HTTPException(status_code=401,
+                                        detail=f"Exception occurred during follow_unfollow protocol {str(ex)}")
+            return user_protocol_obj
+        else:
+            db_obj = PD_User_Protocols(
+                                       isActive=True,
+                                       userId=obj_in.userId,
+                                       protocol=obj_in.protocol,
+                                       follow=obj_in.follow,
+                                       userRole=user_role,
+                                       lastUpdated=datetime.utcnow()
+                                    )
+            try:
+                db.add(db_obj)
+                db.commit()
+                db.refresh(db_obj)
+            except Exception as ex:
+                db.rollback()
+                raise HTTPException(status_code=401,
+                                    detail=f"Exception occurred during follow_unfollow protocol {str(ex)}")
+            return db_obj
 
     def update(self, db: Session, *, db_obj: UserProtocolUpdate,
                obj_in: Union[UserProtocolUpdate, Dict[str, Any]]) -> PD_User_Protocols:
@@ -67,9 +106,9 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                    userRole=obj_in.userRole,
                                    projectId=obj_in.projectId,
                                    userCreated=obj_in.userCreated,
-                                   timeCreated=datetime.now(),
+                                   timeCreated=datetime.utcnow(),
                                    userUpdated=obj_in.userUpdated,
-                                   lastUpdated=datetime.now(), )
+                                   lastUpdated=datetime.utcnow(), )
         try:
             db.add(db_obj)
             db.commit()
