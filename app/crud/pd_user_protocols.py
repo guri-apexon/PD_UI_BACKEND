@@ -1,13 +1,14 @@
-from typing import Any, Dict, Optional, Union
 from datetime import datetime
-from fastapi import HTTPException
+from typing import Any, Dict, Optional, Union
 
-from sqlalchemy.orm import Session
-
+from app import config
 from app.crud.base import CRUDBase
 from app.models.pd_user_protocols import PD_User_Protocols
-from app.schemas.pd_user_protocols import UserProtocolCreate, UserProtocolUpdate, UserProtocolAdd, UserFollowProtocol
-from app import config
+from app.schemas.pd_user_protocols import (UserFollowProtocol, UserProtocolAdd,
+                                           UserProtocolCreate,
+                                           UserProtocolUpdate)
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 
 class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProtocolUpdate]):
@@ -35,7 +36,8 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         return db_obj
 
     def follow_unfollow(self, db: Session, *, obj_in: UserFollowProtocol) -> PD_User_Protocols:
-        user_role = config.FOLLOW_DEFAUTL_ROLE if obj_in.userRole.lower() not in config.FOLLOW_ALLOWED_ROLES else obj_in.userRole
+        current_timestamp = datetime.utcnow()
+        user_role = config.FOLLOW_DEFAULT_ROLE if obj_in.userRole.lower() not in config.FOLLOW_ALLOWED_ROLES else obj_in.userRole
 
         # check if record exists for the given userId and Protocol, if exists update else create new record
         user_protocol_obj = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == obj_in.userId,
@@ -45,7 +47,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                 user_protocol_obj.isActive = True
                 user_protocol_obj.follow = obj_in.follow
                 user_protocol_obj.userRole = user_role
-                user_protocol_obj.lastUpdated = datetime.utcnow()
+                user_protocol_obj.lastUpdated = current_timestamp
                 db.commit()
                 db.refresh(user_protocol_obj)
             except Exception as ex:
@@ -55,12 +57,13 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             return user_protocol_obj
         else:
             db_obj = PD_User_Protocols(
-                                       isActive=True,
-                                       userId=obj_in.userId,
-                                       protocol=obj_in.protocol,
-                                       follow=obj_in.follow,
-                                       userRole=user_role,
-                                       lastUpdated=datetime.utcnow()
+                                       isActive = True,
+                                       userId = obj_in.userId,
+                                       protocol = obj_in.protocol,
+                                       follow = obj_in.follow,
+                                       userRole = user_role,
+                                       timeCreated = current_timestamp,
+                                       lastUpdated = current_timestamp
                                     )
             try:
                 db.add(db_obj)
@@ -118,7 +121,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         return db_obj
 
     def get_by_userid_protocol(self, db: Session, userid: Any, protocol: Any) -> PD_User_Protocols:
-        """Deletes record in DB table"""
+        """Retrieves record from table"""
         return db.query(self.model).filter(PD_User_Protocols.userId == userid).filter(
             PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive=='1').first()
 
