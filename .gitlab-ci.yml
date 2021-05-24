@@ -13,6 +13,7 @@ variables:
 
 stages:
   - static_analysis
+  - test
   - build
   - deploy
 
@@ -33,6 +34,24 @@ flake8:
     - develop
     - merge_requests
   
+unit-tests:
+  tags:
+      - pd-dev-windows-ml01q
+  stage: test
+  before_script:
+    - . $VE_PATH
+  script:
+    - python -m pytest -v --junit-xml=test_results.xml --cov=triage --cov-report=xml
+  allow_failure: true # 3/70 failed, need to verify
+  artifacts:
+      paths:
+      - test_results.xml
+      - coverage.xml
+  only:
+      - develop
+      - merge_requests
+
+
 build:
   tags:
     - pd-dev-windows-ml01q
