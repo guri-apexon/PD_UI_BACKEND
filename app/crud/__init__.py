@@ -1,4 +1,5 @@
-from .pd_document_compare import pd_document_compare
+from .pd_document_compare import PD_Document_Compare
+# from .pd_document_compare import pd_protocol_compare
 from .pd_indications import pd_indication
 from .pd_protocol_data import pd_protocol_data
 from .pd_protocol_metadata import pd_protocol_metadata
