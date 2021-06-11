@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     PROCESSING_DIR: str
     PROTOCOL_DATA_API_URL: str
+    COMPARE_PROCESSING_DIR: str
     # Added for elastic soft delete integration in backend
     ELASTIC_HOST: str
     ELASTIC_PORT: int
@@ -18,6 +19,7 @@ class Settings(BaseSettings):
     LOGSTASH_HOST: str
     LOGSTASH_PORT: int
     LOGSTASH_ENABLED: bool
+    PD_UI_BACKEND_URL:str
     MANAGEMENT_SERVICE_URL: str
     MANAGEMENT_SERVICE_HEALTH_URL:str
 
