@@ -3,7 +3,6 @@ from typing import Any, List
 from fastapi import APIRouter, Depends
 from app.crud.pd_document_compare import pd_document_compare
 from sqlalchemy.orm import Session
-import os
 from app import crud, schemas
 from app.api import deps
 import shutil
@@ -15,7 +14,7 @@ router = APIRouter()
 @router.get("/", response_model=schemas.DocumentCompare)
 def get_compare_doc(
         db: Session = Depends(deps.get_db),
-        id1: str = "id",
+        id1: str = "id1",
         id2: str = "id2"
 ) -> Any:
     """
@@ -28,9 +27,8 @@ def get_compare_doc(
         try:
             if document_process:
                     compare_path = document_process.compareCSVPath
-                    new_path = settings.PROCESSING_DIR
-                    transfer_path = '/'.join(new_path.split('/')[:-1])
-                    shutil.copy(compare_path, os.path.join(transfer_path,'compare_csv'))
+                    new_path = settings.COMPARE_PROCESSING_DIR
+                    shutil.copy(compare_path, new_path)
             else:
                     None
         except Exception as ex:
