@@ -14,7 +14,6 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 @router.post("/")
 def search_elastic(aidocid: str = "aidocid", db: Session = Depends(deps.get_db)):
     try:
-        print(aidocid)
         logger.info("Received qc elastic update request: " + str(aidocid))
         res = crud.qc_update_elastic(aidocid, db)
     except Exception as e:

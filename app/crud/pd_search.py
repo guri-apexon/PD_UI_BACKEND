@@ -5,6 +5,7 @@ from app import schemas
 from app.utilities.config import settings
 from app.utilities.elastic_utilities import search_elastic
 from app.models.pd_user_protocols import PD_User_Protocols
+from http import HTTPStatus
 
 import pandas as pd
 
@@ -145,7 +146,7 @@ def get_follow_by_qid(params):
         logger.exception("Exception Inside get_follow_by_qid:", e)
         return False
 
-def query_elastic(search_json_in: schemas.SearchJson, db):
+def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return_fields):
     """
     1. Creates the search json to query Elastic Search with keyword passed, all the filters and sort query.
     2. Creates the search json to query Elastic Search with keyword passed to create the dynamic filter for Indication,
@@ -155,9 +156,18 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
     5. Populate the dynamic filter values in the result json.
     """
     try:
+        if search_json_in.qID == None or search_json_in.qID == '' or search_json_in.pageNo == None or search_json_in.pageNo <= 0 or search_json_in.pageSize == None or search_json_in.pageSize <= 0:
+            res = dict()
+            res['ResponseCode'] = HTTPStatus.NOT_ACCEPTABLE
+            res['Message'] = 'Please check the page size, page no and qid passed. One of the fields is empty or incorrect value sent.'
+            logger.warning("One of the following value is incorrect, qID:{}, pageNo:{}, pageSize:{}".format(search_json_in.qID, search_json_in.pageNo, search_json_in.pageSize))
+            return res
+
         dynamic_filter_query = dict()
-        dynamic_filter_query["from"] = (search_json_in.pageNo - 1) * search_json_in.pageSize
-        dynamic_filter_query["size"] = 1000
+        dynamic_filter_query["from"] = 0
+        dynamic_filter_query["size"] = 10000
+        dynamic_filter_query['query'] = dict()
+        dynamic_filter_query['query']['bool'] = dict()
 
         search_query = dict()
         search_query["from"] = (search_json_in.pageNo - 1) * search_json_in.pageSize
@@ -169,7 +179,8 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
         if keyword_query:
             search_query['query']['bool']['must'] = list()
             search_query['query']['bool']['must'].append(keyword_query)
-            dynamic_filter_query['query'] = keyword_query
+            dynamic_filter_query['query']['bool']['must'] = list()
+            dynamic_filter_query['query']['bool']['must'].append(keyword_query)
 
         filter_query = create_filter_query(search_json_in)
         if filter_query:
@@ -181,6 +192,8 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
 
         search_query['query']['bool']['must_not'] = {"term": {"is_active": 0}}
         search_query['_source'] = return_fields
+
+        dynamic_filter_query['query']['bool']['must_not'] = {"term": {"is_active": 0}}
         dynamic_filter_query['_source'] = ["SponsorName", "Indication", "phase"]
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -193,19 +206,16 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
             dynamic_filter_res = dynamic_filter_res.result()
             executor.shutdown()
 
+        follow_dict = {row.protocol.lower(): {'follow': row.follow, 'userRole': row.userRole} for row in user_protocols}
 
-        follow_dict = dict()
-        for row in user_protocols:
-            follow_dict[row.protocol.lower()] = {'follow': row.follow, 'userRole': row.userRole}
+        res = {'ResponseCode':HTTPStatus.OK, 'Message':'Success', 'data':dict(), "count":0, "pageNo":0, "sortField":0, "total_count":0}
+
         if es_res:
             total_len = es_res['hits']['total']['value']
             es_res = es_res['hits']['hits']
-            res = dict()
-            res['ResponseCode'] = 200
-            res['Message'] = 'Success'
             res["data"] = [val["_source"] for val in es_res]
             for row in res['data']:
-                t = follow_dict.get(row['ProtocolNo'].lower(), False)
+                t = follow_dict.get(row.get('ProtocolNo', '').lower(), False)
                 if t == False:
                     row['Follow'] = False
                     row['UserRole'] = 'secondary'
@@ -216,33 +226,28 @@ def query_elastic(search_json_in: schemas.SearchJson, db):
             res["pageNo"] = search_json_in.pageNo
             res["sortField"] = search_json_in.sortField
             res["total_count"] = total_len
-        else:
-            res = dict()
-            res['ResponseCode'] = 200
-            res['Message'] = 'Success'
-            res['data'] = dict()
-            res["count"] = 0
-            res["pageNo"] = 0
-            res["sortField"] = 0
-            res["total_count"] = 0
 
         if dynamic_filter_res:
             phases = list({val['_source']['phase'] for val in dynamic_filter_res['hits']['hits'] if 'phase' in val['_source']})
             indications = list({val['_source']['Indication'] for val in dynamic_filter_res['hits']['hits'] if 'Indication' in val['_source']})
             sponsors = list({val['_source']['SponsorName'] for val in dynamic_filter_res['hits']['hits'] if 'SponsorName' in val['_source']})
+            phases.sort()
+            indications.sort()
+            sponsors.sort()
         else:
             phases = []
             indications = []
             sponsors = []
+
         res["phases"] = phases
         res["indications"] = indications
         res["sponsors"] = sponsors
 
 
-    except Exception as e:
-        logger.exception("Exception Inside query_elastic", e)
+    except Exception as ex:
+        logger.exception("Exception Inside query_elastic", ex)
         res = dict()
-        res['ResponseCode'] = 500
-        res['Message'] = 'Internal Server Error'
+        res['ResponseCode'] = HTTPStatus.INTERNAL_SERVER_ERROR
+        res['Message'] = str(ex)
 
     return res
