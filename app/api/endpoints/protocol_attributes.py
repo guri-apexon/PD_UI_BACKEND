@@ -21,7 +21,7 @@ def read_protocol_attributes(
     """
     Retrieve Protocol Attributes.
     """
-    logger.info(f"Reading Protocol attributes for the aidocId: {id}")
+    logger.debug(f"Reading Protocol attributes for the aidocId: {id}")
     pd_attributes_for_dashboard = {}
     try:
         attributes_from_protocol_metadata = crud.pd_protocol_metadata.get_protocol_attributes(db, id)

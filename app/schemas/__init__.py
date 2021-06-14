@@ -14,4 +14,4 @@ from .pd_protocol_data import ProtocolData, ProtocolDataCreate, ProtocolDataUpda
 from .pd_user_protocols import UserProtocol, UserProtocolCreate, UserProtocolUpdate, UserProtocolBase, UserProtocolAdd, \
     UserFollowProtocol
 from .pd_search import SearchJson
-
+from .pd_user_alert import UserAlertInput, UserAlert, UserAlertTestUpdate

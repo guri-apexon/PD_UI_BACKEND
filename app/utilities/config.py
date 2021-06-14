@@ -25,6 +25,9 @@ class Settings(BaseSettings):
 
     DEBUG: bool
 
+    # Protocol alerts
+    ALERT_FROM_DAYS: int
+
     class Config:
         env_file = ".env"
         case_sensitive = True
