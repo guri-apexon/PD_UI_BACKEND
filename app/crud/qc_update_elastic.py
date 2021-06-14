@@ -49,7 +49,7 @@ def qc_update_elastic(aidocid: str, db):
             res['ResponseCode'] = 200
             res['Message'] = 'Success'
         else:
-            logger.info("Entry for {} not found in PD_Protocol_QCData table".format(aidocid))
+            logger.warning("Entry for {} not found in PD_Protocol_QCData table".format(aidocid))
             res = dict()
             res['ResponseCode'] = 200
             res['Message'] = 'Entry for {} not found in db to update Elastic search.'.format(aidocid)

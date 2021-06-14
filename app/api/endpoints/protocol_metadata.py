@@ -33,7 +33,7 @@ def read_protocol_metadata(
             try:
                 protocol_metadata = []
                 aidoc_id_list = []
-                logger.info(f'pd-ui-backend: Getting Metadata for the userID {userId}')
+                logger.debug(f'pd-ui-backend: Getting Metadata for the userID {userId}')
                 protocol_metadata_aidoc_ids = crud.pd_protocol_metadata.get_metadata_by_userId(db, userId)
                 if protocol_metadata_aidoc_ids is not None:
                     # Get the list of all aidoc-ids for the given userID with the earlier logic
@@ -41,7 +41,7 @@ def read_protocol_metadata(
                         aidoc_id_list.append(protocol_metadata_aidoc_ids[ele][0])
                     # Call the protocol_attributes updated method with all the list of aidoc-ids
                     for aidoc_id in aidoc_id_list:
-                        logger.info(f'pd-ui-backend: Getting Metadata to the aidocId: {aidoc_id} for userId: {userId}')
+                        logger.debug(f'pd-ui-backend: Getting Metadata to the aidocId: {aidoc_id} for userId: {userId}')
                         protocol_metadata.append(read_protocol_attributes(db, aidoc_id))
             except Exception as ex:
                 logger.exception(f'pd-ui-backend: Exception occured in read_protocol_metadata {str(ex)}')

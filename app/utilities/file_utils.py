@@ -95,7 +95,7 @@ def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy: str):
         management_api_url = settings.MANAGEMENT_SERVICE_URL + "pd_qc_check_update"
         parameters = {'aidoc_id': aidoc_id, 'qcApprovedBy': qcApprovedBy}
         requests.post(management_api_url, data=parameters)
-        logger.info(f"QC Approval Complete request sent to Management service")
+        logger.info(f"[{aidoc_id}] QC Approval Complete request sent to Management service")
     except Exception as ex:
         logger.exception(f"Exception occured in posting QC Approval complete to management service {str(ex)}")
         raise HTTPException(status_code=401,
