@@ -25,6 +25,7 @@ from app.api.endpoints import health_check
 from app.api.endpoints import keyword_search
 from app.api.endpoints import qc_es_update
 from app.api.endpoints import user_alert
+from app.api.endpoints import notification_read
 
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
@@ -53,4 +54,5 @@ api_router.include_router(user_protocol.router, prefix="/user_protocol", tags=["
 api_router.include_router(keyword_search.router, prefix="/keyword_search", tags=["Keyword Search"])
 api_router.include_router(qc_es_update.router, prefix="/qc_es_update", tags=["QC ES Update"])
 api_router.include_router(user_alert.router, prefix="/user_alert", tags=["User Alert"])
+api_router.include_router(notification_read.router, prefix="/notification_read", tags=["User Alert Read Notification"])
 
