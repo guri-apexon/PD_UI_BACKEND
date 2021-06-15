@@ -15,3 +15,4 @@ from .pd_user_protocols import UserProtocol, UserProtocolCreate, UserProtocolUpd
     UserFollowProtocol
 from .pd_search import SearchJson
 from .pd_user_alert import UserAlertInput, UserAlert, UserAlertTestUpdate
+from .pd_notification_read import NotificationRead
