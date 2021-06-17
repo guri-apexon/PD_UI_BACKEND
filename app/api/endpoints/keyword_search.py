@@ -17,7 +17,7 @@ def search_elastic(search_json_in: schemas.SearchJson, db: Session = Depends(dep
         logger.info("Received request in ES keyword_search.search_elastic: {}".format(search_json_in))
         res = crud.query_elastic(search_json_in, db)
     except Exception as ex:
-        logger.exception("Exception Inside keyword_search.search_elastic:", ex)
+        logger.exception("Exception Inside keyword_search.search_elastic: {}".format(ex))
         res = dict()
         res['ResponseCode'] = HTTPStatus.INTERNAL_SERVER_ERROR
         res['Message'] = str(ex)

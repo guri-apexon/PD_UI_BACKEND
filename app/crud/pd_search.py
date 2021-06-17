@@ -17,7 +17,7 @@ return_fields = ["AiDocId", "ProtocolNo", "ProtocolTitle", "SponsorName", "Indic
                  ]
 
 
-def create_keyword_query(search_json_in: schemas.SearchJson):
+def create_keyword_query(search_json_in: schemas.SearchJson, apply_toc_filter = False):
     """
         Query json for keyword i.e. text entered by user in search bar is created and returned.
     """
@@ -28,11 +28,11 @@ def create_keyword_query(search_json_in: schemas.SearchJson):
         keyword_query['multi_match'] = dict()
         keyword_query['multi_match']['query'] = search_json_in.key
         keyword_query['multi_match']['type'] = "phrase"  # Need to change this on the basis of "" for phrase
-        if search_json_in.toc:
+        if apply_toc_filter and search_json_in.toc:
             keyword_query['multi_match']['fields'] = search_json_in.toc
         return keyword_query
     except Exception as e:
-        logger.exception("Exception Inside create_keyword_query function:", e)
+        logger.exception("Exception Inside create_keyword_query function: {}".format(e))
         return False
 
 
@@ -46,7 +46,7 @@ def create_keyword_filter_query(keyword_list, field):
         else:
             query = False
     except Exception as e:
-        logger.exception("Exception Inside create_keyword_filter:", e)
+        logger.exception("Exception Inside create_keyword_filter: {}".format(e))
         query = False
     return query
 
@@ -67,7 +67,7 @@ def create_date_range_query(dateFrom, dateTo, dateType):
         else:
             query = False
     except Exception as e:
-        logger.exception("Exception Inside create_date_range_query:", e)
+        logger.exception("Exception Inside create_date_range_query: {}".format(e))
         query = False
     return query
 
@@ -106,7 +106,7 @@ def create_filter_query(search_json_in: schemas.SearchJson):
         filter_query = {"bool": {"must": filter_query}}
 
     except Exception as e:
-        logger.exception("Exception Inside create_filter_query:", e)
+        logger.exception("Exception Inside create_filter_query: {}".format(e))
         filter_query = False
 
     return filter_query
@@ -128,7 +128,7 @@ def create_sort_query(sortField, sortOrder):
         else:
             sort_query = False
     except Exception as e:
-        logger.exception("Exception Inside create_sort_query:", e)
+        logger.exception("Exception Inside create_sort_query: {}".format(e))
         sort_query = False
     return sort_query
 
@@ -143,7 +143,7 @@ def get_follow_by_qid(params):
                         PD_User_Protocols.follow,
                         PD_User_Protocols.userRole).filter(PD_User_Protocols.userId == qID).all()
     except Exception as e:
-        logger.exception("Exception Inside get_follow_by_qid:", e)
+        logger.exception("Exception Inside get_follow_by_qid: {}".format(e))
         return False
 
 def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return_fields):
@@ -175,12 +175,14 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
         search_query['query'] = dict()
         search_query['query']['bool'] = dict()
 
-        keyword_query = create_keyword_query(search_json_in)
-        if keyword_query:
+        search_keyword_query = create_keyword_query(search_json_in, apply_toc_filter = True)
+        dynamic_keyword_query = create_keyword_query(search_json_in, apply_toc_filter=False)
+        if search_keyword_query:
             search_query['query']['bool']['must'] = list()
-            search_query['query']['bool']['must'].append(keyword_query)
+            search_query['query']['bool']['must'].append(search_keyword_query)
+        if dynamic_keyword_query:
             dynamic_filter_query['query']['bool']['must'] = list()
-            dynamic_filter_query['query']['bool']['must'].append(keyword_query)
+            dynamic_filter_query['query']['bool']['must'].append(dynamic_keyword_query)
 
         filter_query = create_filter_query(search_json_in)
         if filter_query:
@@ -245,7 +247,7 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
 
 
     except Exception as ex:
-        logger.exception("Exception Inside query_elastic", ex)
+        logger.exception("Exception Inside query_elastic: {}".format(ex))
         res = dict()
         res['ResponseCode'] = HTTPStatus.INTERNAL_SERVER_ERROR
         res['Message'] = str(ex)

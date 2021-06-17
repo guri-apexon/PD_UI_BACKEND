@@ -9,6 +9,7 @@ import json
 import pandas as pd
 import re
 from app.crud.qc_config import summary_es_key_list
+from http import HTTPStatus
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -18,12 +19,20 @@ def get_qc_data(aidocid, db):
                                PD_Protocol_QCData.iqvdataToc).filter(PD_Protocol_QCData.id == aidocid).all()
     return protocol_qcdata
 
-def clean_html(html_text):
-    cleanr = re.compile('<.*?>')
-    cleantext = re.sub(cleanr, '', html_text)
-    cleanr = re.compile('\n')
-    cleantext = re.sub(cleanr, '', cleantext)
-    return ' '.join(cleantext.split())
+def clean_html(table_dict):
+    try:
+        if type(table_dict) == dict:
+            html_text = ' '.join([table_dict.get('TableName', ''), table_dict.get('Table', '')])
+            cleanr = re.compile('<.*?>')
+            cleantext = re.sub(cleanr, '', html_text)
+            cleanr = re.compile('\n')
+            cleantext = re.sub(cleanr, '', cleantext)
+            print(' '.join(cleantext.split()))
+            return ' '.join(cleantext.split())
+        else:
+            return table_dict
+    except Exception as e:
+        logger.error("Exception in clean_html = {}".format(e))
 
 def qc_update_elastic(aidocid: str, db):
     try:
@@ -38,27 +47,28 @@ def qc_update_elastic(aidocid: str, db):
 
             toc_data_df = pd.DataFrame([(i[1], i[2], i[3]) for i in toc_data])
             toc_data_df.columns = ['CPT_section', 'type', 'content']
-            toc_data_df['content'] = toc_data_df[['type', 'content']].apply(lambda x: clean_html(' '.join([x['content']['TableName'], x['content']['Table']])) if x['type'] == 'table' else x['content'], axis=1)
+            toc_data_df['content'] = toc_data_df[['type', 'content']].apply(lambda x: clean_html(x['content']) if x['type'] == 'table' else x['content'], axis=1)
+
             toc_data_df = toc_data_df.groupby('CPT_section')['content'].apply(list).reset_index()
             toc_data_df['content'] = toc_data_df['content'].apply(lambda x: ' '.join(x) if type(x) == list else x) # Need to change this after handling table
             toc_data_df = {data['CPT_section']:data['content'] for data in toc_data_df.to_dict(orient = 'records')}
             es_dict.update(toc_data_df)
+            es_dict['QC_Flag'] = True
 
             update_elastic({'doc':es_dict}, aidocid)
             res = dict()
-            res['ResponseCode'] = 200
+            res['ResponseCode'] = HTTPStatus.OK
             res['Message'] = 'Success'
         else:
-            logger.warning("Entry for {} not found in PD_Protocol_QCData table".format(aidocid))
+            logger.info("Entry for {} not found in PD_Protocol_QCData table".format(aidocid))
             res = dict()
-            res['ResponseCode'] = 200
+            res['ResponseCode'] = HTTPStatus.NO_CONTENT
             res['Message'] = 'Entry for {} not found in db to update Elastic search.'.format(aidocid)
 
-    except Exception as e:
-        logger.error("Exception = ", e)
-
+    except Exception as ex:
+        logger.error("Exception Inside qc_update_elastic: {}".format(ex))
         res = dict()
-        res['ResponseCode'] = 500
-        res['Message'] = 'Internal Server Error'
+        res['ResponseCode'] = HTTPStatus.INTERNAL_SERVER_ERROR
+        res['Message'] = str(ex)
 
     return res
