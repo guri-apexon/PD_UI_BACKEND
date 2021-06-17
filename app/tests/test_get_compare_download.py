@@ -7,9 +7,10 @@ db = SessionLocal()
 
 
 @pytest.mark.parametrize("id1, id2, flag",[
-("23518cb7-a09a-4de5-9a7a-5cf71977c867", "85cc67a2-1b16-4b11-b593-86906931942f", 1),
-("1", "2", 0),
-("","",0)
+    ("0197a592-cc88-40cd-aabd-b202e17760d6", "f5798903-7034-4975-a97d-7cb8e8fb8aa2", 1),
+    # ("23518cb7-a09a-4de5-9a7a-5cf71977c867", "85cc67a2-1b16-4b11-b593-86906931942f", 1),
+    ("1", "2", 0),
+    ("","",0)
 ])
 
 def test_get_compare(id1, id2, flag):
