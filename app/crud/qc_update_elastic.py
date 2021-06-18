@@ -27,7 +27,6 @@ def clean_html(table_dict):
             cleantext = re.sub(cleanr, '', html_text)
             cleanr = re.compile('\n')
             cleantext = re.sub(cleanr, '', cleantext)
-            print(' '.join(cleantext.split()))
             return ' '.join(cleantext.split())
         else:
             return table_dict
