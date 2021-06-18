@@ -9,8 +9,10 @@ from starlette import status
 from app import crud, schemas
 from app.api import deps
 from app.utilities.config import settings
+from app import crud
 from app.utilities.file_utils import validate_qc_protocol_file, save_request_file, \
     post_qc_approval_complete_to_mgmt_service
+from http import HTTPStatus
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -115,8 +117,14 @@ def read_protocol_metadata(
             crud.pd_protocol_data.qc_approve(db, aidoc_id)
             logger.info(f'pd-ui-backend {aidoc_id}: qc_approve completed')
             # Make a post call to management service end point with aidoc_id and approvedBy
-            post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
-            return True
+            mgmt_res = post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
+
+            update_es_res = crud.qc_update_elastic(aidoc_id, db)
+            if update_es_res['ResponseCode'] == HTTPStatus.OK:
+                return True
+            else:
+                logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred in qc_approve while elastic update {update_es_res["Message"]}')
+                raise HTTPException(status_code=update_es_res['ResponseCode'], detail=update_es_res['Message'])
         except Exception as ex:
             logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred in qc_approve {str(ex)}')
             raise HTTPException(status_code=403, detail=f'Exception occurred in qc_approve {str(ex)}')
