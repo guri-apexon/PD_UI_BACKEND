@@ -2,11 +2,12 @@ from typing import Any, Dict, Optional, Union
 
 from elasticsearch import Elasticsearch
 from fastapi import HTTPException
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, case, func, literal
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
 from app import crud
+from app import config
 from app.crud.base import CRUDBase
 from app.models.pd_protocol_data import PD_Protocol_Data
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
@@ -56,12 +57,14 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                         PD_Protocol_Metadata.protocol,
                         PD_Protocol_Metadata.sponsor,
                         PD_Protocol_Metadata.status,
+                        PD_Protocol_Metadata.qcStatus,
                         PD_Protocol_Metadata.uploadDate,
                         PD_Protocol_Metadata.userId,
                         PD_Protocol_Metadata.versionNumber,
                         PD_Protocol_Metadata.protocolTitle,
                         PD_Protocol_Metadata.moleculeDevice,
-                        PD_Protocol_Metadata.phase
+                        PD_Protocol_Metadata.phase,
+                        PD_Protocol_Metadata.approvalDate
                         ).filter(PD_Protocol_Metadata.id == id,
                                                                 PD_Protocol_Metadata.isActive == True).first()
 
@@ -84,6 +87,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                       errorCode=obj_in.errorCode,
                                       errorReason=obj_in.errorReason,
                                       status=obj_in.status,
+                                      qcStatus=obj_in.qcStatus,
                                       phase=obj_in.phase,
                                       digitizedConfidenceInterval=obj_in.digitizedConfidenceInterval,
                                       completenessOfDigitization=obj_in.completenessOfDigitization,
@@ -135,26 +139,46 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
     def get_by_protocol(self, db: Session, protocol: str) -> Optional[PD_Protocol_Metadata]:
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol,
                                                      PD_Protocol_Metadata.isActive == True,
-                                                     PD_Protocol_Metadata.status == "PROCESS_COMPLETED").all()
+                                                     PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS).all()
 
     # used in comparison of associated documents by protocol  
     def associated_docs_by_protocol(self, db: Session, protocol: str) -> Optional[PD_Protocol_Metadata]:
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol,
                                                      PD_Protocol_Metadata.isActive == True).all()
 
-    def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[str]:
-        """Retrieves a record based on user id"""
-        return db.query(PD_Protocol_Metadata.id).filter(and_(or_(PD_Protocol_Metadata.protocol.in_(db.query(
-            PD_User_Protocols.protocol).filter(PD_User_Protocols.userId == userId).subquery()),
-                                                              PD_Protocol_Metadata.userId == userId),
-                                                          PD_Protocol_Metadata.isActive == True)).order_by(
-            PD_Protocol_Metadata.timeCreated.desc()).all()
+    def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[list]:
+        """Retrieves all protocol metadata along with follow flag and user roles"""
+        all_protocol_metadata = \
+            db.query(PD_Protocol_Metadata, 
+                        case(
+                                [(PD_Protocol_Metadata.userId == userId, True), 
+                                    (and_(PD_User_Protocols.userId == userId, PD_User_Protocols.userRole == config.UserRole.PRIMARY.value), True)
+                                ], 
+                                else_ = False).label('uploaded_primary_user_flg'),
+                        func.row_number().over(
+                            partition_by = PD_Protocol_Metadata.id,
+                            order_by = (PD_User_Protocols.userRole.asc(), PD_User_Protocols.follow.desc())
+                                            ).label('rank'),
+                        PD_User_Protocols.follow.label('follow_flg')
+                    ).filter(and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId), 
+                                PD_Protocol_Metadata.isActive == True, PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol)).all()
 
-    def get_qc_protocols(self, db: Session, status: str) -> Optional[PD_Protocol_Metadata]:
+        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'uploaded_or_primary_user_flg': row.uploaded_primary_user_flg}}  for row in all_protocol_metadata \
+                                        if row.rank == 1 and (row.uploaded_primary_user_flg == True or row.follow_flg == True)]
+
+        return protocol_metadata
+
+    def get_qc_protocols(self, db: Session, status: str) -> Optional[list]:
         """Retrieves a record based on user id"""
-        return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.status == status,
-                                                     PD_Protocol_Metadata.isActive == 1).order_by(
-            PD_Protocol_Metadata.timeCreated.desc()).all()
+        all_protocol_metadata = db.query(PD_Protocol_Metadata, literal(False).label('uploaded_primary_user_flg'))\
+                                        .filter(PD_Protocol_Metadata.qcStatus == status,
+                                            PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
+                                            PD_Protocol_Metadata.isActive == True)\
+                                        .order_by(PD_Protocol_Metadata.timeCreated.desc())\
+                                        .all()
+
+        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'uploaded_or_primary_user_flg': row.uploaded_primary_user_flg}}  for row in all_protocol_metadata]
+        return protocol_metadata
 
     def activate_protocol(self, db: Session, aidoc_id: str) -> Any:
         """Retrieves a record based on user id"""

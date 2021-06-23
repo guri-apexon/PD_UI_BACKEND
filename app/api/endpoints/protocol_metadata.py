@@ -1,13 +1,14 @@
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app import crud, schemas
+from app import crud, schemas, config
 from app.api import deps
 from app.api.endpoints.protocol_attributes import read_protocol_attributes
 from app.utilities.config import settings
+from app.utilities import utils
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -15,41 +16,42 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 @router.get("/")
 def read_protocol_metadata(
+        userId: str,
+        getQcInprogressAttr: bool = False,
         db: Session = Depends(deps.get_db),
-        userId: str = None,
 ) -> Any:
     """
-    Retrieve all Protocol Sponsors.
+    Retrieve Protocol metadata associated with the user
     """
-    user_input = userId
-    if user_input is not None:
-        if user_input == "QC1" or user_input == "QC2":
-            try:
-                protocol_metadata = crud.pd_protocol_metadata.get_qc_protocols(db, userId)
-            except Exception as ex:
-                logger.exception(f'pd-ui-backend: Exception occured in read_protocol_metadata {str(ex)}')
-                raise HTTPException(status_code=403, detail=f'Exception occured {str(ex)}')
+    user_input = userId.strip()
+    protocol_metadata = []
+    logger.debug(f'read_protocol_metadata: Getting Metadata for the userID {user_input}')
+    
+    if user_input is None:
+        logger.exception(f'read_protocol_metadata: No Input Provided')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No Input provided.")
+
+    try:
+        if user_input in config.qc_status_all:
+            protocol_metadata = crud.pd_protocol_metadata.get_qc_protocols(db, user_input)
+
         else:
-            try:
-                protocol_metadata = []
-                aidoc_id_list = []
-                logger.debug(f'pd-ui-backend: Getting Metadata for the userID {userId}')
-                protocol_metadata_aidoc_ids = crud.pd_protocol_metadata.get_metadata_by_userId(db, userId)
-                if protocol_metadata_aidoc_ids is not None:
-                    # Get the list of all aidoc-ids for the given userID with the earlier logic
-                    for ele in range(len(protocol_metadata_aidoc_ids)):
-                        aidoc_id_list.append(protocol_metadata_aidoc_ids[ele][0])
-                    # Call the protocol_attributes updated method with all the list of aidoc-ids
-                    for aidoc_id in aidoc_id_list:
-                        logger.debug(f'pd-ui-backend: Getting Metadata to the aidocId: {aidoc_id} for userId: {userId}')
-                        protocol_metadata.append(read_protocol_attributes(db, aidoc_id))
-            except Exception as ex:
-                logger.exception(f'pd-ui-backend: Exception occured in read_protocol_metadata {str(ex)}')
-                raise HTTPException(status_code=403, detail=f'Exception occured in read_protocol_metadata {str(ex)}')
-        return protocol_metadata
-    else:
-        logger.exception(f'pd-ui-backend: No Input Provided')
-        raise HTTPException(status_code=404, detail="No Input provided.")
+            protocol_metadata = crud.pd_protocol_metadata.get_metadata_by_userId(db, user_input)
+
+        # Enrich with QC data for all entries
+        for idx, doc_row_dict in enumerate(protocol_metadata):
+            logger.debug(f"Metadata QC update check for id: {doc_row_dict['id']}")
+            doc_row_dict['amendmentNumber'] = None # Only present in QC record
+            doc_row_dict['approvalDate'] = doc_row_dict['approvalDate'].strftime('%Y-%m-%d') if doc_row_dict['approvalDate'] is not None else None
+            
+            doc_row_dict = utils.update_qc_fields(pd_attributes_for_dashboard = doc_row_dict, \
+                                    get_qc_inprogress_attr_flg = getQcInprogressAttr, db = db)
+            protocol_metadata[idx] = doc_row_dict
+
+    except Exception as ex:
+        logger.exception(f'read_protocol_metadata: Exception occured in read_protocol_metadata {str(ex)}')
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Exception occured in read_protocol_metadata {str(ex)}')
+    return protocol_metadata
 
 
 @router.post("/", response_model=schemas.ProtocolMetadata)

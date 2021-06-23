@@ -25,6 +25,7 @@ class PD_Protocol_Metadata(Base):
     errorCode = Column(Integer, nullable=True)
     errorReason = Column(String, nullable=True)
     status = Column(String, nullable=True)
+    qcStatus = Column(String, nullable=True)
     isProcessing = Column(Boolean, default=False)
     percentComplete = Column(String, nullable=True)
     compareStatus = Column(String, nullable=True)
@@ -46,3 +47,7 @@ class PD_Protocol_Metadata(Base):
     approvalDate = Column(DateTime(timezone=True), nullable=True)
     isActive = Column(Boolean, default=True)
     nctId = Column(String, nullable=True)
+
+    def as_dict(self):
+        obj = {col.name: getattr(self, col.name) for col in self.__table__.columns}
+        return obj    
