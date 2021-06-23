@@ -28,6 +28,7 @@ class ProtocolMetadataBase(BaseModel):
     errorCode: Optional[int] = None
     errorReason: Optional[str] = None
     status: Optional[str] = None
+    qcStatus: Optional[str] = None
     phase: Optional[str] = None
     digitizedConfidenceInterval: Optional[str] = None
     completenessOfDigitization : Optional[str] = None
@@ -70,6 +71,7 @@ class ProtocolMetadataCreate(ProtocolMetadataBase):
     errorCode: int  
     errorReason: str  
     status: str 
+    qcStatus: str
     phase: str  
     digitizedConfidenceInterval: str  
     completenessOfDigitization : str  
@@ -126,6 +128,7 @@ class ProtocolStatusBase(BaseModel):
     documentFilePath: Optional[str] = None
     percentComplete: Optional[str] = None
     status: Optional[str] = None
+    qcStatus: Optional[str] = None
     errorCode: Optional[int] = None
     errorReason: Optional[str] = None
     timeCreated: Optional[datetime] = None

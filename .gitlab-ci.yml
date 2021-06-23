@@ -31,8 +31,11 @@ flake8:
     - flake8 --ignore=E ui-backend
   allow_failure: true # Remove it, when ready
   only:
-    - develop
-    - merge_requests
+    refs:
+      - develop
+      - merge_requests
+    variables: 
+      - $ENVIRONMENT== "dev"    
   
 unit-tests:
   tags:
@@ -42,14 +45,16 @@ unit-tests:
     - . $VE_PATH
   script:
     - python -m pytest -v --junit-xml=test_results.xml --cov=triage --cov-report=xml
-  allow_failure: true # 3/70 failed, need to verify
   artifacts:
       paths:
       - test_results.xml
       - coverage.xml
   only:
+    refs:
       - develop
       - merge_requests
+    variables: 
+      - $ENVIRONMENT== "dev"
 
 
 build:
@@ -64,8 +69,11 @@ build:
     paths:
       - dist/
   only:
-    - develop
-    - merge_requests
+    refs:
+      - develop
+      - merge_requests
+    variables: 
+      - $ENVIRONMENT== "dev"
   
 deploy-dev1:
   tags:
@@ -74,11 +82,14 @@ deploy-dev1:
   variables:
     VERIFICATION_URL: "http://ca2spdml01q:8000/api/health/"  
   script:
-    - sh app/ci_scripts/deploy.sh dev
+    - sh app/ci_scripts/deploy.sh dist
   environment:
     name: dev
   only:
-    - develop
+    refs:
+      - develop
+    variables: 
+      - $ENVIRONMENT== "dev"
 
 deploy-dev2:
   tags:
@@ -87,11 +98,11 @@ deploy-dev2:
   variables:
     VERIFICATION_URL: "http://ca2spdml06d:8000/api/health/"  
   script:
-    - sh app/ci_scripts/deploy.sh dev
+    - sh app/ci_scripts/deploy.sh dist
   environment:
     name: dev2
   only:
-    - develop
-
-
-
+    refs:
+      - develop
+    variables: 
+      - $ENVIRONMENT== "dev"
