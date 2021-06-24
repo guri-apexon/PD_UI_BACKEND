@@ -10,7 +10,7 @@ class ProtocolAlert(Base):
     id = Column(String(100), primary_key=True)
     aidocId = Column(String(100), primary_key=True)
     protocol = Column(String(500))
-    shortTitle = Column(String(1500))
+    protocolTitle = Column(String(1500))
     readFlag = Column(Boolean(), default=False)
     readTime = Column(DateTime(timezone=True))
     emailSentFlag = Column(Boolean(), default=False)

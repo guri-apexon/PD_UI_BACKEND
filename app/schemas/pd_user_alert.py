@@ -8,7 +8,7 @@ class UserAlertBase(BaseModel):
     protocol: Optional[str] = None
     aidocId: Optional[str] = None
     readFlag: Optional[bool] = False
-    shortTitle: Optional[str] = None
+    protocolTitle: Optional[str] = None
     timeCreated: Optional[datetime] = None
 
 class UserAlert(UserAlertBase):
