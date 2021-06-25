@@ -9,7 +9,7 @@ def update_qc_fields(pd_attributes_for_dashboard: dict, db: Session, get_qc_inpr
     attributes_from_protocol_qc_summary_data = None
     aidoc_id = pd_attributes_for_dashboard['id']
 
-    if  pd_attributes_for_dashboard['qcStatus'] == config.QcStatus.COMPLETED or get_qc_inprogress_attr_flg:          
+    if  pd_attributes_for_dashboard['qcStatus'] == config.QcStatus.COMPLETED.value or get_qc_inprogress_attr_flg:          
         attributes_from_protocol_qc_summary_data = crud.pd_protocol_qc_summary_data.get_protocol_qc_summary_attributes(db, aidoc_id)
 
     if attributes_from_protocol_qc_summary_data is not None:

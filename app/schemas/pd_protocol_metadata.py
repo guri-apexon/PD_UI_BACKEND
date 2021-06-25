@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 
 from pydantic import BaseModel
 
@@ -88,6 +88,10 @@ class ProtocolMetadataCreate(ProtocolMetadataBase):
     isActive: bool
     nctId: str
 
+class ProtocolMetadataUserId(ProtocolMetadataBase):
+    amendmentNumber: Optional[str] = None
+    approvalDate: Optional[date] = None
+    userUploadedPrimaryFlag: bool = False
 
 # Properties to receive via API on update
 class ProtocolMetadataUpdate(ProtocolMetadataBase):

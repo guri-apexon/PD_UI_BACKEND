@@ -12,7 +12,6 @@ FOLLOW_DEFAULT_ROLE = UserRole.NON_PRIMARY.value
 FOLLOW_ALLOWED_ROLES = [role.value for role in UserRole]
 
 # --------  QC status
-# VALID_QC_STATUS = ('QC_NOT_STARTED', 'QC1', 'QC2', 'QC_COMPLETED')
 @unique
 class QcStatus(Enum):
     """PD Quality Check status"""
@@ -21,8 +20,9 @@ class QcStatus(Enum):
     QC2 = 'QC2'
     COMPLETED = 'QC_COMPLETED'
 
-qc_status_all = [status.value for status in QcStatus]
+VALID_QC_STATUS = [status.value for status in QcStatus]
 
 OVERRIDE_QC_FIELDS = ()
+
 # -------------- Misc
 DIGITIZATION_COMPLETED_STATUS = "PROCESS_COMPLETED"

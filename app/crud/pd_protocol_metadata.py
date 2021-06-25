@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, Tuple
 
 from elasticsearch import Elasticsearch
 from fastapi import HTTPException
@@ -146,6 +146,14 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol,
                                                      PD_Protocol_Metadata.isActive == True).all()
 
+    def get_by_doc_id(self, db: Session, id: Any) -> Optional[list]:
+        """Retrieves a record based on primary key or id"""
+        protocol_metadata_first = db.query(PD_Protocol_Metadata
+                        ).filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()   
+
+        protocol_metadata = [protocol_metadata_first.as_dict()]
+        return protocol_metadata                                                                          
+
     def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[list]:
         """Retrieves all protocol metadata along with follow flag and user roles"""
         all_protocol_metadata = \
@@ -160,10 +168,11 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                             order_by = (PD_User_Protocols.userRole.asc(), PD_User_Protocols.follow.desc())
                                             ).label('rank'),
                         PD_User_Protocols.follow.label('follow_flg')
+                    ).join(PD_User_Protocols, PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol , isouter = True
                     ).filter(and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId), 
-                                PD_Protocol_Metadata.isActive == True, PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol)).all()
+                                PD_Protocol_Metadata.isActive == True)).all()
 
-        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'uploaded_or_primary_user_flg': row.uploaded_primary_user_flg}}  for row in all_protocol_metadata \
+        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'userUploadedPrimaryFlag': row.uploaded_primary_user_flg}}  for row in all_protocol_metadata \
                                         if row.rank == 1 and (row.uploaded_primary_user_flg == True or row.follow_flg == True)]
 
         return protocol_metadata
@@ -174,10 +183,9 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                         .filter(PD_Protocol_Metadata.qcStatus == status,
                                             PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
                                             PD_Protocol_Metadata.isActive == True)\
-                                        .order_by(PD_Protocol_Metadata.timeCreated.desc())\
                                         .all()
 
-        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'uploaded_or_primary_user_flg': row.uploaded_primary_user_flg}}  for row in all_protocol_metadata]
+        protocol_metadata = [row.PD_Protocol_Metadata.as_dict()  for row in all_protocol_metadata]
         return protocol_metadata
 
     def activate_protocol(self, db: Session, aidoc_id: str) -> Any:
