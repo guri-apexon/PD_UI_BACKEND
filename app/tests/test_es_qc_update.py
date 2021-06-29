@@ -38,10 +38,3 @@ def test_query_elastic(aidocid, insert_flag):
             assert False
         else:
             assert True
-
-
-
-
-    time_stmp = time.time()
-
-
