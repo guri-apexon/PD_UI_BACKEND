@@ -14,6 +14,7 @@ from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
 from app.utilities.config import settings
+from datetime import datetime
 
 
 def update_elstic(es_dict, update_id):
@@ -146,7 +147,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol,
                                                      PD_Protocol_Metadata.isActive == True).all()
 
-    def get_by_doc_id(self, db: Session, id: Any) -> Optional[list]:
+    async def get_by_doc_id(self, db: Session, id: Any) -> Optional[list]:
         """Retrieves a record based on primary key or id"""
         protocol_metadata_first = db.query(PD_Protocol_Metadata
                         ).filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()   
@@ -154,7 +155,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         protocol_metadata = [protocol_metadata_first.as_dict()]
         return protocol_metadata                                                                          
 
-    def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[list]:
+    async def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[list]:
         """Retrieves all protocol metadata along with follow flag and user roles"""
         all_protocol_metadata = \
             db.query(PD_Protocol_Metadata, 
@@ -177,7 +178,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
 
         return protocol_metadata
 
-    def get_qc_protocols(self, db: Session, status: str) -> Optional[list]:
+    async def get_qc_protocols(self, db: Session, status: str) -> Optional[list]:
         """Retrieves a record based on user id"""
         all_protocol_metadata = db.query(PD_Protocol_Metadata, literal(False).label('uploaded_primary_user_flg'))\
                                         .filter(PD_Protocol_Metadata.qcStatus == status,
@@ -230,6 +231,29 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                 db.rollback()
                 raise HTTPException(status_code=401,
                                     detail=f"Exception occured during updating QC1 to QC2 in DB{str(ex)}")
+
+    async def change_qc_status(self, db: Session, doc_id: str, target_status: str) -> Tuple[bool, str]:
+        """
+        Changes QC Activity status on the given doc_id
+        """
+        current_timestamp = datetime.utcnow()
+        prot_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
+
+        if not prot_metadata_doc:
+            return False, "No protocol document found for the requested doc id"
+
+        current_qc_status = prot_metadata_doc.qcStatus
+        if current_qc_status == target_status:
+            return True, f"Protocol's qcStatus is already in {target_status}"
+
+        try:
+            prot_metadata_doc.qcStatus = target_status
+            prot_metadata_doc.lastUpdated = current_timestamp
+            db.commit()
+            return True, f"Successfully changed qcStatus from {current_qc_status} to {target_status}"
+        except Exception as ex:
+            db.rollback()
+            return False, f"Exception occured during updating {current_qc_status} to {target_status} in DB [{str(ex)}]"
 
     def qc_reject(self, db: Session, aidoc_id: str) -> Any:
         """Retrieves a record based on user id"""

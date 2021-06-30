@@ -1,8 +1,7 @@
 from app import config, crud
 from sqlalchemy.orm import Session
 
-
-def update_qc_fields(pd_attributes_for_dashboard: dict, db: Session, get_qc_inprogress_attr_flg: bool = False) -> dict():
+async def update_qc_fields(pd_attributes_for_dashboard: dict, db: Session, get_qc_inprogress_attr_flg: bool = False) -> dict():
     """
         Enrich the input dictionary with QC'd data only if the QC is completed (OR) override flag 'get_qc_inprogress_attr_flg' is set
     """

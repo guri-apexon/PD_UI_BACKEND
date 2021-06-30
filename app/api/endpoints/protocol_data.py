@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -104,30 +104,39 @@ async def qc1_protocol_upload(*,
 
 
 @router.put("/qc_approve", response_model=bool)
-def read_protocol_metadata(
+async def approved_qc(
         db: Session = Depends(deps.get_db),
-        aidoc_id: str = None,
-        approvedBy: str = None,
+        aidoc_id: str = Query(..., description = "Internal document id", min_length = 1),
+        approvedBy: str = Query(..., description = "Approved UserId", min_length = 1)
 ) -> Any:
     """
-    Retrieve all Protocol Sponsors.
+    Perform following activities once the QC activity is completed and approved
+        a. Mark qcStatus as "QC_COMPLETED"
+        b. Ask mgmt svc API to insert/update qc_summary table with updated details (SRC='QC')
+        c. Update elastic search with latest details
     """
     if aidoc_id is not None and approvedBy is not None:
         try:
-            crud.pd_protocol_data.qc_approve(db, aidoc_id)
-            logger.info(f'pd-ui-backend {aidoc_id}: qc_approve completed')
-            # Make a post call to management service end point with aidoc_id and approvedBy
-            mgmt_res = post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
+            # Update qcStatus
+            qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, target_status = "QC_COMPLETED")
+            logger.debug(f"change_qc_status returned with {qc_status_update_flg}")
+            
+            # Make a post call to management service end point for post-qc process
+            mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
 
-            update_es_res = crud.qc_update_elastic(aidoc_id, db)
-            if update_es_res['ResponseCode'] == HTTPStatus.OK:
+            # Update elastic search
+            update_es_res = await crud.qc_update_elastic(aidoc_id, db)
+
+            if qc_status_update_flg and mgmt_svc_flg and update_es_res['ResponseCode'] == HTTPStatus.OK:
+                logger.info(f'pd-ui-backend {aidoc_id}: qc_approve completed successfully')
                 return True
             else:
-                logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred in qc_approve while elastic update {update_es_res["Message"]}')
-                raise HTTPException(status_code=update_es_res['ResponseCode'], detail=update_es_res['Message'])
+                logger.error(f"""pd-ui-backend {aidoc_id}: qc_approve did NOT completed successfully. \
+                                \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
+                return False
         except Exception as ex:
             logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred in qc_approve {str(ex)}')
             raise HTTPException(status_code=403, detail=f'Exception occurred in qc_approve {str(ex)}')
     else:
         logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred - no aidoc_id / approvedBy is provided')
-        raise HTTPException(status_code=404, detail="No aidoc_id provided.")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="No aidoc_id provided.")

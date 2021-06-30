@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 
 
 # Shared properties
@@ -147,6 +147,10 @@ class ProtocolStatusInDBBase(ProtocolStatusBase):
 # Additional properties to return via Duplicate check API
 class ProtocolStatus(ProtocolStatusInDBBase):
     pass
+
+class ChangeQcStatus(BaseModel):
+    docIdArray: List[constr(min_length=10, strip_whitespace=True)]
+    targetStatus: constr(regex='^QC_NOT_STARTED|QC1|QC2$', strip_whitespace=True)
 
 class ProtocolLatestRecordBase(BaseModel):   
     protocol: Optional[str] = None

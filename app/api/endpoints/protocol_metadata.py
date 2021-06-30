@@ -3,7 +3,7 @@ from typing import Any, List
 
 from app import config, crud, schemas
 from app.api import deps
-from app.schemas.pd_protocol_metadata import ProtocolMetadataUserId
+from app.schemas.pd_protocol_metadata import ProtocolMetadataUserId, ChangeQcStatus
 from app.utilities import utils
 from app.utilities.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -14,7 +14,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 
 @router.get("/", response_model = List[ProtocolMetadataUserId])
-def read_protocol_metadata(*,
+async def read_protocol_metadata(*,
         db: Session = Depends(deps.get_db),
         userId: str = Query(None, description = 'UserId associated with the document(s)', min_length=3, max_length=30),
         docId: str = Query(None, description = 'Internal document id', min_length=10, max_length=50),
@@ -36,18 +36,18 @@ def read_protocol_metadata(*,
 
     try:
         if doc_id_input is not None:
-            protocol_metadata = crud.pd_protocol_metadata.get_by_doc_id(db, id = doc_id_input)
+            protocol_metadata = await crud.pd_protocol_metadata.get_by_doc_id(db, id = doc_id_input)
         
         elif user_id_input in config.VALID_QC_STATUS:
-            protocol_metadata = crud.pd_protocol_metadata.get_qc_protocols(db, user_id_input)
+            protocol_metadata = await crud.pd_protocol_metadata.get_qc_protocols(db, user_id_input)
 
         else:
-            protocol_metadata = crud.pd_protocol_metadata.get_metadata_by_userId(db, user_id_input)
+            protocol_metadata = await crud.pd_protocol_metadata.get_metadata_by_userId(db, user_id_input)
 
         # Enrich with QC data for all documents
         for idx, doc_row_dict in enumerate(protocol_metadata):
             logger.debug(f"Metadata QC update check for id: {doc_row_dict['id']}")
-            doc_row_dict = utils.update_qc_fields(pd_attributes_for_dashboard = doc_row_dict, \
+            doc_row_dict = await utils.update_qc_fields(pd_attributes_for_dashboard = doc_row_dict, \
                                     get_qc_inprogress_attr_flg = getQcInprogressAttr, db = db)
             protocol_metadata[idx] = doc_row_dict
 
@@ -90,6 +90,31 @@ def activate_protocol(
         raise HTTPException(status_code=404, detail="No aidoc_id provided.")
 
 
+@router.put("/change_qc_status")
+async def change_qc_status(*, db: Session = Depends(deps.get_db), 
+            request_body: ChangeQcStatus) -> Any:
+    """
+    Change QC status of requested document ids
+    """
+    response_dict = dict()
+    all_success = True
+    doc_id_array = request_body.docIdArray
+    target_status = request_body.targetStatus
+    try:
+        for doc_id in doc_id_array:
+            doc_id = doc_id.strip()
+
+            update_status, message_str = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = doc_id, target_status = target_status)
+            response_dict[doc_id] = {'is_success': update_status, 'message': message_str}
+            all_success &= update_status
+        
+        logging.debug(f"all_success: {all_success}, response: {response_dict}")
+        return {'all_success': all_success, 'response': response_dict}
+    except Exception as exc:
+        logger.exception(f"Exception received which changing QC status. Exception: {str(exc)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{str(exc)}")
+
+
 @router.put("/qc1_to_qc2", response_model=bool)
 def change_qc1_to_qc2(
         db: Session = Depends(deps.get_db),
@@ -108,6 +133,7 @@ def change_qc1_to_qc2(
     else:
         logger.exception("pd-ui-backend: No aidoc_id provided in input")
         raise HTTPException(status_code=404, detail="No aidoc_id provided.")
+
 
 @router.put("/qc_reject", response_model=bool)
 def qc_reject(
