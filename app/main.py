@@ -6,6 +6,10 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api.endpoints.api import api_router
 from app.backend_pre_start import main
 from app.utilities.config import settings
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from fastapi import status, Request
+from fastapi.encoders import jsonable_encoder
 
 app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"/openapi.json")
 
@@ -20,6 +24,12 @@ app.add_middleware(CORSMiddleware,
 
 app.include_router(api_router, prefix=settings.API)
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+    )
 
 @app.on_event("startup")
 def startup_events():

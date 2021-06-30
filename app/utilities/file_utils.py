@@ -87,16 +87,23 @@ def write_data_to_xlsx(aidoc_id: str, data: str):
         raise HTTPException(status_code=401, detail=f"Exception occured in writing data to XLSX file {str(ex)}")
 
 
-def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy: str):
+async def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy: str) -> bool:
     """
-    Make a post call to management service after QC is completed with the aidoc_id and approvedBy details
+    Make a post call to management service to update qc_summary table with updated details
     """
+    mgmt_svc_status_code = status.HTTP_404_NOT_FOUND
     try:
         management_api_url = settings.MANAGEMENT_SERVICE_URL + "pd_qc_check_update"
         parameters = {'aidoc_id': aidoc_id, 'qcApprovedBy': qcApprovedBy}
-        requests.post(management_api_url, data=parameters)
-        logger.info(f"[{aidoc_id}] QC Approval Complete request sent to Management service")
+        mgmt_svc_status_code = requests.post(management_api_url, data=parameters)
+        logger.debug(f"[{aidoc_id}] QC Approval Complete request sent to Management service")
+        
+        if mgmt_svc_status_code == status.HTTP_200_OK:
+            logger.debug(f"Management service completed with success status: {mgmt_svc_status_code}")
+            return True
+        else:
+            logger.error(f"Management service returned with status: {mgmt_svc_status_code}")
+            return False
     except Exception as ex:
         logger.exception(f"Exception occured in posting QC Approval complete to management service {str(ex)}")
-        raise HTTPException(status_code=401,
-                            detail=f"Exception occured in posting QC Approval complete to management service {str(ex)}")
+        return False
