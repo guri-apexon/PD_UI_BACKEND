@@ -6,13 +6,12 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query
 from sqlalchemy.orm import Session
 from starlette import status
 
-from app import crud, schemas
+from app import crud, schemas, config
 from app.api import deps
 from app.utilities.config import settings
 from app import crud
 from app.utilities.file_utils import validate_qc_protocol_file, save_request_file, \
     post_qc_approval_complete_to_mgmt_service
-from http import HTTPStatus
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -110,33 +109,29 @@ async def approved_qc(
         approvedBy: str = Query(..., description = "Approved UserId", min_length = 1)
 ) -> Any:
     """
-    Perform following activities once the QC activity is completed and approved
-        a. Mark qcStatus as "QC_COMPLETED"
-        b. Ask mgmt svc API to insert/update qc_summary table with updated details (SRC='QC')
-        c. Update elastic search with latest details
+    Perform following activities once the QC activity is completed and approved:
+        * Mark qcStatus as complete
+        * Ask mgmt svc API to insert/update qc_summary table with updated details (SRC='QC')
+        * Update elastic search with latest details
     """
-    if aidoc_id is not None and approvedBy is not None:
-        try:
-            # Update qcStatus
-            qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, target_status = "QC_COMPLETED")
-            logger.debug(f"change_qc_status returned with {qc_status_update_flg}")
-            
-            # Make a post call to management service end point for post-qc process
-            mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
+    try:
+        # Update qcStatus
+        qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, target_status = config.QC_COMPLETED_STATUS)
+        logger.debug(f"change_qc_status returned with {qc_status_update_flg}")
+        
+        # Make a post call to management service end point for post-qc process
+        mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
 
-            # Update elastic search
-            update_es_res = await crud.qc_update_elastic(aidoc_id, db)
+        # Update elastic search
+        update_es_res = crud.qc_update_elastic(aidoc_id, db)
 
-            if qc_status_update_flg and mgmt_svc_flg and update_es_res['ResponseCode'] == HTTPStatus.OK:
-                logger.info(f'pd-ui-backend {aidoc_id}: qc_approve completed successfully')
-                return True
-            else:
-                logger.error(f"""pd-ui-backend {aidoc_id}: qc_approve did NOT completed successfully. \
-                                \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
-                return False
-        except Exception as ex:
-            logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred in qc_approve {str(ex)}')
-            raise HTTPException(status_code=403, detail=f'Exception occurred in qc_approve {str(ex)}')
-    else:
-        logger.exception(f'pd-ui-backend {aidoc_id}: Exception occurred - no aidoc_id / approvedBy is provided')
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="No aidoc_id provided.")
+        if qc_status_update_flg and mgmt_svc_flg and update_es_res['ResponseCode'] == status.HTTP_200_OK:
+            logger.info(f'{aidoc_id}: qc_approve completed successfully')
+            return True
+        else:
+            logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \
+                            \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
+            return False
+    except Exception as ex:
+        logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Exception occurred in qc_approve {str(ex)}')
