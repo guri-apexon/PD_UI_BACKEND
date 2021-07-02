@@ -15,17 +15,20 @@ db = SessionLocal()
 logger = logging.getLogger("unit-test")
 
 
-@pytest.mark.parametrize("user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments", [
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, 1, "dig complete, QC not started"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, 1, "dig complete, QC1"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC2.value, 1, "dig complete, QC2"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.COMPLETED.value, 1, "dig complete, QC_COMPLETED"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.COMPLETED.value, 1, "dig inprogress, QC_COMPLETED"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.NOT_STARTED.value, 1, "dig inprogress, QC not started"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.NOT_STARTED.value, 1, "dig error, QC not started"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.QC1.value, 1, "dig error, QC1")
+@pytest.mark.parametrize("user_id, protocol, doc_id, dig_status, set_qc_status, set_follow_flg, userUploadedPrimaryFlag, expected_flg,  comments", [
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, False, True, 1, "dig complete, QC not started"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, False, True, 1, "dig complete, QC1"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC2.value, False, True, 1, "dig complete, QC2"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.COMPLETED.value, False, True, 1, "dig complete, QC_COMPLETED"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.COMPLETED.value, False, True, 1, "dig inprogress, QC_COMPLETED"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.NOT_STARTED.value, False, True, 1, "dig inprogress, QC not started"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.NOT_STARTED.value, False, True, 1, "dig error, QC not started"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.QC1.value, False, True, 1, "dig error, QC1"),
+("1034911", "SSRUT_GEN_002", "263b3fec-07c6-4ab1-8099-230a0988f7e1", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, True, False, 1, "Following other protocol"),
+("1034911", "SSRUT_GEN_002", "263b3fec-07c6-4ab1-8099-230a0988f7e1", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, False, False, 0, "Stopped following other protocol"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, False, True, 1, "Unfollow my own protocol")
 ])
-def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments):
+def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, set_follow_flg, userUploadedPrimaryFlag, expected_flg, comments):
     current_timestamp = datetime.utcnow()
 
     protocol_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
@@ -40,14 +43,27 @@ def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, expec
         logger.error(f"test_normal_user[{comments}]: Could not locate active test file [{doc_id}]")
         assert False
 
+    # Set follow flag
+    follow_response = client.post("/api/follow_protocol/", json={"userId": user_id,  "protocol": protocol,  "follow": set_follow_flg,  "userRole": config.FOLLOW_DEFAULT_ROLE})
+    assert follow_response.status_code == 200
+
     get_protocols = client.get("/api/protocol_metadata/", params={"userId": user_id})
     assert get_protocols.status_code == status.HTTP_200_OK
 
     all_curr_user_protocol = json.loads(get_protocols.content)
+    exp_doc_list = [doc for doc in all_curr_user_protocol if doc['id'] in doc_id]
+    len_exp_doc_list = len(exp_doc_list)
+    exp_doc = exp_doc_list[0] if len_exp_doc_list > 0 else None
+    
+    # My protocols
     if expected_flg:
-        assert any([doc['id'] in doc_id for doc in all_curr_user_protocol])
+        assert len_exp_doc_list > 0
+        assert exp_doc['userUploadedPrimaryFlag'] == userUploadedPrimaryFlag  # Following protocols
     else:
-        assert any([doc['id'] in doc_id for doc in all_curr_user_protocol]) == False
+        assert len_exp_doc_list == 0
+
+    
+    
 
 @pytest.mark.parametrize("user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments", [
 ("QC1", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, 0, "dig complete, QC not started"),
@@ -127,7 +143,8 @@ def test_QC2_user(user_id, protocol, doc_id, dig_status, set_qc_status, expected
 ("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.NOT_STARTED.value, 1, "dig inprogress, QC not started"),
 ("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.NOT_STARTED.value, 1, "dig error, QC not started"),
 ("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.QC1.value, 1, "dig error, QC1"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, 1, "dig complete, QC1")
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, 1, "dig complete, QC1"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96b", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, 0, "Document not present")
 ])
 def test_single_doc_id(user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments):
     current_timestamp = datetime.utcnow()
@@ -140,9 +157,12 @@ def test_single_doc_id(user_id, protocol, doc_id, dig_status, set_qc_status, exp
         protocol_metadata_doc.lastUpdated = current_timestamp
         db.merge(protocol_metadata_doc)
         db.commit()
-    else:
+    elif expected_flg:
         logger.error(f"test_single_doc_id[{comments}]: Could not locate active test file [{doc_id}]")
         assert False
+    else:
+        assert True
+        return
 
     get_protocols = client.get("/api/protocol_metadata/", params={"docId": doc_id})
     assert get_protocols.status_code == status.HTTP_200_OK

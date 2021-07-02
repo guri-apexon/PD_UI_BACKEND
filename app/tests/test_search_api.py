@@ -119,7 +119,7 @@ def test_query_elastic(key, toc, sponsor, indication, phase, documentStatus, dat
                 if dateType == dateType_approval:
                     dateType_flag = all([data['approval_date'] >= dateFrom and data['approval_date'] <=  dateTo for data in ret_val['data']])
                 elif dateType == dateType_upload:
-                    dateType_flag = all([data['uploadDate'] >= dateFrom and data['uploadDate'] <=  dateTo for data in ret_val['data']])
+                    dateType_flag = all([data['uploadDate'] >= dateFrom+'000000' and data['uploadDate'] <=  dateTo+'235959' for data in ret_val['data']])
                 all_flags.append(dateType_flag)
                 assert dateType_flag
 

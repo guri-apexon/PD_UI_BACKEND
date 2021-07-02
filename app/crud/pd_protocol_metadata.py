@@ -149,10 +149,12 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
 
     async def get_by_doc_id(self, db: Session, id: Any) -> Optional[list]:
         """Retrieves a record based on primary key or id"""
+        protocol_metadata = []
         protocol_metadata_first = db.query(PD_Protocol_Metadata
                         ).filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()   
 
-        protocol_metadata = [protocol_metadata_first.as_dict()]
+        if protocol_metadata_first:
+            protocol_metadata = [protocol_metadata_first.as_dict()]
         return protocol_metadata                                                                          
 
     async def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[list]:
@@ -210,28 +212,6 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                 raise HTTPException(status_code=401,
                                     detail=f"Exception occured during updating isActive in DB{str(ex)}")
 
-    def qc1_to_qc2(self, db: Session, aidoc_id: str) -> Any:
-        """Retrieves a record based on user id"""
-        is_protocol_qc2 = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id,
-                                                                PD_Protocol_Metadata.status == "QC2").first()
-        if is_protocol_qc2:
-            raise HTTPException(status_code=200, detail="Protocol is already in QC2 status")
-
-        qc_protocol = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id,
-                                                            PD_Protocol_Metadata.status == "QC1").first()
-        if not qc_protocol:
-            raise HTTPException(status_code=401, detail="No QC1 record found for the given aidoc id")
-        else:
-            try:
-                qc_protocol.status = "QC2"
-                db.commit()
-                db.refresh(qc_protocol)
-                return True
-            except Exception as ex:
-                db.rollback()
-                raise HTTPException(status_code=401,
-                                    detail=f"Exception occured during updating QC1 to QC2 in DB{str(ex)}")
-
     async def change_qc_status(self, db: Session, doc_id: str, target_status: str) -> Tuple[bool, str]:
         """
         Changes QC Activity status on the given doc_id
@@ -254,34 +234,6 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         except Exception as ex:
             db.rollback()
             return False, f"Exception occured during updating {current_qc_status} to {target_status} in DB [{str(ex)}]"
-
-    def qc_reject(self, db: Session, aidoc_id: str) -> Any:
-        """Retrieves a record based on user id"""
-        qc_protocol_metadata = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id).first()
-        if not qc_protocol_metadata:
-            raise HTTPException(status_code=401, detail="No QC record found for the given aidoc id for rejection")
-        try:
-            qc_protocol_metadata.status = "QC1"
-            db.commit()
-            db.refresh(qc_protocol_metadata)
-        except Exception as ex:
-            db.rollback()
-            raise HTTPException(status_code=401,
-                                detail=f"Exception occured during updating QC Rejection Process {str(ex)}")
-
-        qc_protocol_data = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == aidoc_id).first()
-        if not qc_protocol_data:
-            raise HTTPException(status_code=401,
-                                detail="No QC record found for the given aidoc id in qc_protocol_data")
-        try:
-            qc_protocol_data.isActive = 0
-            db.commit()
-            db.refresh(qc_protocol_data)
-        except Exception as ex:
-            db.rollback()
-            raise HTTPException(status_code=401,
-                                detail=f"Exception occured during updating QC Rejection Process {str(ex)}")
-        return True
 
     def get_latest_protocol(self, db: Session, protocol: str, versionNumber: str) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on protocol and versionNumber"""

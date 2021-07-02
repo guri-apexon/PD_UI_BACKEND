@@ -1,10 +1,17 @@
+import logging
+import os
+
+from app import Constants
 from pydantic import BaseSettings
+
+logger = logging.getLogger(Constants.MICROSERVICE_NAME)
 
 
 class Settings(BaseSettings):
     PROJECT_NAME: str
     LOGGER_NAME: str
     API: str
+    APPLICATION_PORT: int
     SQLALCHEMY_DATABASE_URI: str
     PROTOCOL_FOLDER: str
 
@@ -33,5 +40,11 @@ class Settings(BaseSettings):
         case_sensitive = True
         env_file_encoding = 'utf-8'
 
+ENV_FILE = os.getenv(Constants.ENV_FILE_VAR_NAME)
+if ENV_FILE is None:
+    logger.warning(f"PD_UI_BACKEND_ENV_FILE env variable is not set. Searching the .env file in PATH location")
+    ENV_FILE='.env'
+else:
+    logger.info(f"Using PD_UI_BACKEND_ENV_FILE env file [{ENV_FILE}]")
 
-settings = Settings(_env_file='.env', _env_file_encoding='utf-8')
+settings = Settings(_env_file=ENV_FILE, _env_file_encoding='utf-8')

@@ -44,14 +44,14 @@ def shutdown_event():
 
 @click.group()
 def cli():
-    """Entry point for Extraction-Microservice functions."""
+    """Entry point for pd-ui-backend services"""
     pass
 
 
 @cli.command()
 def run():
     """
-    Start the FastAPI Text Extraction Microservice for extraction similar segments
+    Start the FastAPI internal services
     """
     uvicorn.run(app, host='0.0.0.0', port=settings.APPLICATION_PORT)
 

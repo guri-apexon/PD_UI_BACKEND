@@ -1,14 +1,15 @@
 """
 Checks statuses of all the services required for initialization of service
 """
+from app import Constants
 import logging
 
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
 
 from app.db.session import SessionLocal
-from app.loggerconfig import initialize_logger
+from app.logger_config import initialize_logger
 
-from app.utilities.config import settings
+from app.utilities.config import settings, ENV_FILE
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -38,8 +39,9 @@ def db_status() -> None:
 
 
 def main() -> None:
-    initialize_logger()
+    initialize_logger(settings.LOGGER_NAME)
     logger.info("pd-ui-backend: Logger Initialized")
     logger.info("pd-ui-backend: Initializing service")
     db_status()
+    logger.info(f"[{ENV_FILE}] env file is used  \n** Note: Searched in system env variable[{Constants.ENV_FILE_VAR_NAME}] on the system ")
     logger.info("pd-ui-backend: Service finished initializing")

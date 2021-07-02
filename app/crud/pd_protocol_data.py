@@ -160,37 +160,5 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
                 raise HTTPException(status_code=401, detail=f"Error in Generating xlsx file, No data found.")
         except Exception as ex:
             raise HTTPException(status_code=402, detail=f"Exception occured in generating iqvdata-excel-file {str(ex)}")
-
-    def qc_approve(self, db: Session, aidoc_id: str) -> Any:
-        """QC approves for the protocol with given qid"""
-        try:
-            qc_protocol = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == aidoc_id).first()
-            if not qc_protocol:
-                raise HTTPException(status_code=401, detail="Record not found for the given aidoc id")
-            else:
-                try:
-                    qc_protocol.isActive = 1
-                    db.commit()
-                    db.refresh(qc_protocol)
-                except Exception as ex:
-                    db.rollback()
-                    raise HTTPException(status_code=401,
-                                        detail=f"Exception occured during updating isActive in DB{str(ex)}")
-            qc_protocol_metadata = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id).first()
-            if not qc_protocol_metadata:
-                raise HTTPException(status_code=401, detail="Record not found for the given aidoc id")
-            else:
-                try:
-                    qc_protocol_metadata.status = "PROCESS_COMPLETED"
-                    db.commit()
-                    db.refresh(qc_protocol_metadata)
-                except Exception as ex:
-                    db.rollback()
-                    raise HTTPException(status_code=401,
-                                        detail=f"Exception occured during updating isActive in DB{str(ex)}")
-        except Exception as ex:
-            raise HTTPException(status_code=401,
-                                detail=f"Exception occured during updating isActive in DB{str(ex)}")
-
-
+  
 pd_protocol_data = CRUDProtocolData(PD_Protocol_Data)
