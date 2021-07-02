@@ -8,6 +8,7 @@ from app.utilities import utils
 from app.utilities.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from app.utilities.file_utils import post_qc_approval_complete_to_mgmt_service
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -64,7 +65,7 @@ def create_protocol_metadata(
         protocol_metadata_in: schemas.ProtocolMetadataCreate,
 ) -> Any:
     """
-    Create a new protocol sponsor.
+    Create a new protocol
     """
     protocol_metadata = crud.pd_protocol_metadata.create(db, obj_in=protocol_metadata_in)
     return protocol_metadata
@@ -76,7 +77,7 @@ def activate_protocol(
         aidoc_id: str = None,
 ) -> Any:
     """
-    Retrieve all Protocol Sponsors.
+    Activate protocol document
     """
     if aidoc_id is not None:
         try:
@@ -101,55 +102,54 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
     doc_id_array = request_body.docIdArray
     target_status = request_body.targetStatus
     try:
-        for doc_id in doc_id_array:
-            doc_id = doc_id.strip()
+        for aidocid in doc_id_array:
+            aidocid = aidocid.strip()
 
-            update_status, message_str = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = doc_id, target_status = target_status)
-            response_dict[doc_id] = {'is_success': update_status, 'message': message_str}
+            update_status, message_str = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidocid, target_status = target_status)
+            response_dict[aidocid] = {'is_success': update_status, 'message': message_str}
             all_success &= update_status
         
-        logging.debug(f"all_success: {all_success}, response: {response_dict}")
+        logger.debug(f"all_success: {all_success}, response: {response_dict}")
         return {'all_success': all_success, 'response': response_dict}
     except Exception as exc:
         logger.exception(f"Exception received which changing QC status. Exception: {str(exc)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{str(exc)}")
 
 
-@router.put("/qc1_to_qc2", response_model=bool)
-def change_qc1_to_qc2(
+@router.put("/qc_approve", response_model=bool)
+async def approve_qc(
         db: Session = Depends(deps.get_db),
-        aidoc_id: str = None,
+        aidoc_id: str = Query(..., description = "Internal document id", min_length = 1),
+        approvedBy: str = Query(..., description = "Approved UserId", min_length = 1)
 ) -> Any:
     """
-    Retrieve all Protocol Sponsors.
+    Perform following activities once the QC activity is completed and approved:
+        * Mark qcStatus as complete
+        * Ask mgmt svc API to insert/update qc_summary table with updated details (SRC='QC')
+        * Update elastic search with latest details
     """
-    if aidoc_id is not None:
-        try:
-            protocol_metadata = crud.pd_protocol_metadata.qc1_to_qc2(db, aidoc_id)
-            return protocol_metadata
-        except Exception as ex:
-            logger.exception(f'pd-ui-backend: Exception occured in change QC1 to QC2 {str(ex)}')
-            raise HTTPException(status_code=403, detail=f'Exception occured {str(ex)}')
-    else:
-        logger.exception("pd-ui-backend: No aidoc_id provided in input")
-        raise HTTPException(status_code=404, detail="No aidoc_id provided.")
+    qc_status_update_flg = False
 
+    try:
+        # Make a post call to management service end point for post-qc process
+        mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
 
-@router.put("/qc_reject", response_model=bool)
-def qc_reject(
-        db: Session = Depends(deps.get_db),
-        aidoc_id: str = None,
-) -> Any:
-    """
-    Retrieve all Protocol Sponsors.
-    """
-    if aidoc_id is not None:
-        try:
-            protocol_metadata = crud.pd_protocol_metadata.qc_reject(db, aidoc_id)
-            return protocol_metadata
-        except Exception as ex:
-            logger.exception(f'pd-ui-backend: Exception occured in change QC Reject {str(ex)}')
-            raise HTTPException(status_code=403, detail=f'Exception occured {str(ex)}')
-    else:
-        logger.exception("pd-ui-backend: No aidoc_id provided in input")
-        raise HTTPException(status_code=404, detail="No aidoc_id provided.")
+        # Update elastic search
+        update_es_res = crud.qc_update_elastic(aidoc_id, db)
+
+        # Update qcStatus
+        if update_es_res['ResponseCode'] == status.HTTP_200_OK and mgmt_svc_flg:
+            qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, target_status = config.QC_COMPLETED_STATUS)
+            logger.debug(f"change_qc_status returned with {qc_status_update_flg}")
+
+        if qc_status_update_flg:
+            logger.info(f'{aidoc_id}: qc_approve completed successfully')
+            return True
+        else:
+            logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \
+                            \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"""{aidoc_id}: qc_approve did NOT completed successfully. \
+                            \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
+    except Exception as ex:
+        logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Exception occurred in qc_approve {str(ex)}')

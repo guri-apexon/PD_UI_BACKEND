@@ -10,8 +10,7 @@ from app import crud, schemas, config
 from app.api import deps
 from app.utilities.config import settings
 from app import crud
-from app.utilities.file_utils import validate_qc_protocol_file, save_request_file, \
-    post_qc_approval_complete_to_mgmt_service
+from app.utilities.file_utils import validate_qc_protocol_file, save_request_file
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -100,38 +99,3 @@ async def qc1_protocol_upload(*,
         logger.exception(f'pd-ui-backend: Exception occured in qc_protocol_upload {str(ex)}')
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                             detail="Invalid Source/Target file received" + str(ex))
-
-
-@router.put("/qc_approve", response_model=bool)
-async def approved_qc(
-        db: Session = Depends(deps.get_db),
-        aidoc_id: str = Query(..., description = "Internal document id", min_length = 1),
-        approvedBy: str = Query(..., description = "Approved UserId", min_length = 1)
-) -> Any:
-    """
-    Perform following activities once the QC activity is completed and approved:
-        * Mark qcStatus as complete
-        * Ask mgmt svc API to insert/update qc_summary table with updated details (SRC='QC')
-        * Update elastic search with latest details
-    """
-    try:
-        # Update qcStatus
-        qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, target_status = config.QC_COMPLETED_STATUS)
-        logger.debug(f"change_qc_status returned with {qc_status_update_flg}")
-        
-        # Make a post call to management service end point for post-qc process
-        mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
-
-        # Update elastic search
-        update_es_res = crud.qc_update_elastic(aidoc_id, db)
-
-        if qc_status_update_flg and mgmt_svc_flg and update_es_res['ResponseCode'] == status.HTTP_200_OK:
-            logger.info(f'{aidoc_id}: qc_approve completed successfully')
-            return True
-        else:
-            logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \
-                            \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
-            return False
-    except Exception as ex:
-        logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Exception occurred in qc_approve {str(ex)}')
