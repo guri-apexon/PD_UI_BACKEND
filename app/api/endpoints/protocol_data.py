@@ -27,19 +27,6 @@ def get_protocol_data(
     protocol_data = crud.pd_protocol_data.get(db, id)
     return protocol_data
 
-
-@router.get("/qc", response_model=schemas.ProtocolData)
-def get_protocol_data(
-        db: Session = Depends(deps.get_db),
-        id: str = "id",
-) -> Any:
-    """
-    Get protocol data.
-    """
-    protocol_data = crud.pd_protocol_data.get_inactive_record(db, id)
-    return protocol_data
-
-
 @router.get("/qc1_protocol_review_json")
 def download_qc1_protocol_data_json(
         aidoc_id: str = None,
