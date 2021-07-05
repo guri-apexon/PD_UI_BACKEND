@@ -1,5 +1,5 @@
 from sqlalchemy import Column, DateTime, Integer, String, Boolean
-from datetime import datetime
+import datetime
 from app.db.base_class import Base
 
 
@@ -17,3 +17,5 @@ class PD_Protocol_Data(Base):
     iqvdataSummary = Column(String, nullable=True)
     iqvdata = Column(String, nullable=True)
     isActive = Column(Boolean, default=True)
+    timeCreated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
+    timeUpdated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
 from app.models.pd_protocol_data import PD_Protocol_Data
+from app.models.pd_protocol_qcdata import PD_Protocol_QCData
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.schemas.pd_protocol_data import ProtocolDataCreate, ProtocolDataUpdate
 from app.utilities.config import settings
@@ -23,11 +24,19 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
 
     def get(self, db: Session, id: Any) -> Optional[PD_Protocol_Data]:
         """Retrieves a record based on primary key or id"""
-        return db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id, PD_Protocol_Data.isActive == True).first()
-
-    def get_inactive_record(self, db: Session, id: Any) -> Optional[PD_Protocol_Data]:
-        """Retrieves a record based on primary key or id"""
-        return db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id, PD_Protocol_Data.isActive == False).first()
+        try:
+            resource = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()
+            if resource is None:
+                return resource
+            if resource.qcStatus == 'QC_COMPLETED':
+                resource = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id).first()
+            else:
+                resource = db.query(PD_Protocol_QCData).filter(PD_Protocol_QCData.id == id).first()
+        except Exception as ex:
+            resource = None
+            logger.exception("Exception in retrieval of data from table", ex)
+        finally:
+            return resource
 
     def create(self, db: Session, *, obj_in: ProtocolDataCreate) -> PD_Protocol_Data:
         db_obj = PD_Protocol_Data(id=obj_in.id,
