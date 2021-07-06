@@ -10,6 +10,7 @@ import pandas as pd
 import re
 from app.crud.qc_config import summary_es_key_list
 from http import HTTPStatus
+from datetime import datetime
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -33,8 +34,9 @@ def clean_html(table_dict):
     except Exception as e:
         logger.error("Exception in clean_html = {}".format(e))
 
-def qc_update_elastic(aidocid: str, db):
+def qc_update_elastic(aidocid: str, db, qc_status=None, current_timestamp = datetime.utcnow()):
     try:
+        current_time_num_format = current_timestamp.strftime("%Y%m%d%H%M%S")
         protocol_data = get_qc_data(aidocid, db)
         if protocol_data:
             summary_data = json.loads(json.loads(protocol_data.iqvdataSummary))['data']
@@ -53,6 +55,10 @@ def qc_update_elastic(aidocid: str, db):
             toc_data_df = {data['CPT_section']:data['content'] for data in toc_data_df.to_dict(orient = 'records')}
             es_dict.update(toc_data_df)
             es_dict['QC_Flag'] = True
+
+            if qc_status:
+                es_dict['qcStatus'] = qc_status
+                es_dict['TimeUpdated'] = current_time_num_format
 
             es_res = update_elastic({'doc':es_dict}, aidocid)
             res = dict()

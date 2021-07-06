@@ -212,11 +212,10 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                 raise HTTPException(status_code=401,
                                     detail=f"Exception occured during updating isActive in DB{str(ex)}")
 
-    async def change_qc_status(self, db: Session, doc_id: str, target_status: str) -> Tuple[bool, str]:
+    async def change_qc_status(self, db: Session, doc_id: str, target_status: str, current_timestamp = datetime.utcnow()) -> Tuple[bool, str]:
         """
         Changes QC Activity status on the given doc_id
         """
-        current_timestamp = datetime.utcnow()
         prot_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
 
         if not prot_metadata_doc:
