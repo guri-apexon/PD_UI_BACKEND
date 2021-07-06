@@ -13,7 +13,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 return_fields = ["AiDocId", "ProtocolNo", "ProtocolTitle", "SponsorName", "Indication", "DocumentStatus", "phase",
                  "approval_date", "uploadDate",
-                 "MoleculeDevice", "is_active", "SourceFileName", "documentPath", "ProjectId", "VersionNumber"
+                 "MoleculeDevice", "is_active", "SourceFileName", "documentPath", "ProjectId", "VersionNumber", "qcStatus"
                  ]
 
 
@@ -99,6 +99,11 @@ def create_filter_query(search_json_in: schemas.SearchJson):
         query = create_keyword_filter_query(search_json_in.documentStatus, "DocumentStatus")
         if query:
             filter_query.append(query)
+        # qcStatus filter
+        query = create_keyword_filter_query(search_json_in.qcStatus, "qcStatus")
+        if query:
+            filter_query.append(query)
+
         # Date range filter
         query = create_date_range_query(search_json_in.dateFrom, search_json_in.dateTo, search_json_in.dateType)
         if query:
@@ -156,13 +161,6 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
     5. Populate the dynamic filter values in the result json.
     """
     try:
-        if search_json_in.qID == None or search_json_in.qID == '' or search_json_in.pageNo == None or search_json_in.pageNo <= 0 or search_json_in.pageSize == None or search_json_in.pageSize <= 0:
-            res = dict()
-            res['ResponseCode'] = HTTPStatus.NOT_ACCEPTABLE
-            res['Message'] = 'Please check the page size, page no and qid passed. One of the fields is empty or incorrect value sent.'
-            logger.warning("One of the following value is incorrect, qID:{}, pageNo:{}, pageSize:{}".format(search_json_in.qID, search_json_in.pageNo, search_json_in.pageSize))
-            return res
-
         dynamic_filter_query = dict()
         dynamic_filter_query["from"] = 0
         dynamic_filter_query["size"] = 10000

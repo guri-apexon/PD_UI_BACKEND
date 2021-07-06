@@ -9,6 +9,8 @@ from app.utilities.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.utilities.file_utils import post_qc_approval_complete_to_mgmt_service
+from app.utilities.elastic_utilities import update_elastic
+from datetime import datetime
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -47,7 +49,6 @@ async def read_protocol_metadata(*,
 
         # Enrich with QC data for all documents
         for idx, doc_row_dict in enumerate(protocol_metadata):
-            logger.debug(f"Metadata QC update check for id: {doc_row_dict['id']}")
             doc_row_dict = await utils.update_qc_fields(pd_attributes_for_dashboard = doc_row_dict, \
                                     get_qc_inprogress_attr_flg = getQcInprogressAttr, db = db)
             protocol_metadata[idx] = doc_row_dict
@@ -99,16 +100,34 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
     """
     response_dict = dict()
     all_success = True
+    current_timestamp = datetime.utcnow()
+    current_utc_num_format = current_timestamp.strftime("%Y%m%d%H%M%S")
     doc_id_array = request_body.docIdArray
     target_status = request_body.targetStatus
     try:
         for aidocid in doc_id_array:
-            aidocid = aidocid.strip()
+            # Update in DB
+            db_update_status, db_message_str = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidocid, target_status = target_status, 
+                                                                                                    current_timestamp = current_timestamp)
 
-            update_status, message_str = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidocid, target_status = target_status)
-            response_dict[aidocid] = {'is_success': update_status, 'message': message_str}
-            all_success &= update_status
-        
+            # Update in ES
+            es_qc_status_update_dict = {'qcStatus': target_status, 'TimeUpdated': current_utc_num_format}
+            es_response = update_elastic({'doc' : es_qc_status_update_dict}, aidocid)
+
+            if es_response:
+                es_message_str = ". ES update completed"
+                es_update_status = True
+            else:
+                es_message_str = ". ES update failed"
+                es_update_status = False
+
+            message_str = db_message_str + es_message_str
+            if not es_update_status or not db_update_status:
+                response_dict[aidocid] = {'is_success': False, 'message': message_str}
+                all_success = False
+            else:
+                response_dict[aidocid] = {'is_success': True, 'message': message_str}
+     
         logger.debug(f"all_success: {all_success}, response: {response_dict}")
         return {'all_success': all_success, 'response': response_dict}
     except Exception as exc:
@@ -129,17 +148,19 @@ async def approve_qc(
         * Update elastic search with latest details
     """
     qc_status_update_flg = False
+    current_timestamp = datetime.utcnow()
 
     try:
         # Make a post call to management service end point for post-qc process
         mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
 
         # Update elastic search
-        update_es_res = crud.qc_update_elastic(aidoc_id, db)
+        update_es_res = crud.qc_update_elastic(aidoc_id, db, qc_status = config.QC_COMPLETED_STATUS, current_timestamp = current_timestamp)
 
         # Update qcStatus
         if update_es_res['ResponseCode'] == status.HTTP_200_OK and mgmt_svc_flg:
-            qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, target_status = config.QC_COMPLETED_STATUS)
+            qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, 
+                                                    target_status = config.QC_COMPLETED_STATUS, current_timestamp = current_timestamp)
             logger.debug(f"change_qc_status returned with {qc_status_update_flg}")
 
         if qc_status_update_flg:

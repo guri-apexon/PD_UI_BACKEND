@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # Shared properties
@@ -19,21 +19,13 @@ class SearchBase(BaseModel):
     pageNo: Optional[int] = None
     pageSize: Optional[int] = None
     qID: Optional[str] = None
+    qcStatus: Optional[List[str]] = None
 
 
 # Properties to receive via API on search
 class SearchJson(SearchBase):
-    key: str
-    toc: list
-    sponsor: list
-    indication: list
-    phase: list
-    documentStatus: list
-    dateType: str
-    dateFrom: str
-    dateTo: str
-    sortField: str
-    sortOrder: str
-    pageNo: int
-    pageSize: int
-    qID: str
+    pageNo: int = Field(..., gt=0)
+    pageSize: int = Field(..., gt=0)
+    qID: str = Field(..., min_length=1)
+    dateType: str = Field(None, regex='^uploadDate|approval_date|$')
+    qcStatus: List[str] = Field(None, regex='^QC_NOT_STARTED|QC1|QC2|QC_COMPLETED$', max_items=4)
