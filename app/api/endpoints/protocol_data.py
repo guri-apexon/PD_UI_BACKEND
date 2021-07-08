@@ -20,11 +20,12 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 def get_protocol_data(
         db: Session = Depends(deps.get_db),
         id: str = "id",
+        user: str = "user"
 ) -> Any:
     """
     Get protocol data.
     """
-    protocol_data = crud.pd_protocol_data.get(db, id)
+    protocol_data = crud.pd_protocol_data.get(db, id, user)
     return protocol_data
 
 @router.get("/qc1_protocol_review_json")
