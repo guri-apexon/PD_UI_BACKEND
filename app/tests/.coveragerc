@@ -1,0 +1,7 @@
+[run]
+omit =
+    # Exclude tests folder
+    */tests/*
+    # internal files
+    */fiy*.py
+    */for*.py

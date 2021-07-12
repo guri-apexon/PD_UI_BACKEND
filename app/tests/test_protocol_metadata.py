@@ -15,20 +15,21 @@ db = SessionLocal()
 logger = logging.getLogger("unit-test")
 
 
-@pytest.mark.parametrize("user_id, protocol, doc_id, dig_status, set_qc_status, set_follow_flg, userUploadedPrimaryFlag, expected_flg,  comments", [
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, False, True, 1, "dig complete, QC not started"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, False, True, 1, "dig complete, QC1"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC2.value, False, True, 1, "dig complete, QC2"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.COMPLETED.value, False, True, 1, "dig complete, QC_COMPLETED"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.COMPLETED.value, False, True, 1, "dig inprogress, QC_COMPLETED"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.NOT_STARTED.value, False, True, 1, "dig inprogress, QC not started"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.NOT_STARTED.value, False, True, 1, "dig error, QC not started"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.QC1.value, False, True, 1, "dig error, QC1"),
-("1034911", "SSRUT_GEN_002", "263b3fec-07c6-4ab1-8099-230a0988f7e1", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, True, False, 1, "Following other protocol"),
-("1034911", "SSRUT_GEN_002", "263b3fec-07c6-4ab1-8099-230a0988f7e1", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, False, False, 0, "Stopped following other protocol"),
-("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, False, True, 1, "Unfollow my own protocol")
+@pytest.mark.parametrize("user_id, protocol, doc_id, dig_status, set_qc_status, set_follow_flg, userUploadedFlag, userPrimaryRoleFlag, userFollowingFlag,  expected_flg,  comments", [
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, False, True, False, False, 1, "dig complete, QC not started"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, False, True, False, False, 1, "dig complete, QC1"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC2.value, False, True, False, False, 1, "dig complete, QC2"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.COMPLETED.value, False, True, False, False, 1, "dig complete, QC_COMPLETED"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.COMPLETED.value, False, True, False, False, 1, "dig inprogress, QC_COMPLETED"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_TRIAGE_STARTED", config.QcStatus.NOT_STARTED.value, False, True, False, False, 1, "dig inprogress, QC not started"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.NOT_STARTED.value, False, True, False, False, 1, "dig error, QC not started"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "ERROR", config.QcStatus.QC1.value, False, True, False, False, 1, "dig error, QC1"),
+("1034911", "SSRUT_GEN_002", "263b3fec-07c6-4ab1-8099-230a0988f7e1", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, True, False, False, True, 1, "Following other protocol"),
+("1034911", "SSRUT_GEN_002", "263b3fec-07c6-4ab1-8099-230a0988f7e1", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.NOT_STARTED.value, False, False, False, False, 0, "Stopped following other protocol"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, False, True, False, False, 1, "Unfollow my own protocol"),
+("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, True, True, False, True, 1, "Follow my own protocol")
 ])
-def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, set_follow_flg, userUploadedPrimaryFlag, expected_flg, comments):
+def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, set_follow_flg, userUploadedFlag, userPrimaryRoleFlag, userFollowingFlag, expected_flg, comments):
     current_timestamp = datetime.utcnow()
 
     protocol_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
@@ -58,7 +59,9 @@ def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, set_f
     # My protocols
     if expected_flg:
         assert len_exp_doc_list > 0
-        assert exp_doc['userUploadedPrimaryFlag'] == userUploadedPrimaryFlag  # Following protocols
+        assert exp_doc['userUploadedFlag'] == userUploadedFlag  # Following protocols
+        assert exp_doc['userPrimaryRoleFlag'] == userPrimaryRoleFlag
+        assert exp_doc['userFollowingFlag'] == userFollowingFlag
     else:
         assert len_exp_doc_list == 0
 
