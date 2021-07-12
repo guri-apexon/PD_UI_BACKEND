@@ -162,10 +162,13 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         all_protocol_metadata = \
             db.query(PD_Protocol_Metadata, 
                         case(
-                                [(PD_Protocol_Metadata.userId == userId, True), 
-                                    (and_(PD_User_Protocols.userId == userId, PD_User_Protocols.userRole == config.UserRole.PRIMARY.value), True)
+                                [(PD_Protocol_Metadata.userId == userId, True)
                                 ], 
-                                else_ = False).label('uploaded_primary_user_flg'),
+                                else_ = False).label('uploaded_by_user_flg'),
+                        case(
+                                [(and_(PD_User_Protocols.userId == userId, PD_User_Protocols.userRole == config.UserRole.PRIMARY.value), True)
+                                ], 
+                                else_ = False).label('primary_role_flg'),                                          
                         func.row_number().over(
                             partition_by = PD_Protocol_Metadata.id,
                             order_by = (PD_User_Protocols.userRole.asc(), PD_User_Protocols.follow.desc())
@@ -175,20 +178,23 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                     ).filter(and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId), 
                                 PD_Protocol_Metadata.isActive == True)).all()
 
-        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'userUploadedPrimaryFlag': row.uploaded_primary_user_flg}}  for row in all_protocol_metadata \
-                                        if row.rank == 1 and (row.uploaded_primary_user_flg == True or row.follow_flg == True)]
+        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'userUploadedFlag': row.uploaded_by_user_flg if row.uploaded_by_user_flg is not None else False, \
+                                                                       'userPrimaryRoleFlag': row.primary_role_flg if row.primary_role_flg is not None else False, \
+                                                                       'userFollowingFlag': row.follow_flg if row.follow_flg is not None else False}} \
+                                                                             for row in all_protocol_metadata \
+                                        if row.rank == 1 and (row.uploaded_by_user_flg == True or row.primary_role_flg == True or row.follow_flg == True)]
 
         return protocol_metadata
 
     async def get_qc_protocols(self, db: Session, status: str) -> Optional[list]:
         """Retrieves a record based on user id"""
-        all_protocol_metadata = db.query(PD_Protocol_Metadata, literal(False).label('uploaded_primary_user_flg'))\
+        all_protocol_metadata = db.query(PD_Protocol_Metadata)\
                                         .filter(PD_Protocol_Metadata.qcStatus == status,
                                             PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
                                             PD_Protocol_Metadata.isActive == True)\
                                         .all()
 
-        protocol_metadata = [row.PD_Protocol_Metadata.as_dict()  for row in all_protocol_metadata]
+        protocol_metadata = [row.as_dict()  for row in all_protocol_metadata]
         return protocol_metadata
 
     def activate_protocol(self, db: Session, aidoc_id: str) -> Any:

@@ -91,7 +91,9 @@ class ProtocolMetadataCreate(ProtocolMetadataBase):
 class ProtocolMetadataUserId(ProtocolMetadataBase):
     amendmentNumber: Optional[str] = None
     approvalDate: Optional[date] = None
-    userUploadedPrimaryFlag: bool = False
+    userUploadedFlag: bool = False
+    userPrimaryRoleFlag: bool = False
+    userFollowingFlag: bool = False
 
 # Properties to receive via API on update
 class ProtocolMetadataUpdate(ProtocolMetadataBase):
