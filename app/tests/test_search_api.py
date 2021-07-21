@@ -123,7 +123,7 @@ def test_query_elastic(key, toc, sponsor, indication, phase, documentStatus, dat
         if dateType:
             dateType_flag = False
             if dateType == dateType_approval:
-                dateType_flag = all([data['approval_date'] >= dateFrom and data['approval_date'] <=  dateTo for data in ret_val['data']])
+                dateType_flag = all([data['approval_date'] >= dateFrom and data['approval_date'] <=  dateTo for data in ret_val['data'] if data['approval_date'].isnumeric()])
             elif dateType == dateType_upload:
                 dateType_flag = all([data['uploadDate'] >= dateFrom+'000000' and data['uploadDate'] <=  dateTo+'235959' for data in ret_val['data']])
             all_flags.append(dateType_flag)
