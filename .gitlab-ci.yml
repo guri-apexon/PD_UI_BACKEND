@@ -7,15 +7,18 @@ variables:
   NSSM_PATH: "/D/Projects/PD/softwares/nssm/nssm-2.24/win64/nssm.exe"
   SERVICE_NAME: "pd-ci-ui-backend"
   PACKAGE: "pd-ui-backend"
-  GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
-  CI_DEBUG_TRACE: "false"
+#   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+#   CI_DEBUG_TRACE: "false"
 
 
 stages:
   - static_analysis
   - test
-  - build
-  - deploy
+  - sonar-scan
+  - build-dev
+  - deploy-dev
+  - build-test
+  - deploy-test
 
 default:
   before_script:
@@ -44,7 +47,9 @@ unit-tests:
   before_script:
     - . $VE_PATH
   script:
-    - python -m pytest -v --junit-xml=test_results.xml --cov=triage --cov-report=xml
+    
+    - python -m pytest --cov=./ --cov-report xml -v --junitxml="test_results.xml"
+
   artifacts:
       paths:
       - test_results.xml
@@ -55,12 +60,38 @@ unit-tests:
       - merge_requests
     variables: 
       - $ENVIRONMENT== "dev"
-
+      
+Perform Sonarqube Analysis and quality gate:  # for all environments
+  image: sonarsource/sonar-scanner-cli
+  stage: sonar-scan
+  only:
+    - branches
+    - tags
+  before_script:
+    - echo "Setting up for Sonarqube Analysis on PD $CI_COMMIT_REF_NAME branch"
+    - apk upgrade --update-cache --available && apk add openssl
+    - openssl s_client -connect   usadc-vspsq01.quintiles.net:443 | keytool -import -noprompt -alias sonarqbue_test -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit
+  script:
+    - echo "Running Sonarqube Analysis on $CI_COMMIT_REF_NAME branch"
+    - apk upgrade --update-cache --available && apk add openssl
+    - sh scripts/sonarqube.sh branch > /tmp/sonar.log
+    - cat /tmp/sonar.log
+    - echo "Running Sonarqube quality gate on $CI_COMMIT_REF_NAME branch"
+    - sh scripts/qualitygate.sh
+  allow_failure: true    
+  tags:
+    - ca2ugitla006p-D4
+  only:
+    refs:
+      - develop
+      - merge_requests
+    variables: 
+      - $ENVIRONMENT== "dev" 
 
 build:
   tags:
     - pd-dev-windows-ml01q
-  stage: build
+  stage: build-dev
   before_script:
     - . $VE_PATH 
   script:
@@ -78,7 +109,7 @@ build:
 deploy-dev1:
   tags:
     - pd-dev-windows-ml01q
-  stage: deploy
+  stage: deploy-dev
   variables:
     VERIFICATION_URL: "http://ca2spdml01q:8000/api/health/"  
   script:
@@ -94,7 +125,7 @@ deploy-dev1:
 deploy-dev2:
   tags:
     - pd-dev-windows-ml06d
-  stage: deploy
+  stage: deploy-dev
   variables:
     VERIFICATION_URL: "http://ca2spdml06d:8000/api/health/"  
   script:
@@ -106,3 +137,37 @@ deploy-dev2:
       - develop
     variables: 
       - $ENVIRONMENT== "dev"
+      
+build-test:
+  tags:
+    - pd-test-windows-ml110q
+  stage: build-test
+  before_script:
+    - . $VE_PATH 
+  script:
+    - python setup.py sdist
+  artifacts:
+    paths:
+      - dist/
+  only:
+    refs:
+      - develop
+    variables: 
+      - $ENVIRONMENT== "test"
+  
+deploy-test:
+  tags:
+    - pd-test-windows-ml110q
+  stage: deploy-test
+  variables:
+    VERIFICATION_URL: "http://ca2spdml110q:8000/api/health/"  
+  script:
+    - sh app/ci_scripts/deploy.sh dist
+  environment:
+    name: test
+  only:
+    refs:
+      - develop
+    variables:
+      - $ENVIRONMENT== "test"
+      
