@@ -197,6 +197,28 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         protocol_metadata = [row.as_dict()  for row in all_protocol_metadata]
         return protocol_metadata
 
+    async def get_qc_status(self, db: Session, doc_id: str = None) -> Optional[list]:
+        """
+        Retrieves qcStatus of all successfully digitized protocols
+        Optional: Extract specific doc_id
+        """
+        protocol_metadata = []
+        if doc_id is not None:
+            protocol_metadata_first = db.query(PD_Protocol_Metadata.id, PD_Protocol_Metadata.qcStatus)\
+                                        .filter(PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
+                                            PD_Protocol_Metadata.isActive == True, PD_Protocol_Metadata.id == doc_id)\
+                                        .first()
+            if protocol_metadata_first:
+                protocol_metadata = [protocol_metadata_first._asdict()]
+        else:
+            all_protocol_metadata = db.query(PD_Protocol_Metadata.id, PD_Protocol_Metadata.qcStatus)\
+                                        .filter(PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
+                                            PD_Protocol_Metadata.isActive == True)\
+                                        .all()
+
+            protocol_metadata = [row._asdict()  for row in all_protocol_metadata]
+        return protocol_metadata
+
     def activate_protocol(self, db: Session, aidoc_id: str) -> Any:
         """Retrieves a record based on user id"""
         is_protocol_active = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == aidoc_id,
