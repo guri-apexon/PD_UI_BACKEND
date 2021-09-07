@@ -11,6 +11,7 @@ from app.api import deps
 from app.utilities.config import settings
 from app import crud
 from app.utilities.file_utils import validate_qc_protocol_file, save_request_file
+from app.api.endpoints import auth
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -20,7 +21,8 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 def get_protocol_data(
         db: Session = Depends(deps.get_db),
         id: str = "id",
-        user: str = "user"
+        user: str = "user",
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get protocol data.
@@ -31,6 +33,7 @@ def get_protocol_data(
 @router.get("/qc1_protocol_review_json")
 def download_qc1_protocol_data_json(
         aidoc_id: str = None,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieve all Protocol Sponsors.
@@ -46,6 +49,7 @@ def download_qc1_protocol_data_json(
 @router.get("/qc1_protocol_review_xlsx")
 def download_qc1_protocol_data_xlsx(
         aidoc_id: str = None,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieve all Protocol Sponsors.
@@ -64,6 +68,7 @@ async def qc1_protocol_upload(*,
                                                                   description="Upload Updated JSON file"),
                               aidoc_id: str,
                               db: Session = Depends(deps.get_db),
+                              _: str = Depends(auth.validate_user_token)
                               ) -> Any:
     """
     Upload the qc1 protocol xml file

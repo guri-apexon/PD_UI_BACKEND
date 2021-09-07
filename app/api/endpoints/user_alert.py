@@ -12,6 +12,7 @@ from app.models.pd_protocol_alert import ProtocolAlert
 from app.schemas.pd_user_alert import UserAlertInput, UserAlert
 from datetime import datetime
 from app.crud.pd_user_alert import pd_user_alert
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -22,6 +23,7 @@ def get_user_alert(
         *,
         db: Session = Depends(deps.get_db),
         userId: str,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Collect protocol alerts generated for this user for the protocols which the user "follows"

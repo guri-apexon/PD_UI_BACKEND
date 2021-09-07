@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -13,12 +14,12 @@ router = APIRouter()
 def follow_user_protocol(
         *,
         db: Session = Depends(deps.get_db),
+        _: str = Depends(auth.validate_user_token),
         follow_protocol_in: schemas.UserFollowProtocol,
 ) -> Any:
     """
     push follow protocol data.
     """
-    #user_protocol = crud.pd_user_protocols.create(db, obj_in=follow_protocol_in)
     user_protocol = crud.pd_user_protocols.follow_unfollow(db, obj_in=follow_protocol_in)
     return user_protocol
 
@@ -27,6 +28,7 @@ def follow_user_protocol(
 def delete_followed_protocols(
         *,
         db: Session = Depends(deps.get_db),
+        _: str = Depends(auth.validate_user_token),        
         id: str = "id",
         userId: str = "userId",
 ) -> Any:

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ def read_protocol_mcra(
         db: Session = Depends(deps.get_db),
         protocol: str = None,
         versionNumber: str = None,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieve latest protocol document.

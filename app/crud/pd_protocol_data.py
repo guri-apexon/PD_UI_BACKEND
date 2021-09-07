@@ -14,6 +14,7 @@ from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.schemas.pd_protocol_data import ProtocolDataCreate, ProtocolDataUpdate
 from app.utilities.config import settings
 from app.utilities.file_utils import write_data_to_json, write_data_to_xlsx
+from datetime import datetime
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -98,6 +99,8 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
             iqvdata_obj.iqvdataSoaStd = str(data['iqvdataSoaStd'])
             iqvdata_obj.iqvdataSummary = data['iqvdataSummary']
             iqvdata_obj.iqvdata = str(data['iqvdata'])
+            current_timestamp = datetime.utcnow()
+            iqvdata_obj.timeUpdated = current_timestamp
             db.commit()
             db.refresh(iqvdata_obj)
         except Exception as ex:

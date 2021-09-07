@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ def read_protocols(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieve all Protocol Sponsors.
@@ -27,6 +29,7 @@ def create_protocol_sponsor(
         *,
         db: Session = Depends(deps.get_db),
         protocol_in: schemas.ProtocolCreate,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Create a new protocol sponsor.

@@ -19,6 +19,11 @@ stages:
   - deploy-dev
   - build-test
   - deploy-test
+  - build-svt
+  - deploy-svt
+  - build-uat
+  - deploy-uat
+
 
 default:
   before_script:
@@ -152,6 +157,7 @@ build-test:
   only:
     refs:
       - develop
+      - pd-release/1.3_qc
     variables: 
       - $ENVIRONMENT== "test"
   
@@ -168,6 +174,121 @@ deploy-test:
   only:
     refs:
       - develop
+      - pd-release/1.3_qc
     variables:
       - $ENVIRONMENT== "test"
+      
+
+build-svt:
+  tags:
+    - pd-svt-windows-ml13q
+  stage: build-svt
+  script:
+    - python setup.py sdist
+  artifacts:
+    paths:
+      - dist/
+  only:
+    refs:
+      - master
+      - pd-release/1.3_qc
+    variables: 
+      - $ENVIRONMENT== "svt"
+      
+
+      
+
+deploy-svt:
+  tags:
+    - pd-svt-windows-ml13q
+  stage: deploy-svt
+  variables:
+    VERIFICATION_URL: "http://ca2spdml13q:8000/api/health/"  
+  script:
+    - sh app/ci_scripts/deploy.sh dist
+  environment:
+    name: svt
+  only:
+    refs:
+      - master
+      - pd-release/1.3_qc
+    variables: 
+      - $ENVIRONMENT== "svt"
+
+deploy-svt2:
+  tags:
+    - pd-svt-windows-ml16q
+  stage: deploy-svt
+  variables:
+    VERIFICATION_URL: "http://ca2spdml16q:8000/api/health/"  
+  script:
+    - sh app/ci_scripts/deploy.sh dist
+  environment:
+    name: svt2
+  only:
+    refs:
+      - master
+      - pd-release/1.3_qc
+    variables: 
+      - $ENVIRONMENT== "svt"
+      
+build-uat:
+  tags:
+    - ca2spdml03c
+  stage: build-uat
+  before_script:
+    - . $VE_PATH  
+  script:
+    - python setup.py sdist
+  artifacts:
+    paths:
+      - dist/
+  only:
+    refs:
+      
+      - master
+      - pd-release/1.3_qc
+    variables: 
+      - $ENVIRONMENT== "uat"
+
+deploy-uat:
+  tags:
+    - ca2spdml03c
+  stage: deploy-uat
+  variables:
+    VERIFICATION_URL: "http://ca2spdml03c:8000/api/health"
+  script:
+    - sh app/ci_scripts/deploy.sh dist
+  environment:
+    name: uat
+  only:
+    refs:
+      
+      - master
+      - pd-release/1.3_qc
+    variables: 
+      - $ENVIRONMENT== "uat"
+deploy-uat2:
+  tags:
+    - ca2spdml06c
+  stage: deploy-uat
+  variables:
+    VERIFICATION_URL: "http://ca2spdml06c:8000/api/health"
+  script:
+    - sh app/ci_scripts/deploy.sh dist
+  environment:
+    name: uat2
+  only:
+    refs:
+      
+      - master
+      - pd-release/1.3_qc
+    variables: 
+      - $ENVIRONMENT== "uat"
+      
+
+      
+      
+
+      
       

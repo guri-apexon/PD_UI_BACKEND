@@ -15,8 +15,8 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 
 class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.UserAlert]):
-    def get_by_userid(self, db: Session, *, user_id: Any) -> Optional[ProtocolAlert]:
-        alert_from_time = datetime.utcnow() + timedelta(days = settings.ALERT_FROM_DAYS)
+    def get_by_userid(self, db: Session, *, user_id: Any, alert_from_days=settings.ALERT_FROM_DAYS) -> Optional[ProtocolAlert]:
+        alert_from_time = datetime.utcnow() + timedelta(days = alert_from_days)
         return db.query(ProtocolAlert
                 ).join(PD_User_Protocols, and_(PD_User_Protocols.userId == user_id, PD_User_Protocols.follow == True, PD_User_Protocols.id == ProtocolAlert.id)
                 ).filter(ProtocolAlert.timeCreated > alert_from_time

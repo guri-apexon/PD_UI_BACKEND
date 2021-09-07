@@ -23,9 +23,9 @@ logger = logging.getLogger("unit-test")
 ("1034911", "SSRUT_GEN_00?", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "263b3fec-07c6-4ab1-8099-230a0988f7e1", "QC", status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid QC status1"),
 ("1034911", "SSRUT_GEN_00?", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "263b3fec-07c6-4ab1-8099-230a0988f7e1", "QC_COMPLETED", status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid QC status2")
 ])
-def test_qc1_qc_notstarted(user_id, protocol, doc_id_1, doc_id_2,  set_qc_status, expected_response, comments):
+def test_qc1_qc_notstarted(new_token_on_headers, user_id, protocol, doc_id_1, doc_id_2,  set_qc_status, expected_response, comments):
     doc_id_array = [doc_id_1, doc_id_2]
-    qc_status_resp = client.put("/api/protocol_metadata/change_qc_status", json={"docIdArray": doc_id_array, "targetStatus": set_qc_status})
+    qc_status_resp = client.put("/api/protocol_metadata/change_qc_status", json={"docIdArray": doc_id_array, "targetStatus": set_qc_status}, headers = new_token_on_headers)
     assert qc_status_resp.status_code == expected_response
 
     if expected_response == status.HTTP_200_OK:
@@ -43,10 +43,10 @@ def test_qc1_qc_notstarted(user_id, protocol, doc_id_1, doc_id_2,  set_qc_status
 ("1034911", "SSRUT_GEN_00?", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "1034911", status.HTTP_200_OK, "QC approved"),
 ("1034911", "SSRUT_GEN_00?", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf", "1034911", status.HTTP_403_FORBIDDEN, "QC approved - failure case")
 ])
-def test_qcapproved(user_id, protocol, doc_id,  approver_id, expected_response, comments):
+def test_qcapproved(new_token_on_headers, user_id, protocol, doc_id,  approver_id, expected_response, comments):
     current_timestamp = datetime.utcnow()
 
-    qc_status_resp = client.put("/api/protocol_metadata/qc_approve", params={"aidoc_id": doc_id, "approvedBy": approver_id})
+    qc_status_resp = client.put("/api/protocol_metadata/qc_approve", params={"aidoc_id": doc_id, "approvedBy": approver_id}, headers = new_token_on_headers)
     assert qc_status_resp.status_code == expected_response
 
     if expected_response == status.HTTP_200_OK:

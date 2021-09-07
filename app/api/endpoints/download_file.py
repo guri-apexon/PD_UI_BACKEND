@@ -1,43 +1,32 @@
+import logging
 import os
-import shutil
-from typing import Any, List
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
-
-from app import crud, schemas
-from app.api import deps
+from app.api.endpoints import auth
 from app.utilities.config import settings
-from starlette.responses import FileResponse
-router = APIRouter()
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import FileResponse, Response
 
+router = APIRouter()
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 @router.get("/")
-def get_items(filePath: str = "filePath"):
+async def download_file(filePath: str = "filePath", _: str = Depends(auth.validate_user_token)):
     '''
-    Pass path to function.
-    Download files.
+    Sends valid file's contents
     '''
-
     try:
-        status = download(filePath)
-        if status is None:
-            return "Downloading failed"
-        else:
-            fileName = filePath.split('\\')[-1]
-            return fileName
-    except FileNotFoundError as e:
-        return "Folder does not exists"
-        
+        return stream_file(filePath)
+    except Exception as exc:
+        logger.error(f"Exception received while downloading file[{filePath}] : [{str(exc)}]")
+        return Response(status_code=status.HTTP_404_NOT_FOUND, content=f"{str(exc)}")
 
-def download(file_path):
+def stream_file(file_path):
     """
-    Download file for given path.
+    Streams file contents with appropriate headers
     """
-    if os.path.isfile(file_path):
-        try:
-            shutil.copy(file_path, settings.PROTOCOL_FOLDER)
-        except Exception as ex:
-            return "Downloading error"
-        return FileResponse(path=file_path)
-    return None
+    download_filename = os.path.basename(file_path)
+    if not os.path.exists(file_path):
+        logger.error(f"Download file is not accessible at: [{file_path}]")
+        return Response(status_code=status.HTTP_404_NOT_FOUND, content=f"Download file is not accessible")
+
+    return FileResponse(file_path, filename=download_filename)

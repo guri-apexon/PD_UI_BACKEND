@@ -8,6 +8,7 @@ from app.utilities.config import settings
 from app import crud, schemas
 from app.api import deps
 from app.models.pd_user_protocols import PD_User_Protocols
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -18,6 +19,7 @@ def add_user_protocol(
         *,
         db: Session = Depends(deps.get_db),
         user_protocol_in: schemas.UserProtocolAdd,
+        _: str = Depends(auth.validate_user_token),
 ) -> Any:
     """
     push follow protocol data.
@@ -38,6 +40,7 @@ def delete_user_protocol(
         db: Session = Depends(deps.get_db),
         userId: str = "id",
         protocol: str = "Protocol",
+        _: str = Depends(auth.validate_user_token),
 ) -> Any:
     """
     Soft Delete a User Protocol - updates is_Active to false
@@ -62,6 +65,7 @@ def delete_user_protocol(
 def is_user_primary(
         *,
         db: Session = Depends(deps.get_db),
+        _: str = Depends(auth.validate_user_token),
         userId: str = "id",
         protocol: str = "Protocol",
 ) -> Any:

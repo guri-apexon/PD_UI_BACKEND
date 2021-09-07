@@ -95,7 +95,7 @@ async def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy:
     try:
         management_api_url = settings.MANAGEMENT_SERVICE_URL + "pd_qc_check_update"
         parameters = {'aidoc_id': aidoc_id, 'qcApprovedBy': qcApprovedBy}
-        mgmt_svc_status_code = requests.post(management_api_url, data=parameters)
+        mgmt_svc_status_code = requests.post(management_api_url, data=parameters, headers=settings.MGMT_CRED_HEADERS)
         logger.debug(f"[{aidoc_id}] QC Approval Complete request sent to Management service")
         
         if mgmt_svc_status_code.status_code == status.HTTP_200_OK:

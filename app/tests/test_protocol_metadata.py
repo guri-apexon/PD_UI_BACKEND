@@ -29,7 +29,7 @@ logger = logging.getLogger("unit-test")
 ("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, False, True, False, False, 1, "Unfollow my own protocol"),
 ("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, True, True, False, True, 1, "Follow my own protocol")
 ])
-def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, set_follow_flg, userUploadedFlag, userPrimaryRoleFlag, userFollowingFlag, expected_flg, comments):
+def test_normal_user(new_token_on_headers, user_id, protocol, doc_id, dig_status, set_qc_status, set_follow_flg, userUploadedFlag, userPrimaryRoleFlag, userFollowingFlag, expected_flg, comments):
     current_timestamp = datetime.utcnow()
 
     protocol_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
@@ -45,10 +45,11 @@ def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, set_f
         assert False
 
     # Set follow flag
-    follow_response = client.post("/api/follow_protocol/", json={"userId": user_id,  "protocol": protocol,  "follow": set_follow_flg,  "userRole": config.FOLLOW_DEFAULT_ROLE})
+    follow_response = client.post("/api/follow_protocol/", json={"userId": user_id,  "protocol": protocol,  "follow": set_follow_flg,  
+                                    "userRole": config.FOLLOW_DEFAULT_ROLE}, headers = new_token_on_headers)
     assert follow_response.status_code == 200
 
-    get_protocols = client.get("/api/protocol_metadata/", params={"userId": user_id})
+    get_protocols = client.get("/api/protocol_metadata/", params={"userId": user_id}, headers = new_token_on_headers)
     assert get_protocols.status_code == status.HTTP_200_OK
 
     all_curr_user_protocol = json.loads(get_protocols.content)
@@ -79,7 +80,7 @@ def test_normal_user(user_id, protocol, doc_id, dig_status, set_qc_status, set_f
 ("QC1", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_DIG1", config.QcStatus.QC1.value, 0, "dig inprogress, QC1"),
 ("QC1", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, 1, "dig complete, QC1")
 ])
-def test_QC1_user(user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments):
+def test_QC1_user(new_token_on_headers, user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments):
     current_timestamp = datetime.utcnow()
 
     protocol_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
@@ -94,7 +95,7 @@ def test_QC1_user(user_id, protocol, doc_id, dig_status, set_qc_status, expected
         logger.error(f"test_QC1_user[{comments}]: Could not locate active test file [{doc_id}]")
         assert False
 
-    get_protocols = client.get("/api/protocol_metadata/", params={"userId": user_id})
+    get_protocols = client.get("/api/protocol_metadata/", params={"userId": user_id}, headers = new_token_on_headers)
     assert get_protocols.status_code == status.HTTP_200_OK
 
     all_curr_user_protocol = json.loads(get_protocols.content)
@@ -114,7 +115,7 @@ def test_QC1_user(user_id, protocol, doc_id, dig_status, set_qc_status, expected
 ("QC2", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "UT_DIG1", config.QcStatus.QC2.value, 0, "dig inprogress, QC2"),
 ("QC2", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC2.value, 1, "dig complete, QC2")
 ])
-def test_QC2_user(user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments):
+def test_QC2_user(new_token_on_headers, user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments):
     current_timestamp = datetime.utcnow()
 
     protocol_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
@@ -129,7 +130,7 @@ def test_QC2_user(user_id, protocol, doc_id, dig_status, set_qc_status, expected
         logger.error(f"test_QC2_user[{comments}]: Could not locate active test file [{doc_id}]")
         assert False
 
-    get_protocols = client.get("/api/protocol_metadata/", params={"userId": user_id})
+    get_protocols = client.get("/api/protocol_metadata/", params={"userId": user_id}, headers = new_token_on_headers)
     assert get_protocols.status_code == status.HTTP_200_OK
 
     all_curr_user_protocol = json.loads(get_protocols.content)
@@ -149,7 +150,7 @@ def test_QC2_user(user_id, protocol, doc_id, dig_status, set_qc_status, expected
 ("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, 1, "dig complete, QC1"),
 ("1034911", "SSRUT_GEN_001", "5c59dbc6-bacc-49d9-a9c6-0a43fa96b", config.DIGITIZATION_COMPLETED_STATUS, config.QcStatus.QC1.value, 0, "Document not present")
 ])
-def test_single_doc_id(user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments):
+def test_single_doc_id(new_token_on_headers, user_id, protocol, doc_id, dig_status, set_qc_status, expected_flg, comments):
     current_timestamp = datetime.utcnow()
 
     protocol_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
@@ -167,7 +168,7 @@ def test_single_doc_id(user_id, protocol, doc_id, dig_status, set_qc_status, exp
         assert True
         return
 
-    get_protocols = client.get("/api/protocol_metadata/", params={"docId": doc_id})
+    get_protocols = client.get("/api/protocol_metadata/", params={"docId": doc_id}, headers = new_token_on_headers)
     assert get_protocols.status_code == status.HTTP_200_OK
 
     all_curr_user_protocol = json.loads(get_protocols.content)

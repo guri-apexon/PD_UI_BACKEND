@@ -214,6 +214,8 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
             total_len = es_res['hits']['total']['value']
             es_res = es_res['hits']['hits']
             res["data"] = [val["_source"] for val in es_res]
+            correct_approval = list()
+            incorrect_approval = list()
             for row in res['data']:
                 t = follow_dict.get(row.get('ProtocolNo', '').lower(), False)
                 if t == False:
@@ -222,6 +224,19 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
                 else:
                     row['Follow'] = t.get('follow', False)
                     row['UserRole'] = t.get('userRole', 'secondary')
+
+                if row['approval_date'].isnumeric() and len(row['approval_date']) != 8:
+                    row['approval_date'] = ''
+
+                if search_json_in.sortField == 'approval_date':
+                    if row['approval_date'].isnumeric() and len(row['approval_date']) == 8:
+                        correct_approval.append(row)
+                    else:
+                        row['approval_date'] = ''
+                        incorrect_approval.append(row)
+            if search_json_in.sortField == 'approval_date':
+                correct_approval.extend(incorrect_approval)
+                res["data"] = correct_approval
             res["count"] = len(res["data"])
             res["pageNo"] = search_json_in.pageNo
             res["sortField"] = search_json_in.sortField
