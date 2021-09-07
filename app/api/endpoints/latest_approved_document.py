@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -13,6 +14,7 @@ router = APIRouter()
 def read_latest_approved_document_metadata(
         db: Session = Depends(deps.get_db),
         protocol: str = None,
+        _: str = Depends(auth.validate_user_token),
 ) -> Any:
     """
     Retrieve all Protocol Sponsors.

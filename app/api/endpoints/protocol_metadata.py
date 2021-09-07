@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.utilities.file_utils import post_qc_approval_complete_to_mgmt_service
 from app.utilities.elastic_utilities import update_elastic
 from datetime import datetime
+from app.api.endpoints import auth
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -21,7 +22,8 @@ async def read_protocol_metadata(*,
         db: Session = Depends(deps.get_db),
         userId: str = Query(None, description = 'UserId associated with the document(s)', min_length=3, max_length=30),
         docId: str = Query(None, description = 'Internal document id', min_length=10, max_length=50),
-        getQcInprogressAttr: bool = Query(False, description = 'Override flag to get QC data which are in-progress')
+        getQcInprogressAttr: bool = Query(False, description = 'Override flag to get QC data which are in-progress'),
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieves Protocol metadata of all the documents associated with the requested userId or docId
@@ -64,6 +66,7 @@ def create_protocol_metadata(
         *,
         db: Session = Depends(deps.get_db),
         protocol_metadata_in: schemas.ProtocolMetadataCreate,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Create a new protocol
@@ -76,6 +79,7 @@ def create_protocol_metadata(
 def activate_protocol(
         db: Session = Depends(deps.get_db),
         aidoc_id: str = None,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Activate protocol document
@@ -94,7 +98,7 @@ def activate_protocol(
 
 @router.put("/change_qc_status")
 async def change_qc_status(*, db: Session = Depends(deps.get_db), 
-            request_body: ChangeQcStatus) -> Any:
+            request_body: ChangeQcStatus, _: str = Depends(auth.validate_user_token)) -> Any:
     """
     Change QC status of requested document ids
     """
@@ -139,7 +143,8 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
 async def approve_qc(
         db: Session = Depends(deps.get_db),
         aidoc_id: str = Query(..., description = "Internal document id", min_length = 1),
-        approvedBy: str = Query(..., description = "Approved UserId", min_length = 1)
+        approvedBy: str = Query(..., description = "Approved UserId", min_length = 1),
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Perform following activities once the QC activity is completed and approved:

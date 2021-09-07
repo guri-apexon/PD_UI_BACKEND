@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -13,6 +14,7 @@ router = APIRouter()
 def read_saved_search(
         db: Session = Depends(deps.get_db),
         userId: str = "userId",
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieve saved searches.
@@ -26,6 +28,7 @@ def create_saved_search(
         *,
         db: Session = Depends(deps.get_db),
         saved_search_in: schemas.SavedSearchCreate,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Create a new saved search.
@@ -38,6 +41,7 @@ def delete_saved_search(
         *,
         db: Session = Depends(deps.get_db),
         id: int = 0,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Delete a saved search.

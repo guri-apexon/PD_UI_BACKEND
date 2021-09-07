@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -13,6 +14,7 @@ router = APIRouter()
 def read_recent_search(
         db: Session = Depends(deps.get_db),
         userId: str = "userId",
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieve top 20 recently added search keywords
@@ -26,6 +28,7 @@ def create_recent_search(
         *,
         db: Session = Depends(deps.get_db),
         recent_search_in: schemas.RecentSearchCreate,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Create a new recent search.

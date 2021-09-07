@@ -1,36 +1,41 @@
-from typing import Any, List
+import logging
 
-from fastapi import APIRouter, Depends
-from app.crud.pd_document_compare import pd_document_compare
-from sqlalchemy.orm import Session
-from app import crud, schemas
 from app.api import deps
-import shutil
-from fastapi import HTTPException
+from app.api.endpoints import auth
+from app.api.endpoints.download_file import stream_file
+from app.crud.pd_document_compare import pd_document_compare
 from app.utilities.config import settings
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import Response
+from sqlalchemy.orm import Session
 
 router = APIRouter()
+logger = logging.getLogger(settings.LOGGER_NAME)
 
-@router.get("/", response_model=schemas.DocumentCompare)
-def get_compare_doc(
+@router.get("/")
+async def get_compare_doc(
         db: Session = Depends(deps.get_db),
         id1: str = "id1",
-        id2: str = "id2"
-) -> Any:
+        id2: str = "id2",
+        _: str = Depends(auth.validate_user_token)
+):
     """
-    Get the compare file path and number of changes.
+    1. Streams compare result file
+    2. If the number of compare changes is not positive, returns HTTP_204_NO_CONTENT status code 
     """
+    
     document_process = pd_document_compare.get_compare_path(db, id1, id2)
-    if document_process is None:
-        raise HTTPException(status_code=404, detail=f"No record found for the given IDs")
-    else:
-        try:
-            if document_process:
-                    compare_path = document_process.compareCSVPath
-                    new_path = settings.COMPARE_PROCESSING_DIR
-                    shutil.copy(compare_path, new_path)
-            else:
-                    None
-        except Exception as ex:
-            raise HTTPException(status_code=404, detail=f"No data found for the give id's")
-    return document_process
+    try:
+        if document_process is None or document_process.numChangesTotal is None:
+            return Response(status_code=status.HTTP_404_NOT_FOUND, content="Compare result is not available for the selected documents")
+
+        num_compare_changes = document_process.numChangesTotal
+        if num_compare_changes <= 0:
+            logger.debug(f"No compare changes for id1[{id1}] and id2[{id2}]: [numChangesTotal={num_compare_changes}]")
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+        return stream_file(document_process.compareCSVPath)
+
+    except Exception as exc:
+        logger.error(f"Exception received for id1[{id1}] and id2[{id2}]: {str(exc)}")
+        return Response(status_code=status.HTTP_404_NOT_FOUND, content=f"{str(exc)}")

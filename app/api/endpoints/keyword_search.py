@@ -9,11 +9,13 @@ from app import crud, schemas
 from app.api import deps
 from app.utilities.config import settings
 from app.utilities.elastic_utilities import update_bulk_elastic
+from app.api.endpoints import auth
+
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 @router.post("/")
-def search_elastic(search_json_in: schemas.SearchJson, db: Session = Depends(deps.get_db)):
+def search_elastic(search_json_in: schemas.SearchJson, db: Session = Depends(deps.get_db), _: str = Depends(auth.validate_user_token)):
     try:
         logger.info("Received request in ES keyword_search.search_elastic: {}".format(search_json_in))
         res = crud.query_elastic(search_json_in, db)
@@ -30,7 +32,8 @@ async def sync_qcStatus_db_es(*,
         db: Session = Depends(deps.get_db),
         docIdArray: List[str] = Query(None, description = 'Internal document id'),
         syncAllProtocols: bool = Query(False, description = 'Update all protocol qcStatus'),
-        userId: str = Query(..., description = 'UserId associated with the document(s)', min_length=6, max_length=12)
+        userId: str = Query(..., description = 'UserId associated with the document(s)', min_length=6, max_length=12),
+        _: str = Depends(auth.validate_user_token)
 ) -> tuple:
     """
     Syncronizes qcStatus of the requested protocol(s) from SQLserver database to elastic search

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -12,6 +13,7 @@ router = APIRouter()
 @router.get("/", response_model=List[schemas.Indications])
 def read_indications(
         db: Session = Depends(deps.get_db),
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieve users.
@@ -25,6 +27,7 @@ def create_indication(
         *,
         db: Session = Depends(deps.get_db),
         indication_in: schemas.IndicationsCreate,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Create a new indication.

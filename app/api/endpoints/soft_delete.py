@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.api import deps
 from enum import Enum
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -29,6 +30,7 @@ def get_metadata_on_delete_condition(
         projectId: str = None,
         #Opportunity no: str = None,
         db: Session = Depends(deps.get_db),
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get protocol data.

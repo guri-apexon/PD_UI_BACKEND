@@ -12,13 +12,14 @@ from app.models.pd_protocol_alert import ProtocolAlert
 from app.schemas.pd_user_alert import UserAlertInput, UserAlert
 from datetime import datetime
 from app.crud.pd_user_alert import pd_user_alert
+from app.api.endpoints import auth
 
 router = APIRouter()
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
 @router.post("/")
-def update_notification_read(notification_read_in: schemas.NotificationRead, db: Session = Depends(deps.get_db)) -> Any:
+def update_notification_read(notification_read_in: schemas.NotificationRead, db: Session = Depends(deps.get_db), _: str = Depends(auth.validate_user_token)) -> Any:
     """
     Update protocol alerts read notification generated for user for the protocol which the user "follows"
     """

@@ -30,6 +30,15 @@ class Settings(BaseSettings):
     MANAGEMENT_SERVICE_URL: str
     MANAGEMENT_SERVICE_HEALTH_URL:str
 
+    # Authentication
+    AUTH_ENDPOINT: str
+    USERS_CRED: dict
+    UNIT_TEST_CRED: list
+    MGMT_CRED_HEADERS: dict
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    SECRET_KEY: str
+    ALGORITHM: str
+
     DEBUG: bool
 
     # Protocol alerts

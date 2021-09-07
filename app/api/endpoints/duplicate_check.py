@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.api import deps
+from app.api.endpoints import auth
 
 router = APIRouter()
 
@@ -17,6 +18,7 @@ def read_duplicate_attributes(
         versionNumber: str = None,
         amendmentNumber: str = None,
         documentStatus: str = None,
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Retrieve Duplicate Attributes.
