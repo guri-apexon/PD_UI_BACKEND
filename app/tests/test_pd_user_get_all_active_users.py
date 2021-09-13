@@ -12,6 +12,6 @@ from app.models.pd_user import User
 client = TestClient(app)
 db = SessionLocal()
 
-def test_get_all_user():
-    response = client.get("/api/user/read_all_users")
+def test_get_all_user(new_token_on_headers):
+    response = client.get("/api/user/read_all_users", headers= new_token_on_headers)
     assert response.status_code == 200
