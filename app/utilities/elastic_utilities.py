@@ -10,7 +10,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 def search_elastic(search_query):
     try:
         es = Elasticsearch([{'host': settings.ELASTIC_HOST, 'port': settings.ELASTIC_PORT}])
-        res = es.search(body=search_query, index=settings.ELASTIC_INDEX)
+        res = es.search(body=search_query, index=settings.ELASTIC_INDEX, request_timeout=40)
     except Exception as e:
         logger.exception("In app.utilities.elastic_utilities.search_elastic: {}".format(e))
         res = False

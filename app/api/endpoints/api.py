@@ -25,7 +25,7 @@ from app.api.endpoints import keyword_search
 from app.api.endpoints import user_alert
 from app.api.endpoints import notification_read
 from app.api.endpoints import auth
-
+from app.api.endpoints import pd_user_get_all_active_users
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
 api_router.include_router(protocol_sponsor.router, prefix="/protocol_sponsor", tags=["Protocol Sponsors"])
@@ -53,4 +53,4 @@ api_router.include_router(keyword_search.router, prefix="/keyword_search", tags=
 api_router.include_router(user_alert.router, prefix="/user_alert", tags=["User Alert"])
 api_router.include_router(notification_read.router, prefix="/notification_read", tags=["User Alert Read Notification"])
 api_router.include_router(auth.router, prefix="/token", tags=["Authentication"])
-
+api_router.include_router(pd_user_get_all_active_users.router, prefix="/user", tags=["Retreving Active Users From 'User Table(dbo.user)'"])
