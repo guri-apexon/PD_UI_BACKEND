@@ -11,3 +11,4 @@ from .pd_user_protocols import pd_user_protocols
 from .pd_search import query_elastic
 from .qc_update_elastic import qc_update_elastic
 from .pd_protocol_qc_summary_data import pd_protocol_qc_summary_data
+from .pd_user_get_all_active_users import user
