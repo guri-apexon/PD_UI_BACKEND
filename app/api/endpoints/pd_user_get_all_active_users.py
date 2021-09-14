@@ -11,7 +11,7 @@ router = APIRouter()
 
 #For getting All Active Users
 @router.get("/read_all_users")
-def get_all_users(*, db: Session = Depends(deps.get_db), _: str = Depends(auth.validate_user_token)) -> Any:
+def get_all_users(*, db: Session = Depends(deps.get_db), userId:str="", _: str = Depends(auth.validate_user_token)) -> Any:
 
-   user_search = crud.user.get_all_user(db)
+   user_search = crud.user.get_all_user(db, userId)
    return user_search
