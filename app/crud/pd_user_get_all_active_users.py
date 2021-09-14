@@ -9,7 +9,15 @@ from app.models.pd_login import Login
 
 
 class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
-    def get_all_user(self,db:Session) -> User:
-           return db.query(User.username, User.first_name, User.last_name, User.email, User.country, User.date_of_registration, User.user_type).join(Login, and_(Login.id == User.login_id, Login.internal_user == '1')).all()
+    def get_all_user(self, db: Session, userId: str = None) -> User:
+        if userId is not "":
+            search = "%{}%".format(userId)
+            protocolmetadata_data = db.query(User.username, User.first_name, User.last_name).filter(
+                User.username.like(search)).first()
+            return protocolmetadata_data
+        else:
+            return db.query(User.username, User.first_name, User.last_name, User.email, User.country,
+                            User.date_of_registration, User.user_type).join(Login, and_(Login.id == User.login_id,
+                                                                                        Login.internal_user == '1')).all()
 
 user = CRUDUserSearch(User)
