@@ -14,3 +14,4 @@ class User(Base):
     date_of_registration = Column(DateTime(timezone=True), default=datetime.utcnow)
     user_type = Column(String, nullable=True)
     login_id = Column(Integer, ForeignKey("login.id"))
+    lastUpdated = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=True)
