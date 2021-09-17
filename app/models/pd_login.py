@@ -13,3 +13,4 @@ class Login(Base):
     internal_user = Column(Boolean)
     active_user = Column(Boolean)
     incorrect_attempts = Column(Integer, nullable=True)
+    lastUpdated = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=True)
