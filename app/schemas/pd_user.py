@@ -1,6 +1,6 @@
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 #The Following Below Details will be displayed in Swagger UI
@@ -28,12 +28,12 @@ class UserUpdate(UserBase):
     user_type: Optional[str] = None
 
 class UserCreate(UserBase):
-    username: str
-    first_name: str
-    last_name: str
-    email: str
-    country: str
-    user_type: str
+    username: str = Field(...)
+    first_name: str = Field(...)
+    last_name: str = Field(...)
+    email: str = Field(...)
+    country: str = Field(...)
+    user_type: str = Field(...)
 
 class User(UserBaseInDBBase):
     pass
