@@ -41,5 +41,23 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
             db.rollback()
             return ex
 
+    def create(self, db: Session, *, obj_in: UserCreate, login_id) -> User:
+        try:
+            db_obj = User(
+                            first_name=obj_in.first_name,
+                            last_name=obj_in.last_name,
+                            country=obj_in.country,
+                            email=obj_in.email,
+                            username=obj_in.username,
+                            login_id=login_id,
+                            user_type=obj_in.user_type)
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+            return db_obj
+        except Exception as ex:
+            db.rollback()
+            return ex
+
 
 user = CRUDUserSearch(User)
