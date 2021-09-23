@@ -49,10 +49,7 @@ unit-tests:
   tags:
       - pd-dev-windows-ml01q
   stage: test
-  before_script:
-    - . $VE_PATH
   script:
-    
     - python -m pytest --cov=./ --cov-report xml -v --junitxml="test_results.xml"
   allow_failure: true # Remove it, when ready
   artifacts:
