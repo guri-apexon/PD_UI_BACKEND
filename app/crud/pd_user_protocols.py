@@ -1,14 +1,19 @@
+import logging
 from datetime import datetime
 from typing import Any, Dict, Optional, Union
 
 from app import config
 from app.crud.base import CRUDBase
+from app.utilities.config import settings
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.schemas.pd_user_protocols import (UserFollowProtocol, UserProtocolAdd,
                                            UserProtocolCreate,
                                            UserProtocolUpdate)
 from fastapi import HTTPException
+from sqlalchemy import exc
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(settings.PROJECT_NAME)
 
 
 class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProtocolUpdate]):
@@ -18,7 +23,6 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
 
     def create(self, db: Session, *, obj_in: UserProtocolCreate) -> PD_User_Protocols:
         db_obj = PD_User_Protocols(isActive=obj_in.isActive,
-                                   id=obj_in.id,
                                    userId=obj_in.userId,
                                    protocol=obj_in.protocol,
                                    follow=obj_in.follow,
@@ -94,14 +98,16 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         return db.query(PD_User_Protocols).filter(PD_User_Protocols.id == id).filter(
             PD_User_Protocols.userId == userId).first()
 
-    def add_protocol(self, db: Session, *, obj_in: UserProtocolAdd) -> PD_User_Protocols:
-        # Check for the duplicate entry with the given userId and Protocol
+    @staticmethod
+    def add_protocol(db: Session, *, obj_in: UserProtocolAdd) -> PD_User_Protocols:
         user_protocol = pd_user_protocols.get_by_userid_protocol(db, obj_in.userId, obj_in.protocol)
         if user_protocol:
             raise HTTPException(
                 status_code=404,
-                detail=f"Already record exists with the given {obj_in.userId} and {obj_in.protocol} with userRole {obj_in.userRole} ",
+                detail=f"Already record exists with userId: {obj_in.userId}, "
+                       f"protocol: {obj_in.protocol} and userRole: {obj_in.userRole}",
             )
+
         db_obj = PD_User_Protocols(isActive=True,
                                    userId=obj_in.userId,
                                    protocol=obj_in.protocol,
@@ -116,8 +122,13 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)
+        except exc.SQLAlchemyError as ex:
+            db.rollback()
+            logger.error(f"SQLAlchemyError raised \n {str(ex)}")
         except Exception as ex:
             db.rollback()
+            logger.error(f"Exception received for userID: {obj_in.userId} and "
+                         f"protocol: {obj_in.protocol} \n ERROR Details: {str(ex)}")
         return db_obj
 
     def get_by_userid_protocol(self, db: Session, userid: Any, protocol: Any) -> PD_User_Protocols:

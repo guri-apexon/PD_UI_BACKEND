@@ -25,6 +25,7 @@ class UserProtocolCreate(UserProtocolBase):
     lastUpdated: datetime
     userUpdated: str 
 
+
 class UserFollowProtocol(BaseModel):
     userId: str
     protocol: str
@@ -37,10 +38,7 @@ class UserProtocolAdd(UserProtocolBase):
     protocol: str
     projectId: str
     userRole: str
-    userCreated: str
-    userUpdated: str
-
-
+    follow: bool
 
 
 # Properties to receive via API on update

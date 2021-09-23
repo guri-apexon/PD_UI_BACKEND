@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -7,29 +7,29 @@ from app.utilities.config import settings
 
 from app import crud, schemas
 from app.api import deps
-from app.models.pd_user_protocols import PD_User_Protocols
 from app.api.endpoints import auth
 
 router = APIRouter()
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
+
 @router.post("/", response_model=schemas.UserProtocol)
-def add_user_protocol(
+def add_user_protocol_one_to_one(
         *,
         db: Session = Depends(deps.get_db),
         user_protocol_in: schemas.UserProtocolAdd,
         _: str = Depends(auth.validate_user_token),
 ) -> Any:
     """
-    push follow protocol data.
+    Add User Protocol One To One.
     """
-    logger.info("add_user_protocol POST method called")
+    logger.info("add_user_protocol_one_to_one POST method called")
     user_protocol = crud.pd_user_protocols.add_protocol(db, obj_in=user_protocol_in)
     if not user_protocol:
         raise HTTPException(
             status_code=404,
-            detail="Exception occured. Unable to Add User Protocol",
+            detail="Exception occurred. Unable to Add User Protocol",
         )
     return user_protocol
 
@@ -60,6 +60,7 @@ def delete_user_protocol(
     except Exception as ex:
         db.rollback()
     return user_protocol
+
 
 @router.get("/is_primary_user")
 def is_user_primary(
