@@ -28,6 +28,7 @@ from app.api.endpoints import auth
 from app.api.endpoints import pd_user_get_all_active_users
 from app.api.endpoints import pd_user_UpdateExisting_SoftDelete
 from app.api.endpoints import pd_user_login_CreateNewUser
+from app.api.endpoints import pd_roles_GetAllRoles_CreateNewRoles
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
 api_router.include_router(protocol_sponsor.router, prefix="/protocol_sponsor", tags=["Protocol Sponsors"])
@@ -58,3 +59,4 @@ api_router.include_router(auth.router, prefix="/token", tags=["Authentication"])
 api_router.include_router(pd_user_get_all_active_users.router, prefix="/user", tags=["Retreving Active Users From 'User Table(dbo.user)'"])
 api_router.include_router(pd_user_UpdateExisting_SoftDelete.router, prefix="/user_login", tags=["Update Existing Users(in dbo.user) and Soft Deleting(in dbo.login)"])
 api_router.include_router(pd_user_login_CreateNewUser.router, prefix="/create_new_user", tags=["Creating New User In User(dbo.user) & Login(dbo.login) Tables"])
+api_router.include_router(pd_roles_GetAllRoles_CreateNewRoles.router, prefix="/roles", tags=["Get All Roles And Create New Roles(in dbo.pd_roles) Table"])

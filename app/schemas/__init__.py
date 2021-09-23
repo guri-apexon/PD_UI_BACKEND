@@ -18,3 +18,4 @@ from .pd_user_alert import UserAlertInput, UserAlert, UserAlertTestUpdate
 from .pd_notification_read import NotificationRead
 from .pd_user import User, UserBaseInDBBase, UserUpdate, UserCreate
 from .pd_login import Login, LoginBaseInDBBase, User_Soft_Delete
+from .pd_roles import RolesCreate, Roles, RolesBaseInDBBase

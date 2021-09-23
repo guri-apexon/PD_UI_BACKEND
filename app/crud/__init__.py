@@ -13,3 +13,4 @@ from .qc_update_elastic import qc_update_elastic
 from .pd_protocol_qc_summary_data import pd_protocol_qc_summary_data
 from .pd_user import user
 from .pd_login import login
+from .pd_roles import roles
