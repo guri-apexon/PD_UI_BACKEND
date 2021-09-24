@@ -69,5 +69,5 @@ def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_fl
         mock_protocol.return_value = sample_query_json
         response = client.post("/api/user_protocol/", json=sample_query_json, headers=new_token_on_headers)
         assert mock_protocol.called
-        assert response.status_code == 404
+        assert response.status_code == 403
         assert response.json() == expected_json
