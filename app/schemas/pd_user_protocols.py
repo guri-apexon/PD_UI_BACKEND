@@ -36,7 +36,7 @@ class UserFollowProtocol(BaseModel):
 class UserProtocolAdd(UserProtocolBase):
     userId: str
     protocol: str
-    projectId: str
+    projectId: Optional[str] = "pid"
     userRole: str
     follow: bool
 

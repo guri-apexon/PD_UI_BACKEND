@@ -103,7 +103,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         user_protocol = pd_user_protocols.get_by_userid_protocol(db, obj_in.userId, obj_in.protocol)
         if user_protocol:
             raise HTTPException(
-                status_code=404,
+                status_code=204,
                 detail=f"Already record exists with userId: {obj_in.userId}, "
                        f"protocol: {obj_in.protocol} and userRole: {obj_in.userRole}",
             )
@@ -111,7 +111,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         db_obj = PD_User_Protocols(isActive=True,
                                    userId=obj_in.userId,
                                    protocol=obj_in.protocol,
-                                   follow=False,
+                                   follow=obj_in.follow,
                                    userRole=obj_in.userRole,
                                    projectId=obj_in.projectId,
                                    userCreated=obj_in.userCreated,
