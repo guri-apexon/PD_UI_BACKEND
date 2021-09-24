@@ -136,5 +136,30 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         return db.query(self.model).filter(PD_User_Protocols.userId == userid).filter(
             PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive=='1').first()
 
+    def get_details_by_userId_protocol(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
+        try:
+            if userId and not protocol:
+                result = db.query(PD_User_Protocols.userId, PD_User_Protocols.protocol,
+                                  PD_User_Protocols.isActive, PD_User_Protocols.follow,
+                                  PD_User_Protocols.userRole, PD_User_Protocols.timeCreated,
+                                  PD_User_Protocols.lastUpdated).filter(PD_User_Protocols.userId == userId,
+                                                                        PD_User_Protocols.isActive == '1').all()
+
+            elif not userId and protocol:
+                result = db.query(PD_User_Protocols.userId, PD_User_Protocols.protocol,
+                                  PD_User_Protocols.isActive, PD_User_Protocols.follow,
+                                  PD_User_Protocols.userRole, PD_User_Protocols.timeCreated,
+                                  PD_User_Protocols.lastUpdated).filter(PD_User_Protocols.protocol == protocol,
+                                                                        PD_User_Protocols.isActive == '1').all()
+            elif userId and protocol:
+                result = db.query(PD_User_Protocols.userId, PD_User_Protocols.protocol,
+                                  PD_User_Protocols.isActive, PD_User_Protocols.follow,
+                                  PD_User_Protocols.userRole, PD_User_Protocols.timeCreated,
+                                  PD_User_Protocols.lastUpdated).filter(PD_User_Protocols.userId == userId,
+                                                                        PD_User_Protocols.protocol == protocol,
+                                                                        PD_User_Protocols.isActive == '1').all()
+            return result
+        except Exception as ex:
+            return ex
 
 pd_user_protocols = CRUDUserProtocols(PD_User_Protocols)

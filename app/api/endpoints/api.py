@@ -29,6 +29,7 @@ from app.api.endpoints import pd_user_get_all_active_users
 from app.api.endpoints import pd_user_UpdateExisting_SoftDelete
 from app.api.endpoints import pd_user_login_CreateNewUser
 from app.api.endpoints import pd_roles_GetAllRoles_CreateNewRoles
+from app.api.endpoints import pd_user_protocol_GetProtocolMappingDetails
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
 api_router.include_router(protocol_sponsor.router, prefix="/protocol_sponsor", tags=["Protocol Sponsors"])
@@ -60,3 +61,4 @@ api_router.include_router(pd_user_get_all_active_users.router, prefix="/user", t
 api_router.include_router(pd_user_UpdateExisting_SoftDelete.router, prefix="/user_login", tags=["Update Existing Users(in dbo.user) and Soft Deleting(in dbo.login)"])
 api_router.include_router(pd_user_login_CreateNewUser.router, prefix="/create_new_user", tags=["Creating New User In User(dbo.user) & Login(dbo.login) Tables"])
 api_router.include_router(pd_roles_GetAllRoles_CreateNewRoles.router, prefix="/roles", tags=["Get All Roles And Create New Roles(in dbo.pd_roles) Table"])
+api_router.include_router(pd_user_protocol_GetProtocolMappingDetails.router, prefix="/user_protocol", tags=["Get Protocol Mapping Details By userId or protocol(from dbo.pd_user_protocols)"])
