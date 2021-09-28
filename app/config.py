@@ -27,3 +27,6 @@ OVERRIDE_QC_FIELDS = ()
 # -------------- Misc
 DIGITIZATION_COMPLETED_STATUS = "PROCESS_COMPLETED"
 QC_COMPLETED_STATUS = QcStatus.COMPLETED.value
+
+# Redaction profile
+USERROLE_REDACTPROFILE_MAP = {"primary": "profile_1", "secondary": "profile_0", "default": "profile_0"}
