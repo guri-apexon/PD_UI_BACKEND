@@ -51,6 +51,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                 user_protocol_obj.isActive = True
                 user_protocol_obj.follow = obj_in.follow
                 user_protocol_obj.userRole = user_role
+                user_protocol_obj.redactProfile = config.USERROLE_REDACTPROFILE_MAP.get(user_role, "default")
                 user_protocol_obj.lastUpdated = current_timestamp
                 db.commit()
                 db.refresh(user_protocol_obj)
@@ -66,6 +67,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                        protocol = obj_in.protocol,
                                        follow = obj_in.follow,
                                        userRole = user_role,
+                                       redactProfile = config.USERROLE_REDACTPROFILE_MAP.get(user_role, "default"),
                                        timeCreated = current_timestamp,
                                        lastUpdated = current_timestamp
                                     )
