@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional, Union, List
-
+from datetime import datetime
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from app.crud.base import CRUDBase
@@ -34,6 +34,7 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
             user.email = obj_in.email if obj_in.email else user.email
             user.country = obj_in.country if obj_in.country else user.country
             user.user_type = obj_in.user_type if obj_in.user_type else user.user_type
+            user.lastUpdated = datetime.utcnow()
             db.add(user)
             db.commit()
             return True

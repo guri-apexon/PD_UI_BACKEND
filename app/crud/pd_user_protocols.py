@@ -12,6 +12,8 @@ from app.schemas.pd_user_protocols import (UserFollowProtocol, UserProtocolAdd,
 from fastapi import HTTPException
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
+from app import schemas
+from sqlalchemy import and_
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
@@ -138,6 +140,11 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         return db.query(self.model).filter(PD_User_Protocols.userId == userid).filter(
             PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive=='1').first()
 
+    def userId_protocol(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
+        """Getting userId & protocol without isActive"""
+        return db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == userId).filter(
+            PD_User_Protocols.protocol == protocol)
+
     def get_details_by_userId_protocol(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
         try:
             if userId and not protocol:
@@ -162,6 +169,25 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                                                         PD_User_Protocols.isActive == '1').all()
             return result
         except Exception as ex:
+            return ex
+
+    def soft_delete(self, db: Session, obj_in: schemas.UserProtocolSoftDelete) -> PD_User_Protocols:
+        try:
+            result = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == obj_in.userId,
+                                                        PD_User_Protocols.protocol == obj_in.protocol,
+                                                        PD_User_Protocols.isActive == True).first()
+            if result:
+                result.isActive = obj_in.isActive
+                result.lastUpdated = datetime.utcnow()
+                db.add(result)
+                db.commit()
+                return True
+            else:
+                return False
+
+
+        except Exception as ex:
+            db.rollback()
             return ex
 
 pd_user_protocols = CRUDUserProtocols(PD_User_Protocols)
