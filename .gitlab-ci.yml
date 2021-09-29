@@ -51,11 +51,12 @@ unit-tests:
   stage: test
   script:
     - python -m pytest --cov=./ --cov-report xml -v --junitxml="test_results.xml"
-  allow_failure: true # Remove it, when ready
   artifacts:
-      paths:
-      - test_results.xml
+    paths:
       - coverage.xml
+    reports:
+      junit: test_results.xml
+  allow_failure: true # Remove it, when ready
   only:
     refs:
       - develop
@@ -66,9 +67,6 @@ unit-tests:
 Perform Sonarqube Analysis and quality gate:  # for all environments
   image: sonarsource/sonar-scanner-cli
   stage: sonar-scan
-  only:
-    - branches
-    - tags
   before_script:
     - echo "Setting up for Sonarqube Analysis on PD $CI_COMMIT_REF_NAME branch"
     - apk upgrade --update-cache --available && apk add openssl
