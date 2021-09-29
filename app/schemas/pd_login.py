@@ -20,7 +20,6 @@ class User_Soft_Delete(Soft_Delete):
     pass
 
 class LoginBaseInDBBase(LoginBase):
-    id: Optional[int] = None
     class Config:
         orm_mode = True
 

@@ -40,6 +40,11 @@ class UserProtocolAdd(UserProtocolBase):
     userRole: str
     follow: bool
 
+#For Soft Deleting Making isActive False
+class UserProtocolSoftDelete(BaseModel):
+    userId: Optional[str] = None
+    protocol: Optional[str] = None
+    isActive: Optional[bool] = None
 
 # Properties to receive via API on update
 class UserProtocolUpdate(UserProtocolBase):
