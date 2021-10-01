@@ -30,3 +30,8 @@ QC_COMPLETED_STATUS = QcStatus.COMPLETED.value
 
 # Redaction profile
 USERROLE_REDACTPROFILE_MAP = {"primary": "profile_1", "secondary": "profile_0", "default": "profile_0"}
+
+GENRE_ENTITY_NAME = 'entity'
+GENRE_ATTRIBUTE_NAME = 'attributes'
+GENRE_ACTION_NAME = 'action'
+GENRE_SECTION_NAME = 'section'
