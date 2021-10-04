@@ -69,4 +69,19 @@ class Redactor:
         profile_genre = profile.get(genre, [])
         return valid_profile_name, profile, profile_genre
 
+    def check_allow_download(self, current_db, user_id=None, protocol=None, redact_profile_name=None, action_type=None) -> Tuple[bool, str]:
+        """
+        Verifies whether action_type is allowed or not
+        Input: UserId/protocol OR profile name
+        Output: Yes/No AND profile_name
+        """
+        profile_name, _, profile_genre = self.get_current_redact_profile(current_db=current_db, user_id=user_id, protocol=protocol, 
+                                                                            profile_name=redact_profile_name, genre='action')
+        if action_type not in profile_genre:
+            return True, profile_name
+
+        logger.debug(f"{user_id}/{protocol} has {profile_name}; Requested action [{action_type}] exists in deny list {profile_genre}")
+        return False, profile_name
+
+
 redactor = Redactor()
