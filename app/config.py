@@ -36,5 +36,13 @@ GENRE_ATTRIBUTE_NAME = 'attributes'
 GENRE_ACTION_NAME = 'action'
 GENRE_SECTION_NAME = 'section'
 
+# Redaction Footnotes
+FOOTNOTES_TEXT = "Text"
+FOOTNOTES_ENTITIES = "entities"
+FOOTNOTES_START_INDEX = "start_idx"
+FOOTNOTES_END_INDEX = "end_idx"
+FOOTNOTES_KEY = "Key"
+FOOTNOTE_STR = "FootnoteText"
+
 SRC_DOC_ACTION_TYPE = 'download_source_document'
 COMPARED_DOC_ACTION_TYPE = 'download_compare_document'
