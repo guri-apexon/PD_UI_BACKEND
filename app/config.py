@@ -35,3 +35,6 @@ GENRE_ENTITY_NAME = 'entity'
 GENRE_ATTRIBUTE_NAME = 'attributes'
 GENRE_ACTION_NAME = 'action'
 GENRE_SECTION_NAME = 'section'
+
+SRC_DOC_ACTION_TYPE = 'download_source_document'
+COMPARED_DOC_ACTION_TYPE = 'download_compare_document'
