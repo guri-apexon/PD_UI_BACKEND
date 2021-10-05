@@ -9,7 +9,7 @@ def test_get_ldap_user_details(new_token_on_headers):
         "userId": "ypd"
     }
 
-    response = client.post("/api/ldap_user_details/", params=input_json, headers=new_token_on_headers)
+    response = client.get("/api/ldap_user_details/", params=input_json, headers=new_token_on_headers)
     assert response.status_code == 200
 
 
@@ -22,7 +22,7 @@ def test_get_ldap_invalid_user_details(new_token_on_headers):
         'detail': 'No record found for userId: XXX'
     }
 
-    response = client.post("/api/ldap_user_details/", params=input_json, headers=new_token_on_headers)
+    response = client.get("/api/ldap_user_details/", params=input_json, headers=new_token_on_headers)
     assert response.status_code == 403
     assert response.json() == expected_json
 
