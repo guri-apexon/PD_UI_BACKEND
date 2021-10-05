@@ -12,20 +12,20 @@ client = TestClient(app)
 db = SessionLocal()
 
 
-@pytest.mark.parametrize("insert_flg, user_id, protocol, follow_flg, user_role, expected_user_role", [
-    ("0", "1034911", "SSR_1002-043", True, "secondary", "secondary"),
-    ("0", "1034911", "SSR_1002-043", False, "secondary", "secondary"),
-    ("0", "1034911", "SSR_1002-043", False, "", config.FOLLOW_DEFAULT_ROLE),
-    ("0", "1034911", "SSR_1002-043", False, "xyz", config.FOLLOW_DEFAULT_ROLE),
-    ("1", "1034911", "SSR_1002-043", True, "secondary", "secondary"),
-    ("1", "1034911", "SSR_1002-043", False, "secondary", "secondary"),
-    ("1", "1034911", "SSR_1002-043", False, "", config.FOLLOW_DEFAULT_ROLE),
-    ("1", "1034911", "SSR_1002-043", False, "xyz", config.FOLLOW_DEFAULT_ROLE),
-    ("0", "1034911", "SSR_1002-043", False, "primary", "primary"),
-    ("1", "1034911", "SSR_1002-043", True, "primary", "primary")
+@pytest.mark.parametrize("insert_flg, user_id, protocol, follow_flg, user_role, expected_user_role, expected_redact_profile", [
+    ("0", "1034911", "SSR_1002-043", True, "secondary", "secondary", config.USERROLE_REDACTPROFILE_MAP.get("secondary", "")),
+    ("0", "1034911", "SSR_1002-043", False, "secondary", "secondary", config.USERROLE_REDACTPROFILE_MAP.get("secondary", "")),
+    ("0", "1034911", "SSR_1002-043", False, "", config.FOLLOW_DEFAULT_ROLE, config.USERROLE_REDACTPROFILE_MAP.get(config.FOLLOW_DEFAULT_ROLE, "")),
+    ("0", "1034911", "SSR_1002-043", False, "xyz", config.FOLLOW_DEFAULT_ROLE, config.USERROLE_REDACTPROFILE_MAP.get(config.FOLLOW_DEFAULT_ROLE, "")),
+    ("1", "1034911", "SSR_1002-043", True, "secondary", "secondary", config.USERROLE_REDACTPROFILE_MAP.get("secondary", "")),
+    ("1", "1034911", "SSR_1002-043", False, "secondary", "secondary", config.USERROLE_REDACTPROFILE_MAP.get("secondary", "")),
+    ("1", "1034911", "SSR_1002-043", False, "", config.FOLLOW_DEFAULT_ROLE, config.USERROLE_REDACTPROFILE_MAP.get(config.FOLLOW_DEFAULT_ROLE, "")),
+    ("1", "1034911", "SSR_1002-043", False, "xyz", config.FOLLOW_DEFAULT_ROLE, config.USERROLE_REDACTPROFILE_MAP.get(config.FOLLOW_DEFAULT_ROLE, "")),
+    ("0", "1034911", "SSR_1002-043", False, "primary", "primary", config.USERROLE_REDACTPROFILE_MAP.get("primary", "")),
+    ("1", "1034911", "SSR_1002-043", True, "primary", "primary", config.USERROLE_REDACTPROFILE_MAP.get("primary", ""))
 ])
 def test_follow_protocol(new_token_on_headers, insert_flg, user_id, protocol, follow_flg,
-                         user_role, expected_user_role):
+                         user_role, expected_user_role, expected_redact_profile):
     current_timestamp = datetime.utcnow()
 
     if insert_flg:
@@ -42,6 +42,7 @@ def test_follow_protocol(new_token_on_headers, insert_flg, user_id, protocol, fo
     assert follow_record.follow == follow_flg
     assert follow_record.userRole == expected_user_role
     assert follow_record.isActive is True
+    assert follow_record.redactProfile == expected_redact_profile
     assert follow_record.lastUpdated >= current_timestamp
 
     if insert_flg:
@@ -69,5 +70,5 @@ def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_fl
         mock_protocol.return_value = sample_query_json
         response = client.post("/api/user_protocol/", json=sample_query_json, headers=new_token_on_headers)
         assert mock_protocol.called
-        assert response.status_code == 404
+        assert response.status_code == 403
         assert response.json() == expected_json

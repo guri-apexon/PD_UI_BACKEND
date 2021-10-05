@@ -34,6 +34,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if documentStatus == "final":
             return db.query(self.model).filter(self.model.documentStatus=="final").filter(self.model.amendment==amendmentNumber).filter(self.model.versionNumber==versionNumber).filter(self.model.sponsor==sponsor).filter(self.model.protocol==protocolNumber).first()
         
+    def get_user_role(self, db: Session, userId: str, protocolNumber: str) -> Optional[ModelType]:
+        """Retrieves role of user based on userid and protocol number"""
+        return db.query(self.model).filter(self.model.userId == userId).filter(self.model.protocol == protocolNumber).first()
 
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100

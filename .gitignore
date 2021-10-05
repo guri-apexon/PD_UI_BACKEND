@@ -7,3 +7,6 @@ __pycache__/
 .pytest_cache
 fiy_*
 .coverage
+pd_ui_backend.egg-info
+pd_ui_backend.egg-info/*
+app/tests/.coveragerc/*

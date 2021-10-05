@@ -1,6 +1,6 @@
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # Shared properties
@@ -40,6 +40,11 @@ class UserProtocolAdd(UserProtocolBase):
     userRole: str
     follow: bool
 
+#For Soft Deleting Making isActive False
+class UserProtocolSoftDelete(BaseModel):
+    userId: str = Field(...)
+    protocol: str = Field(...)
+    isActive: bool = Field(...)
 
 # Properties to receive via API on update
 class UserProtocolUpdate(UserProtocolBase):

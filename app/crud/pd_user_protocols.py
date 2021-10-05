@@ -12,6 +12,8 @@ from app.schemas.pd_user_protocols import (UserFollowProtocol, UserProtocolAdd,
 from fastapi import HTTPException
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
+from app import schemas
+from sqlalchemy import and_
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
@@ -51,6 +53,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                 user_protocol_obj.isActive = True
                 user_protocol_obj.follow = obj_in.follow
                 user_protocol_obj.userRole = user_role
+                user_protocol_obj.redactProfile = config.USERROLE_REDACTPROFILE_MAP.get(user_role, "default")
                 user_protocol_obj.lastUpdated = current_timestamp
                 db.commit()
                 db.refresh(user_protocol_obj)
@@ -66,6 +69,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                        protocol = obj_in.protocol,
                                        follow = obj_in.follow,
                                        userRole = user_role,
+                                       redactProfile = config.USERROLE_REDACTPROFILE_MAP.get(user_role, "default"),
                                        timeCreated = current_timestamp,
                                        lastUpdated = current_timestamp
                                     )
@@ -103,7 +107,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         user_protocol = pd_user_protocols.get_by_userid_protocol(db, obj_in.userId, obj_in.protocol)
         if user_protocol:
             raise HTTPException(
-                status_code=204,
+                status_code=403,
                 detail=f"Already record exists with userId: {obj_in.userId}, "
                        f"protocol: {obj_in.protocol} and userRole: {obj_in.userRole}",
             )
@@ -136,6 +140,11 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         return db.query(self.model).filter(PD_User_Protocols.userId == userid).filter(
             PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive=='1').first()
 
+    def userId_protocol(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
+        """Getting userId & protocol without isActive"""
+        return db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == userId).filter(
+            PD_User_Protocols.protocol == protocol)
+
     def get_details_by_userId_protocol(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
         try:
             if userId and not protocol:
@@ -160,6 +169,25 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                                                         PD_User_Protocols.isActive == '1').all()
             return result
         except Exception as ex:
+            return ex
+
+    def soft_delete(self, db: Session, obj_in: schemas.UserProtocolSoftDelete) -> PD_User_Protocols:
+        try:
+            result = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == obj_in.userId,
+                                                        PD_User_Protocols.protocol == obj_in.protocol,
+                                                        PD_User_Protocols.isActive == True).first()
+            if result:
+                result.isActive = obj_in.isActive
+                result.lastUpdated = datetime.utcnow()
+                db.add(result)
+                db.commit()
+                return True
+            else:
+                return False
+
+
+        except Exception as ex:
+            db.rollback()
             return ex
 
 pd_user_protocols = CRUDUserProtocols(PD_User_Protocols)

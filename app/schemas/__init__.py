@@ -12,10 +12,11 @@ from .pd_document_compare import DocumentCompare, DocumentCompareCreate, Documen
 from .pd_protocol_data import ProtocolData, ProtocolDataCreate, ProtocolDataUpdate, ProtocolDataReadIqvdataBase, \
     ProtocolDataReadIqvdata
 from .pd_user_protocols import UserProtocol, UserProtocolCreate, UserProtocolUpdate, UserProtocolBase, UserProtocolAdd, \
-    UserFollowProtocol
+    UserFollowProtocol, UserProtocolSoftDelete
 from .pd_search import SearchJson
 from .pd_user_alert import UserAlertInput, UserAlert, UserAlertTestUpdate
 from .pd_notification_read import NotificationRead
 from .pd_user import User, UserBaseInDBBase, UserUpdate, UserCreate
 from .pd_login import Login, LoginBaseInDBBase, User_Soft_Delete
 from .pd_roles import RolesCreate, Roles, RolesBaseInDBBase
+from .pd_ldap_user_details import LdapUserDetails, LdapUserRequest

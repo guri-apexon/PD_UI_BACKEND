@@ -5,6 +5,7 @@ from .pd_protocol_data import pd_protocol_data
 from .pd_protocol_metadata import pd_protocol_metadata
 from .pd_protocol_sponsor import pd_protocol_sponsor
 from .pd_protocols import pd_protocols
+from .pd_redact_profile import pd_redact_profile
 from .pd_recent_search import pd_recent_search
 from .pd_saved_search import pd_saved_search
 from .pd_user_protocols import pd_user_protocols
@@ -14,3 +15,4 @@ from .pd_protocol_qc_summary_data import pd_protocol_qc_summary_data
 from .pd_user import user
 from .pd_login import login
 from .pd_roles import roles
+from .pd_ldap_user_details import get_ldap_user_details
