@@ -31,6 +31,7 @@ from app.api.endpoints import pd_user_login_CreateNewUser
 from app.api.endpoints import pd_roles_GetAllRoles_CreateNewRoles
 from app.api.endpoints import pd_user_protocol_GetProtocolMappingDetails
 from app.api.endpoints import pd_user_protocol_RemoveUserProtocolMapping
+from app.api.endpoints import ldap_user_details
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
 api_router.include_router(protocol_sponsor.router, prefix="/protocol_sponsor", tags=["Protocol Sponsors"])
@@ -64,3 +65,4 @@ api_router.include_router(pd_user_login_CreateNewUser.router, prefix="/create_ne
 api_router.include_router(pd_roles_GetAllRoles_CreateNewRoles.router, prefix="/roles", tags=["Get All Roles And Create New Roles(in dbo.pd_roles) Table"])
 api_router.include_router(pd_user_protocol_GetProtocolMappingDetails.router, prefix="/user_protocol", tags=["Get Protocol Mapping Details By userId or protocol(from dbo.pd_user_protocols)"])
 api_router.include_router(pd_user_protocol_RemoveUserProtocolMapping.router, prefix="/user_protocol", tags=["Remove User Protocol Mapping"])
+api_router.include_router(ldap_user_details.router, prefix="/ldap_user_details", tags=["Retrieve User Details From LDAP"])

@@ -46,3 +46,9 @@ FOOTNOTE_STR = "FootnoteText"
 
 SRC_DOC_ACTION_TYPE = 'download_source_document'
 COMPARED_DOC_ACTION_TYPE = 'download_compare_document'
+
+# LDAP Configuration
+LDAP_SERVER = "ldap://wwldap.quintiles.net"
+LDAP_PORT = 389
+LDAP_USERNAME = "ypd@quintiles.net"
+LDAP_PWD = "7wv79WUT"
