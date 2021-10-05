@@ -1,5 +1,6 @@
 import logging
 import re
+from copy import deepcopy
 from typing import Tuple
 
 import numpy as np
@@ -83,5 +84,36 @@ class Redactor:
         logger.debug(f"{user_id}/{protocol} has {profile_name}; Requested action [{action_type}] exists in deny list {profile_genre}")
         return False, profile_name
 
+    def on_paragraph(self, text, font_info, redact_profile_entities=[], redact_flg=True, exclude_redact_property_flg=True) -> Tuple[str, dict]:
+        """
+        Redact paragraph based on redaction entity text
+
+        Inputs
+            text: Paragraph
+            font_info: List of redaction entities associated with the text
+            redact_entities: List of entity genre subcategory to be redacted
+            redact_flg: Apply redaction on text OR not
+            exclude_redact_property_flg: Exclude entity property OR not
+        Outputs
+            processed_text: Redacted paragraph (if redact_flg is set) OR actual paragraph
+            processed_property: Excluded redact property(if exclude_redact_propery is set) OR actual property
+        """
+        redacted_text = text
+        redacted_property = deepcopy(font_info)
+
+        if redact_flg:
+            for idx, entity in enumerate(font_info.get('entity', [])):
+                try:
+                    if entity.get('subcategory', '') in redact_profile_entities:
+                        logger.debug(f"Processing for idx[{idx}] with entity:{entity}")
+                        entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity['text'])
+                        redacted_text = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, redacted_text)
+                except Exception as exc:
+                    logger.warning(f"[entity# {idx}] subtext: {text}; font_info: {font_info}; Exception message: {str(exc)}")
+            
+        if exclude_redact_property_flg:
+            _ = redacted_property.pop('entity', "entity is not present")
+            
+        return redacted_text, redacted_property
 
 redactor = Redactor()
