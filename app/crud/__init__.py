@@ -15,3 +15,4 @@ from .pd_protocol_qc_summary_data import pd_protocol_qc_summary_data
 from .pd_user import user
 from .pd_login import login
 from .pd_roles import roles
+from .pd_ldap_user_details import get_ldap_user_details
