@@ -6,7 +6,7 @@ from app.api.endpoints import auth
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.LdapUserDetails)
+@router.get("/", response_model=schemas.LdapUserDetails)
 def get_ldap_user_details(
         userId: str,
         _: str = Depends(auth.validate_user_token)
