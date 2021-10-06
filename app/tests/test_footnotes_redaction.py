@@ -1,5 +1,5 @@
 import pytest
-from app.redaction.footnotes_redaction import RedactFootNotes
+from app.utilities.redaction.footnotes_redaction import RedactFootNotes
 
 
 @pytest.mark.parametrize("attachments, redact_flag, redacted_placeholder, redacted_text", [
