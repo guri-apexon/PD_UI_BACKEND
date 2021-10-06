@@ -37,9 +37,7 @@ class TableRedaction():
 
     def redact_entity(self, table_property):
         try:
-            tmp = 1
-            table_property['entities'].sort(key = lambda x:(x['start_idx'], x['end_idx']), reverse = True)
-            tmp = 1
+            table_property['entities'].sort(key = lambda x:(config.FOOTNOTES_START_INDEX, x[config.FOOTNOTES_END_INDEX]), reverse = True)
             for entity in table_property['entities']:
                 table_property['content'] = self.redact_text_fn(table_property['content'],
                                                                 entity[config.FOOTNOTES_START_INDEX],
@@ -47,7 +45,7 @@ class TableRedaction():
 
             return table_property
         except Exception as ex:
-            print(ex)
+            logger.error(f"Exception raised in - Table Redaction - redact_entity: {str(ex)}")
 
     def refresh_html_table(self, properties_df_cols, properties_df):
         table_df = pd.DataFrame()
