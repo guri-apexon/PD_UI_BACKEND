@@ -37,7 +37,9 @@ class TableRedaction():
 
     def redact_entity(self, table_property):
         try:
-            table_property['entities'].sort(key = lambda x:(config.FOOTNOTES_START_INDEX, x[config.FOOTNOTES_END_INDEX]), reverse = True)
+            table_property['entities'].sort(key = lambda x:(config.FOOTNOTES_START_INDEX,
+                                                            x[config.FOOTNOTES_END_INDEX]),
+                                            reverse = True)
             for entity in table_property['entities']:
                 table_property['content'] = self.redact_text_fn(table_property['content'],
                                                                 entity[config.FOOTNOTES_START_INDEX],
