@@ -92,7 +92,13 @@ def test_current_redact_genre(redact_profile, genre, max_genre_count, comments):
     (sample_text, sample_font_info, profile_1_entities, True, True, "Ideal primary profile"),
     (sample_text, sample_font_info, profile_1_entities, False, True, "Do not redact text but exclude property"),
     (sample_text, sample_font_info, profile_1_entities, True, False, "Redact text and include property"),
-    (sample_text, sample_font_info, profile_1_entities, False, False, "Do not redact text and include property")
+    (sample_text, sample_font_info, profile_1_entities, False, False, "Do not redact text and include property"),
+    ("", sample_font_info, profile_1_entities, True, True, "Empty text"),
+    (sample_text, {}, profile_1_entities, True, True, "Empty font_info"),
+    ("", {}, profile_1_entities, True, True, "Empty text AND font_info"),
+    (sample_text, {"entity": []}, profile_1_entities, True, True, "Empty entity"),
+    ("", {"entity": []}, profile_1_entities, True, True, "Empty text AND Empty entity"),
+    ("", {"entity": []}, profile_1_entities, True, False, "Empty text AND Empty entity but include property")
 ])
 def test_redact_text(text, font_info, redact_profile_entities, redact_flg, exclude_redact_property_flg, comments):
     """
@@ -100,7 +106,7 @@ def test_redact_text(text, font_info, redact_profile_entities, redact_flg, exclu
     """
     redacted_text, redacted_property = redactor.on_paragraph(text, font_info, redact_profile_entities, redact_flg, exclude_redact_property_flg)
 
-    for each_entity in sample_font_info.get('entity'):
+    for each_entity in font_info.get('entity', []):
         entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", each_entity.get('text'))
         if each_entity.get('subcategory') in redact_profile_entities and redact_flg:
             assert re.search(entity_adjusted_text, redacted_text, re.I) is None

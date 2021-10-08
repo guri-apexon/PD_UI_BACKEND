@@ -38,6 +38,7 @@ GENRE_ENTITY_NAME = 'entity'
 GENRE_ATTRIBUTE_NAME = 'attributes'
 GENRE_ACTION_NAME = 'action'
 GENRE_SECTION_NAME = 'section'
+REDACT_ATTR_STR = '~REDACTED~'
 REDACT_PARAGRAPH_STR = '~REDACTED~'
 
 # Redaction Footnotes

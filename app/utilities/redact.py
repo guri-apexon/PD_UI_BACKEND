@@ -1,6 +1,7 @@
 import logging
 import re
 from copy import deepcopy
+from itertools import zip_longest
 from typing import Tuple
 
 import numpy as np
@@ -84,6 +85,32 @@ class Redactor:
         logger.debug(f"{user_id}/{protocol} has {profile_name}; Requested action [{action_type}] exists in deny list {profile_genre}")
         return False, profile_name
 
+    def on_attributes(self, current_db, multiple_doc_attributes: list = [], single_doc_attributes: dict = {}) -> Tuple[list, dict]:
+        """
+        Each dict need to have key 'redactProfile' which represent the profile which is to be applied on the attributes.
+
+        Input: multiple_doc_attributes as list[dict]. single_doc_attributes as dict. If both inputs are present, single_doc_attributes takes priority
+        Ouput: Redacted multiple_doc_attributes and single_doc_attributes
+        """
+        redacted_multiple_doc_attributes = []
+        if single_doc_attributes:
+           multiple_doc_attributes = list(single_doc_attributes)
+
+        if multiple_doc_attributes:
+            default_redact_attr = dict(zip_longest(multiple_doc_attributes[0].keys(), '', fillvalue = config.REDACT_ATTR_STR))
+        else:
+            logger.warning(f"Redaction on attributes did not received valid inputs. multiple_doc_attributes: {multiple_doc_attributes}; single_doc_attributes: {single_doc_attributes}")
+            return multiple_doc_attributes, single_doc_attributes
+
+        for doc_attributes in multiple_doc_attributes:
+            profile_name, _, profile_attributes = self.get_current_redact_profile(current_db=current_db, profile_name=doc_attributes.get('redactProfile'), genre=config.GENRE_ATTRIBUTE_NAME)
+            logger.debug(f"profile_name: {profile_name}; profile_attributes: {profile_attributes}")
+            nonredact_attr = {name:value for name,value in doc_attributes.items() if name not in profile_attributes}
+            redact_attr = {**default_redact_attr, **nonredact_attr}
+            redacted_multiple_doc_attributes.append(redact_attr)
+        
+        return redacted_multiple_doc_attributes, redacted_multiple_doc_attributes[0]        
+
     def on_paragraph(self, text, font_info, redact_profile_entities=[], redact_flg=True, exclude_redact_property_flg=True) -> Tuple[str, dict]:
         """
         Redact paragraph based on redaction entity text
@@ -100,9 +127,10 @@ class Redactor:
         """
         redacted_text = text
         redacted_property = deepcopy(font_info)
+        text_redaction_entity = font_info.get('entity', [])
 
-        if redact_flg:
-            for idx, entity in enumerate(font_info.get('entity', [])):
+        if redact_flg and text and text_redaction_entity:
+            for idx, entity in enumerate(text_redaction_entity):
                 try:
                     if entity.get('subcategory', '') in redact_profile_entities:
                         logger.debug(f"Processing for idx[{idx}] with entity:{entity}")
