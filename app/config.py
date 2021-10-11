@@ -48,6 +48,9 @@ GENRE_SECTION_NAME = 'section'
 REDACT_ATTR_STR = '~REDACTED~'
 REDACT_PARAGRAPH_STR = '~REDACTED~'
 
+START_INDEX_PATTERN = "start_idx"
+END_INDEX_PATTERN = "end_idx"
+
 # Redaction Footnotes
 FOOTNOTES_TEXT = "Text"
 FOOTNOTES_ENTITIES = "entities"
