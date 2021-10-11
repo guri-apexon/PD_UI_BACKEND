@@ -1,10 +1,10 @@
 import ldap
-from app import config
+from app.utilities.config import settings
 from fastapi import HTTPException
 
 
 def get_ldap_user_details(user_id):
-    server = config.LDAP_SERVER
+    server = settings.LDAP_SERVER
     base = "dc=quintiles,dc=net"
     scope = ldap.SCOPE_SUBTREE
     l_filter = f"(&(objectClass=user)(sAMAccountName={user_id}))"
@@ -14,7 +14,7 @@ def get_ldap_user_details(user_id):
     l.protocol_version = 3
     l.set_option(ldap.OPT_REFERRALS, 0)
 
-    l.simple_bind_s(config.LDAP_USERNAME, config.LDAP_PWD)
+    l.simple_bind_s(settings.LDAP_USERNAME, settings.LDAP_PWD)
     r = l.search(base, scope, l_filter, attrs)
     _, user = l.result(r, 60)
 
