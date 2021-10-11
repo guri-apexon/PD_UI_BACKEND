@@ -1,13 +1,14 @@
-import logging
-
 import concurrent.futures
-from app import schemas
-from app.utilities.config import settings
-from app.utilities.elastic_utilities import search_elastic
-from app.models.pd_user_protocols import PD_User_Protocols
+import logging
 from http import HTTPStatus
 
 import pandas as pd
+from app import config, schemas
+from app.models.pd_user_protocols import PD_User_Protocols
+from app.utilities.config import settings
+from app.utilities.elastic_utilities import search_elastic
+from app.utilities.redact import redactor
+
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -146,7 +147,8 @@ def get_follow_by_qid(params):
         return db.query(PD_User_Protocols.userId,
                         PD_User_Protocols.protocol,
                         PD_User_Protocols.follow,
-                        PD_User_Protocols.userRole).filter(PD_User_Protocols.userId == qID).all()
+                        PD_User_Protocols.userRole,
+                        PD_User_Protocols.redactProfile).filter(PD_User_Protocols.userId == qID).all()
     except Exception as e:
         logger.exception("Exception Inside get_follow_by_qid: {}".format(e))
         return False
@@ -206,7 +208,7 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
             dynamic_filter_res = dynamic_filter_res.result()
             executor.shutdown()
 
-        follow_dict = {row.protocol.lower(): {'follow': row.follow, 'userRole': row.userRole} for row in user_protocols}
+        follow_dict = {row.protocol.lower(): {'follow': row.follow, 'userRole': row.userRole, 'redactProfile': row.redactProfile} for row in user_protocols}
 
         res = {'ResponseCode':HTTPStatus.OK, 'Message':'Success', 'data':dict(), "count":0, "pageNo":0, "sortField":0, "total_count":0}
 
@@ -217,13 +219,15 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
             correct_approval = list()
             incorrect_approval = list()
             for row in res['data']:
-                t = follow_dict.get(row.get('ProtocolNo', '').lower(), False)
-                if t == False:
+                user_protocol_detail = follow_dict.get(row.get('ProtocolNo', '').lower(), False)
+                if user_protocol_detail == False:
                     row['Follow'] = False
                     row['UserRole'] = 'secondary'
+                    row['redactProfile'] = config.USERROLE_REDACTPROFILE_MAP['secondary']                    
                 else:
-                    row['Follow'] = t.get('follow', False)
-                    row['UserRole'] = t.get('userRole', 'secondary')
+                    row['Follow'] = user_protocol_detail.get('follow', False)
+                    row['UserRole'] = user_protocol_detail.get('userRole', 'secondary')
+                    row['redactProfile'] = user_protocol_detail.get('redactProfile')                    
 
                 if row['approval_date'].isnumeric() and len(row['approval_date']) != 8:
                     row['approval_date'] = ''
@@ -258,6 +262,8 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
         res["indications"] = indications
         res["sponsors"] = sponsors
 
+        # Apply redaction
+        res['data'], _ = redactor.on_attributes(current_db=db, multiple_doc_attributes=res['data'])
 
     except Exception as ex:
         logger.exception("Exception Inside query_elastic: {}".format(ex))

@@ -33,7 +33,7 @@ class UserFollowProtocol(BaseModel):
     userRole: Optional[str] = "secondary"
 
 
-class UserProtocolAdd(UserProtocolBase):
+class UserProtocolAdd(BaseModel):
     userId: str
     protocol: str
     projectId: Optional[str] = "pid"

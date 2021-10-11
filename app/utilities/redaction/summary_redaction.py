@@ -29,7 +29,7 @@ class SummaryRedaction:
             attr_name = summary["attr_name"]
             attr_value = summary["attr_value"]
 
-            if attr_name in self.redacted_attributes:
+            if self.redact_flag and attr_name in self.redacted_attributes:
                 attr_value = self.redacted_placeholder
             return attr_value
         except Exception:

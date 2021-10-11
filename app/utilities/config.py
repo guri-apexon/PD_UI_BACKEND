@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     PROTOCOL_FOLDER: str
 
     PROCESSING_DIR: str
+    PROCESSING_USERPROTOCOL_BULK_DIR:str
     PROTOCOL_DATA_API_URL: str
     COMPARE_PROCESSING_DIR: str
     # Added for elastic soft delete integration in backend
@@ -44,15 +45,22 @@ class Settings(BaseSettings):
     # Protocol alerts
     ALERT_FROM_DAYS: int
 
+    # Ldap Configuration
+    LDAP_SERVER: str
+    LDAP_PORT: int
+    LDAP_USERNAME: str
+    LDAP_PWD: str
+
     class Config:
         env_file = ".env"
         case_sensitive = True
         env_file_encoding = 'utf-8'
 
+
 ENV_FILE = os.getenv(Constants.ENV_FILE_VAR_NAME)
 if ENV_FILE is None:
     logger.warning(f"PD_UI_BACKEND_ENV_FILE env variable is not set. Searching the .env file in PATH location")
-    ENV_FILE='.env'
+    ENV_FILE = '.env'
 else:
     logger.info(f"Using PD_UI_BACKEND_ENV_FILE env file [{ENV_FILE}]")
 

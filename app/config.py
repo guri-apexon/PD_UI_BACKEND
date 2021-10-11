@@ -32,12 +32,20 @@ QC_COMPLETED_STATUS = QcStatus.COMPLETED.value
 
 # Redaction profile
 USERROLE_REDACTPROFILE_MAP = {"primary": "profile_1", "secondary": "profile_0", "default": "profile_0"}
+
+# Redaction
+REDACTION_FLAG = {"profile_1": False, "profile_0": True}
+EXCLUDE_REDACT_PROPERTY_FLAG = {"profile_1": False, "profile_0": True}
+HIDE_TABLE_JSON_FLAG = {"profile_1": True, "profile_0": True}
+RETURN_REFRESHED_TABLE_HTML_FLAG = {"profile_1": False, "profile_0": True}
+
 REGEX_SPECIAL_CHAR_REPLACE = re.compile('([\(\)\[\]])')
 
 GENRE_ENTITY_NAME = 'entity'
 GENRE_ATTRIBUTE_NAME = 'attributes'
 GENRE_ACTION_NAME = 'action'
 GENRE_SECTION_NAME = 'section'
+REDACT_ATTR_STR = '~REDACTED~'
 REDACT_PARAGRAPH_STR = '~REDACTED~'
 
 # Redaction Footnotes
@@ -50,9 +58,3 @@ FOOTNOTE_STR = "FootnoteText"
 
 SRC_DOC_ACTION_TYPE = 'download_source_document'
 COMPARED_DOC_ACTION_TYPE = 'download_compare_document'
-
-# LDAP Configuration
-LDAP_SERVER = "ldap://wwldap.quintiles.net"
-LDAP_PORT = 389
-LDAP_USERNAME = "ypd@quintiles.net"
-LDAP_PWD = "7wv79WUT"

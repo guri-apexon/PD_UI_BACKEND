@@ -10,7 +10,7 @@ from app.models.pd_login import Login
 
 class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
     def get_all_user(self, db: Session, userId: str = None) -> User:
-        if userId is not "":
+        if userId != "":
             search = "%{}%".format(userId)
             protocolmetadata_data = db.query(User.username, User.first_name, User.last_name).filter(
                 User.username.like(search)).first()

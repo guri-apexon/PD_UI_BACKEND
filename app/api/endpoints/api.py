@@ -31,6 +31,7 @@ from app.api.endpoints import pd_user_login_CreateNewUser
 from app.api.endpoints import pd_roles_GetAllRoles_CreateNewRoles
 from app.api.endpoints import pd_user_protocol_GetProtocolMappingDetails
 from app.api.endpoints import pd_user_protocol_RemoveUserProtocolMapping
+from app.api.endpoints import pd_user_protocol_mapping_bulkupload
 from app.api.endpoints import ldap_user_details
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
@@ -59,10 +60,11 @@ api_router.include_router(keyword_search.router, prefix="/keyword_search", tags=
 api_router.include_router(user_alert.router, prefix="/user_alert", tags=["User Alert"])
 api_router.include_router(notification_read.router, prefix="/notification_read", tags=["User Alert Read Notification"])
 api_router.include_router(auth.router, prefix="/token", tags=["Authentication"])
-api_router.include_router(pd_user_get_all_active_users.router, prefix="/user", tags=["Retreving Active Users From 'User Table(dbo.user)'"])
-api_router.include_router(pd_user_UpdateExisting_SoftDelete.router, prefix="/user_login", tags=["Update Existing Users(in dbo.user) and Soft Deleting(in dbo.login)"])
-api_router.include_router(pd_user_login_CreateNewUser.router, prefix="/create_new_user", tags=["Creating New User In User(dbo.user) & Login(dbo.login) Tables"])
-api_router.include_router(pd_roles_GetAllRoles_CreateNewRoles.router, prefix="/roles", tags=["Get All Roles And Create New Roles(in dbo.pd_roles) Table"])
-api_router.include_router(pd_user_protocol_GetProtocolMappingDetails.router, prefix="/user_protocol", tags=["Get Protocol Mapping Details By userId or protocol(from dbo.pd_user_protocols)"])
+api_router.include_router(pd_user_get_all_active_users.router, prefix="/user", tags=["Retreving Active Users'"])
+api_router.include_router(pd_user_UpdateExisting_SoftDelete.router, prefix="/user_login", tags=["Update Existing Users & Soft Delete"])
+api_router.include_router(pd_user_login_CreateNewUser.router, prefix="/create_new_user", tags=["Creating New User In User & Login"])
+api_router.include_router(pd_roles_GetAllRoles_CreateNewRoles.router, prefix="/roles", tags=["Get All Roles And Create New Roles"])
+api_router.include_router(pd_user_protocol_GetProtocolMappingDetails.router, prefix="/user_protocol", tags=["Get Protocol Mapping Details By userId or protocol"])
 api_router.include_router(pd_user_protocol_RemoveUserProtocolMapping.router, prefix="/user_protocol", tags=["Remove User Protocol Mapping"])
+api_router.include_router(pd_user_protocol_mapping_bulkupload.router, prefix="/user_protocol", tags=["User Protocol Mapping Bulk Upload"])
 api_router.include_router(ldap_user_details.router, prefix="/ldap_user_details", tags=["Retrieve User Details From LDAP"])

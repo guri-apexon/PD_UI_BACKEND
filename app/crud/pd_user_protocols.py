@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from typing import Any, Dict, Optional, Union
+import pandas as pd
 
 from app import config
 from app.crud.base import CRUDBase
@@ -10,10 +11,11 @@ from app.schemas.pd_user_protocols import (UserFollowProtocol, UserProtocolAdd,
                                            UserProtocolCreate,
                                            UserProtocolUpdate)
 from fastapi import HTTPException
-from sqlalchemy import exc
+from sqlalchemy import exc, or_
 from sqlalchemy.orm import Session
 from app import schemas
 from sqlalchemy import and_
+import os
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
@@ -104,25 +106,35 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
 
     @staticmethod
     def add_protocol(db: Session, *, obj_in: UserProtocolAdd) -> PD_User_Protocols:
-        user_protocol = pd_user_protocols.get_by_userid_protocol(db, obj_in.userId, obj_in.protocol)
+        user_protocol = pd_user_protocols.userId_protocol_check(db, obj_in.userId, obj_in.protocol)
         if user_protocol:
+            if user_protocol.isActive == False:
+                user_protocol.isActive = True
+                user_protocol.userRole = obj_in.userRole
+                user_protocol.projectId = obj_in.projectId
+                db.commit()
+                db.refresh(user_protocol)
             raise HTTPException(
                 status_code=403,
-                detail=f"Already record exists with userId: {obj_in.userId}, "
-                       f"protocol: {obj_in.protocol} and userRole: {obj_in.userRole}",
-            )
+                detail=f"Details Already exists for userId: {obj_in.userId}, "
+                        f"protocol: {obj_in.protocol}",
+                )
 
-        db_obj = PD_User_Protocols(isActive=True,
-                                   userId=obj_in.userId,
-                                   protocol=obj_in.protocol,
-                                   follow=obj_in.follow,
-                                   userRole=obj_in.userRole,
-                                   projectId=obj_in.projectId,
-                                   userCreated=obj_in.userCreated,
-                                   timeCreated=datetime.utcnow(),
-                                   userUpdated=obj_in.userUpdated,
-                                   lastUpdated=datetime.utcnow(), )
+        if obj_in.userRole == "primary":
+            redact_profile = "profile_1"
+        else:
+            redact_profile = "profile_0"
         try:
+            db_obj = PD_User_Protocols(isActive=True,
+                                       userId=obj_in.userId,
+                                       protocol=obj_in.protocol,
+                                       follow=obj_in.follow,
+                                       userRole=obj_in.userRole,
+                                       projectId=obj_in.projectId,
+                                       timeCreated=datetime.utcnow(),
+                                       lastUpdated=datetime.utcnow(),
+                                       redactProfile=redact_profile
+                                       )
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)
@@ -138,30 +150,30 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
     def get_by_userid_protocol(self, db: Session, userid: Any, protocol: Any) -> PD_User_Protocols:
         """Retrieves record from table"""
         return db.query(self.model).filter(PD_User_Protocols.userId == userid).filter(
-            PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive=='1').first()
+            PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive == '1').first()
 
-    def userId_protocol(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
+    def userId_protocol_check(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
         """Getting userId & protocol without isActive"""
-        return db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == userId).filter(
-            PD_User_Protocols.protocol == protocol)
+        return db.query(PD_User_Protocols).filter(and_(PD_User_Protocols.userId == userId,
+                                                       PD_User_Protocols.protocol == protocol)).first()
 
     def get_details_by_userId_protocol(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
         try:
             if userId and not protocol:
-                result = db.query(PD_User_Protocols.userId, PD_User_Protocols.protocol,
+                result = db.query(PD_User_Protocols.id, PD_User_Protocols.userId, PD_User_Protocols.protocol,
                                   PD_User_Protocols.isActive, PD_User_Protocols.follow,
                                   PD_User_Protocols.userRole, PD_User_Protocols.timeCreated,
                                   PD_User_Protocols.lastUpdated).filter(PD_User_Protocols.userId == userId,
                                                                         PD_User_Protocols.isActive == '1').all()
 
             elif not userId and protocol:
-                result = db.query(PD_User_Protocols.userId, PD_User_Protocols.protocol,
+                result = db.query(PD_User_Protocols.id, PD_User_Protocols.userId, PD_User_Protocols.protocol,
                                   PD_User_Protocols.isActive, PD_User_Protocols.follow,
                                   PD_User_Protocols.userRole, PD_User_Protocols.timeCreated,
                                   PD_User_Protocols.lastUpdated).filter(PD_User_Protocols.protocol == protocol,
                                                                         PD_User_Protocols.isActive == '1').all()
             elif userId and protocol:
-                result = db.query(PD_User_Protocols.userId, PD_User_Protocols.protocol,
+                result = db.query(PD_User_Protocols.id, PD_User_Protocols.userId, PD_User_Protocols.protocol,
                                   PD_User_Protocols.isActive, PD_User_Protocols.follow,
                                   PD_User_Protocols.userRole, PD_User_Protocols.timeCreated,
                                   PD_User_Protocols.lastUpdated).filter(PD_User_Protocols.userId == userId,
@@ -189,5 +201,28 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         except Exception as ex:
             db.rollback()
             return ex
+   #Below func is for Bulk Upload Loading .xlsx file's data into db
+    def excel_data_to_db(self, db:Session, bulk_upload_file_path:str):
+        try:
+            uploaded_user_protocol_split = os.path.splitext(bulk_upload_file_path)
+            if uploaded_user_protocol_split[1] != ".xlsx":
+                return False
+            excel_data_df = pd.read_excel(bulk_upload_file_path)
+            excel_data_df.fillna(value='', inplace=True)
+            excel_data_df= excel_data_df.astype({'userId':str, 'protocol':str, 'projectId':str,'follow':bool, 'userRole':str})
 
+            response = []
+            for i, j in excel_data_df.iterrows():
+                try:
+                    if j.userId == "" or j.protocol == "" or j.follow == "" or j.userRole == "":
+                        response.append(f"Can't Add with null values userId:{j.userId}, protocol:{j.protocol}, follow:{j.follow} & userRole:{j.userRole}")
+                    else:
+                        bulk_result = pd_user_protocols.add_protocol(db, obj_in=j)
+                        response.append(f"Successfully Added the userId: {j.userId}, protocol: {j.protocol}")
+                except Exception as ex:
+                    response.append(ex.detail)
+            return response
+        except Exception as ex:
+            print(ex)
+            raise HTTPException(status_code=403, detail="Unable To Add New Records Form Excel To Table")
 pd_user_protocols = CRUDUserProtocols(PD_User_Protocols)
