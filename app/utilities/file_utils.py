@@ -35,6 +35,23 @@ def save_request_file(_id, upload_file: UploadFile):
     else:
         raise FileNotFoundError("The Uploaded file was not been saved properly, please try again")
 
+#Adding New Fun for Bulk Upload
+def save_bulkmap_file(uploadfile:UploadFile):
+    req_dir = Path(settings.PROCESSING_USERPROTOCOL_BULK_DIR, 'Bulk_Map')
+    print(req_dir)
+    if not req_dir.is_dir():
+        req_dir.mkdir()
+    file_path = Path(req_dir, uploadfile.filename)
+    if Path(req_dir).is_dir():
+        try:
+            with file_path.open("wb") as buffer:
+                shutil.copyfileobj(uploadfile.file, buffer)
+        finally:
+            uploadfile.file.close()
+    if file_path.is_file() and req_dir.is_dir():
+        return file_path
+    else:
+        raise FileNotFoundError("The Uploaded file was not been saved properly, please try again")
 
 def validate_qc_protocol_file(file_content_type: str,
                               ):
@@ -46,7 +63,6 @@ def validate_qc_protocol_file(file_content_type: str,
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Invalid File Format - only json file will be accepted",
         )
-
 
 def write_data_to_json(aidoc_id: str, data: str):
     try:

@@ -4,6 +4,7 @@ import pytest
 from mock import patch
 from app import config
 from app.crud.pd_user_protocols import pd_user_protocols
+from app.models.pd_user_protocols import PD_User_Protocols
 from app.db.session import SessionLocal
 from app.main import app
 from fastapi.testclient import TestClient
@@ -62,12 +63,19 @@ def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_fl
         "projectId": project_id
     }
 
+    sample_pd_userprotocol_response = PD_User_Protocols(userId=user_id,
+                                                        protocol=protocol,
+                                                        userRole=user_role,
+                                                        follow=follow_flg,
+                                                        projectId=project_id,
+                                                        isActive=True)
     expected_json = {
-        'detail': f'Already record exists with userId: {user_id}, protocol: {protocol} and userRole: {user_role}'
+        'detail': f"Details Already exists for userId: {user_id}, "
+                        f"protocol: {protocol}"
     }
 
-    with patch('app.crud.pd_user_protocols.get_by_userid_protocol') as mock_protocol:
-        mock_protocol.return_value = sample_query_json
+    with patch('app.crud.pd_user_protocols.userId_protocol_check') as mock_protocol:
+        mock_protocol.return_value = sample_pd_userprotocol_response
         response = client.post("/api/user_protocol/", json=sample_query_json, headers=new_token_on_headers)
         assert mock_protocol.called
         assert response.status_code == 403

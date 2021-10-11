@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     PROTOCOL_FOLDER: str
 
     PROCESSING_DIR: str
+    PROCESSING_USERPROTOCOL_BULK_DIR:str
     PROTOCOL_DATA_API_URL: str
     COMPARE_PROCESSING_DIR: str
     # Added for elastic soft delete integration in backend
