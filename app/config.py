@@ -32,6 +32,13 @@ QC_COMPLETED_STATUS = QcStatus.COMPLETED.value
 
 # Redaction profile
 USERROLE_REDACTPROFILE_MAP = {"primary": "profile_1", "secondary": "profile_0", "default": "profile_0"}
+
+# Redaction
+REDACTION_FLAG = {"profile_1": False, "profile_0": True}
+EXCLUDE_REDACT_PROPERTY_FLAG = {"profile_1": False, "profile_0": True}
+HIDE_TABLE_JSON_FLAG = {"profile_1": True, "profile_0": True}
+RETURN_REFRESHED_TABLE_HTML_FLAG = {"profile_1": False, "profile_0": True}
+
 REGEX_SPECIAL_CHAR_REPLACE = re.compile('([\(\)\[\]])')
 
 GENRE_ENTITY_NAME = 'entity'
