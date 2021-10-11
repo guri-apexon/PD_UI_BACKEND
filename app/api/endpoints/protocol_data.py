@@ -22,7 +22,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 def get_protocol_data(
         db: Session = Depends(deps.get_db),
         aidoc_id: str = "id",
-        user_id: str = "user_id",
+        userId: str = "userId",
         protocol: str = "protocol",
         user: str = "user",
         _: str = Depends(auth.validate_user_token)
@@ -31,7 +31,7 @@ def get_protocol_data(
     Get protocol data.
     """
     try:
-        protocol_view_redaction = ProtocolViewRedaction(user_id, protocol)
+        protocol_view_redaction = ProtocolViewRedaction(userId, protocol)
         protocol_data = protocol_view_redaction.redact_protocol_data(aidoc_id, user)
         return protocol_data
     except Exception as ex:
