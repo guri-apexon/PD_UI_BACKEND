@@ -12,6 +12,7 @@ from app.utilities.config import settings
 from app import crud
 from app.utilities.file_utils import validate_qc_protocol_file, save_request_file
 from app.api.endpoints import auth
+from app.utilities.redaction.protocol_view_redaction import ProtocolViewRedaction
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -20,15 +21,23 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 @router.get("/", response_model=schemas.ProtocolData)
 def get_protocol_data(
         db: Session = Depends(deps.get_db),
-        id: str = "id",
+        aidoc_id: str = "id",
+        user_id: str = "user_id",
+        protocol: str = "protocol",
         user: str = "user",
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get protocol data.
     """
-    protocol_data = crud.pd_protocol_data.get(db, id, user)
-    return protocol_data
+    try:
+        protocol_view_redaction = ProtocolViewRedaction(user_id, protocol)
+        protocol_data = protocol_view_redaction.redact_protocol_data(aidoc_id, user)
+        return protocol_data
+    except Exception as ex:
+        logger.exception(f'pd-ui-backend: Exception occurred in rendering protocol-data {str(ex)}')
+        raise HTTPException(status_code=401, detail=f"Exception occurred in rendering protocol-data {str(ex)}")
+
 
 @router.get("/qc1_protocol_review_json")
 def download_qc1_protocol_data_json(

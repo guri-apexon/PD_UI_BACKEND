@@ -33,6 +33,8 @@ class RedactFootNotes:
                         redacted_text = text
                     foot_note_key = f"{config.FOOTNOTE_STR}_{idx}"
                     redacted_json[foot_note_key] = " ".join([attachment[config.FOOTNOTES_KEY], redacted_text]).strip()
-        except AttributeError as exc:
-            logger.error(f"AttributeError raised: {str(exc)}")
+        except KeyError as exc:
+            logger.error(f"Missing Key : {str(exc)}")
+        except Exception as exc:
+            logger.error(f"Exception raised : {str(exc)}")
         return redacted_json
