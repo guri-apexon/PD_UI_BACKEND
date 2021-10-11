@@ -2,6 +2,7 @@ import logging
 from app.utilities.config import settings
 from app import config
 from app.utilities.redaction.footnotes_redaction import RedactFootNotes
+import re
 
 import json
 import pandas as pd
@@ -22,28 +23,27 @@ class TableRedaction():
                  redact_flag: bool = False,
                  hide_table_json_flag: bool = True,
                  return_refreshed_table_html: bool = False,
-                 redact_text: str = '~REDACTED~'
+                 redact_text: str = config.REDACT_PARAGRAPH_STR,
+                 redact_profile_entities = list()
                  ):
         self.redact_flag = redact_flag
         self.hide_table_json_flag = hide_table_json_flag
         self.return_refreshed_table_html = return_refreshed_table_html
+        self.span_redact_text = ''.join(['<span class="redact">', redact_text, '</span>'])
         self.redact_text = redact_text
+        self.redact_profile_entities = redact_profile_entities
 
-    redact_text_fn = lambda self, text, start_idx, end_idx: ' '.join([text[0:start_idx],
-                                                                      '<span class="redact">',
-                                                                      self.redact_text,
-                                                                      '</span>',
-                                                                      text[end_idx + 1:]])
 
     def redact_entity(self, table_property):
         try:
-            table_property['entities'].sort(key = lambda x:(x[config.FOOTNOTES_START_INDEX],
-                                                            x[config.FOOTNOTES_END_INDEX]),
+            table_property['entities'].sort(key = lambda x:(x[config.START_INDEX_PATTERN],
+                                                            x[config.END_INDEX_PATTERN]),
                                             reverse = True)
-            for entity in table_property['entities']:
-                table_property['content'] = self.redact_text_fn(table_property['content'],
-                                                                entity[config.FOOTNOTES_START_INDEX],
-                                                                entity[config.FOOTNOTES_END_INDEX])
+
+            for entity in table_property.get('entities', list()):
+                if entity.get('subcategory', '') in self.redact_profile_entities:
+                    entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity['text'])
+                    table_property['content'] = re.sub(entity_adjusted_text, self.span_redact_text, table_property['content'])
 
             return table_property
         except Exception as ex:
@@ -98,7 +98,8 @@ class TableRedaction():
 
                         redactFootNotes = RedactFootNotes(attachments=attachment_list_properties,
                                                           redacted_placeholder=self.redact_text,
-                                                          redact_flag=self.redact_flag)
+                                                          redact_flag=self.redact_flag,
+                                                          redact_profile_entities = self.redact_profile_entities)
                         redacted_json = redactFootNotes.redact_footnotes_pipeline()
 
                         if redacted_json:
@@ -137,4 +138,3 @@ class TableRedaction():
             logger.error(f"Exception raised in - Table Redaction: {str(ex)}")
 
         return table_dictonary
-
