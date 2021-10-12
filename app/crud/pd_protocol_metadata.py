@@ -173,14 +173,16 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                             partition_by = PD_Protocol_Metadata.id,
                             order_by = (PD_User_Protocols.userRole.asc(), PD_User_Protocols.follow.desc())
                                             ).label('rank'),
-                        PD_User_Protocols.follow.label('follow_flg')
+                        PD_User_Protocols.follow.label('follow_flg'),
+                        PD_User_Protocols.redactProfile.label('redactProfile')
                     ).join(PD_User_Protocols, PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol , isouter = True
                     ).filter(and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId), 
                                 PD_Protocol_Metadata.isActive == True)).all()
 
         protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'userUploadedFlag': row.uploaded_by_user_flg if row.uploaded_by_user_flg is not None else False, \
                                                                        'userPrimaryRoleFlag': row.primary_role_flg if row.primary_role_flg is not None else False, \
-                                                                       'userFollowingFlag': row.follow_flg if row.follow_flg is not None else False}} \
+                                                                       'userFollowingFlag': row.follow_flg if row.follow_flg is not None else False, \
+                                                                       'redactProfile': row.redactProfile}} \
                                                                              for row in all_protocol_metadata \
                                         if row.rank == 1 and (row.uploaded_by_user_flg == True or row.primary_role_flg == True or row.follow_flg == True)]
 
