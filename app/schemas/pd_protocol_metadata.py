@@ -91,6 +91,7 @@ class ProtocolMetadataCreate(ProtocolMetadataBase):
 class ProtocolMetadataUserId(ProtocolMetadataBase):
     amendmentNumber: Optional[str] = None
     approvalDate: Optional[date] = None
+    redactProfile: Optional[str] = None
     userUploadedFlag: bool = False
     userPrimaryRoleFlag: bool = False
     userFollowingFlag: bool = False

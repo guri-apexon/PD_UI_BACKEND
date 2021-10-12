@@ -105,7 +105,7 @@ class Redactor:
         for doc_attributes in multiple_doc_attributes:
             profile_name, _, profile_attributes = self.get_current_redact_profile(current_db=current_db, profile_name=doc_attributes.get('redactProfile'), genre=config.GENRE_ATTRIBUTE_NAME)
             logger.debug(f"profile_name: {profile_name}; profile_attributes: {profile_attributes}")
-            nonredact_attr = {name:value for name,value in doc_attributes.items() if name not in profile_attributes}
+            nonredact_attr = {name: value for name, value in doc_attributes.items() if name not in profile_attributes}
             redact_attr = {**default_redact_attr, **nonredact_attr}
             redacted_multiple_doc_attributes.append(redact_attr)
         
