@@ -32,7 +32,8 @@ class ProtocolViewRedaction:
                                               hide_table_json_flag=config.HIDE_TABLE_JSON_FLAG[self.profile_name],
                                               return_refreshed_table_html=config.RETURN_REFRESHED_TABLE_HTML_FLAG[
                                                   self.profile_name],
-                                              redact_text=config.REDACT_PARAGRAPH_STR)
+                                              redact_text=config.REDACT_PARAGRAPH_STR,
+                                              redact_profile_entities=self.entity_profile_genre)
 
     def on_paragraph(self, text, font_info, redact_profile_entities=[], redact_flg=True,
                      exclude_redact_property_flg=True) -> Tuple[str, dict]:
@@ -174,6 +175,7 @@ class ProtocolViewRedaction:
         """
         Get protocol data and call individual function for each section i.e, soa, toc, summar
         """
+        redacted_protocol_data = dict()
         protocol_data = self.get_protocol_data(aidoc_id, user)
         if protocol_data:
             iqvdata_toc = protocol_data.iqvdataToc
@@ -184,9 +186,9 @@ class ProtocolViewRedaction:
             redacted_soa = self.redact_soa(iqvdata_soa)
             redacted_summary = self.redact_summary(iqvdata_summary)
 
-            protocol_data.iqvdataToc = redacted_toc
-            protocol_data.iqvdataSoa = redacted_soa
-            protocol_data.iqvdataSummary = redacted_summary
+            redacted_protocol_data = {"documentFilePath": protocol_data.documentFilePath, "fileName": protocol_data.fileName, "id": protocol_data.id,
+                           "iqvdata": protocol_data.iqvdata, "iqvdataSoa": redacted_soa, "iqvdataSoaStd": protocol_data.iqvdataSoaStd,
+                           "iqvdataSummary": redacted_summary, "iqvdataToc": redacted_toc, "isActive": protocol_data.isActive}
 
-        return protocol_data
+        return redacted_protocol_data
 
