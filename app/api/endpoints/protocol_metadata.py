@@ -5,6 +5,7 @@ from app import config, crud, schemas
 from app.api import deps
 from app.schemas.pd_protocol_metadata import ProtocolMetadataUserId, ChangeQcStatus
 from app.utilities import utils
+from app.utilities import file_utils
 from app.utilities.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -148,6 +149,8 @@ async def approve_qc(
 ) -> Any:
     """
     Perform following activities once the QC activity is completed and approved:
+        * Rename latest JSON file from "WIP_SRC_DB" to "QC" prefix
+        * Sync pd_protocol_qcdata to pd_protocol_data table
         * Mark qcStatus as complete
         * Ask mgmt svc API to insert/update qc_summary table with updated details (SRC='QC')
         * Update elastic search with latest details
@@ -156,6 +159,13 @@ async def approve_qc(
     current_timestamp = datetime.utcnow()
 
     try:
+        # Rename file
+        rename_flg, target_abs_filename = await file_utils.rename_json_file(db, aidoc_id = aidoc_id, src_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX, target_prefix=config.QC_APPROVED_FILE_PREFIX)
+
+        # Save file contents to DB
+        if rename_flg:
+            _ = crud.pd_protocol_data.save_qc_jsondata_to_db(db, aidoc_id, iqvdata_qc_file_path=target_abs_filename)
+
         # Make a post call to management service end point for post-qc process
         mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
 
@@ -163,7 +173,7 @@ async def approve_qc(
         update_es_res = crud.qc_update_elastic(aidoc_id, db, qc_status = config.QC_COMPLETED_STATUS, current_timestamp = current_timestamp)
 
         # Update qcStatus
-        if update_es_res['ResponseCode'] == status.HTTP_200_OK and mgmt_svc_flg:
+        if update_es_res['ResponseCode'] == status.HTTP_200_OK and mgmt_svc_flg and rename_flg:
             qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, 
                                                     target_status = config.QC_COMPLETED_STATUS, current_timestamp = current_timestamp)
             logger.debug(f"change_qc_status returned with {qc_status_update_flg}")
@@ -173,7 +183,7 @@ async def approve_qc(
             return True
         else:
             logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \
-                            \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
+                            \nrename_flg={rename_flg}; qc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"""{aidoc_id}: qc_approve did NOT completed successfully. \
                             \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
     except Exception as ex:
