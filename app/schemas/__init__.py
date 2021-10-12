@@ -11,6 +11,8 @@ from .pd_document_process import DocumentProcess, DocumentProcessCreate, Documen
 from .pd_document_compare import DocumentCompare, DocumentCompareCreate, DocumentCompareUpdate
 from .pd_protocol_data import ProtocolData, ProtocolDataCreate, ProtocolDataUpdate, ProtocolDataReadIqvdataBase, \
     ProtocolDataReadIqvdata
+from .pd_protocol_qcdata import ProtocolQcData, ProtocolQcDataCreate, ProtocolQcDataUpdate, ProtocolQcDataReadIqvdataBase, \
+    ProtocolQcDataReadIqvdata
 from .pd_user_protocols import UserProtocol, UserProtocolCreate, UserProtocolUpdate, UserProtocolBase, UserProtocolAdd, \
     UserFollowProtocol, UserProtocolSoftDelete
 from .pd_search import SearchJson
