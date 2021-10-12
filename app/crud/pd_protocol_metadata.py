@@ -147,11 +147,11 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol,
                                                      PD_Protocol_Metadata.isActive == True).all()
 
-    async def get_by_doc_id(self, db: Session, id: Any) -> Optional[list]:
+    async def get_by_doc_id(self, db: Session, id: Any, user_id: str) -> Optional[list]:
         """Retrieves a record based on primary key or id"""
         protocol_metadata = []
         protocol_metadata_first = db.query(PD_Protocol_Metadata, PD_User_Protocols.redactProfile.label("redactProfile"))\
-            .join(PD_User_Protocols, and_(PD_Protocol_Metadata.userId == PD_User_Protocols.userId,
+            .join(PD_User_Protocols, and_(user_id == PD_User_Protocols.userId,
                                           PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol), isouter=True)\
             .filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()
 

@@ -43,7 +43,7 @@ async def read_protocol_metadata(*,
 
     try:
         if doc_id_input is not None:
-            protocol_metadata = await crud.pd_protocol_metadata.get_by_doc_id(db, id = doc_id_input)
+            protocol_metadata = await crud.pd_protocol_metadata.get_by_doc_id(db, id=doc_id_input, user_id=user_id_input)
         
         elif user_id_input in config.VALID_QC_STATUS:
             protocol_metadata = await crud.pd_protocol_metadata.get_qc_protocols(db, user_id_input)
