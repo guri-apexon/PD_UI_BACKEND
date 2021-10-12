@@ -56,8 +56,8 @@ async def read_protocol_metadata(*,
             doc_row_dict = await utils.update_qc_fields(pd_attributes_for_dashboard=doc_row_dict,
                                                         get_qc_inprogress_attr_flg=getQcInprogressAttr,
                                                         db=db)
-
-            _, doc_row_dict = redactor.on_attributes(current_db=db, multiple_doc_attributes=[doc_row_dict])
+            if userId not in ["QC1", "QC2"]:
+                _, doc_row_dict = redactor.on_attributes(current_db=db, multiple_doc_attributes=[doc_row_dict])
             protocol_metadata[idx] = doc_row_dict
 
     except Exception as ex:
