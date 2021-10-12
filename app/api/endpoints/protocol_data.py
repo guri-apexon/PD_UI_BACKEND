@@ -13,16 +13,16 @@ from app import crud
 from app.utilities.file_utils import validate_qc_protocol_file, save_request_file
 from app.api.endpoints import auth
 from app.utilities.redaction.protocol_view_redaction import ProtocolViewRedaction
-
+from fastapi.responses import JSONResponse
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
 @router.get("/", response_model=schemas.ProtocolData)
-def get_protocol_data(
+async def get_protocol_data(
         db: Session = Depends(deps.get_db),
         aidoc_id: str = "id",
-        user_id: str = "user_id",
+        userId: str = "userId",
         protocol: str = "protocol",
         user: str = "user",
         _: str = Depends(auth.validate_user_token)
@@ -30,10 +30,12 @@ def get_protocol_data(
     """
     Get protocol data.
     """
+
     try:
-        protocol_view_redaction = ProtocolViewRedaction(user_id, protocol)
+        protocol_view_redaction = ProtocolViewRedaction(userId, protocol)
         protocol_data = protocol_view_redaction.redact_protocol_data(aidoc_id, user)
-        return protocol_data
+        headers = {"Cache-Control": "no-store"}
+        return JSONResponse(content=protocol_data, headers=headers)
     except Exception as ex:
         logger.exception(f'pd-ui-backend: Exception occurred in rendering protocol-data {str(ex)}')
         raise HTTPException(status_code=401, detail=f"Exception occurred in rendering protocol-data {str(ex)}")

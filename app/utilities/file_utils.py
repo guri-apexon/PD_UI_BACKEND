@@ -1,15 +1,15 @@
 import json
-import requests
 import logging
 import os
 import shutil
 from pathlib import Path
 
 import pandas as pd
-from fastapi import UploadFile, HTTPException
-from starlette import status
-
+import requests
+from app import config, crud
 from app.utilities.config import settings
+from fastapi import HTTPException, UploadFile
+from starlette import status
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -63,6 +63,31 @@ def validate_qc_protocol_file(file_content_type: str,
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Invalid File Format - only json file will be accepted",
         )
+
+def save_json_file(target_folder, target_abs_filename, uploaded_file: UploadFile = None, data_obj: str = None) -> dict:
+    """
+    Save uploaded JSON file
+    """
+    if not target_folder.is_dir():
+        raise FileNotFoundError(f"Target folder[{target_folder}] is not accessible")
+    
+    if uploaded_file:
+        try:
+            with target_abs_filename.open("wb") as file_desc:
+                shutil.copyfileobj(uploaded_file.file, file_desc)
+        finally:
+            uploaded_file.file.close()
+    elif data_obj:
+        json_object = json.dumps(data_obj, indent=4)
+        with target_abs_filename.open("w") as file_desc:
+            file_desc.write(json_object)
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"No valid input. JSON file not created in [{target_abs_filename}]")
+    
+    if target_abs_filename.is_file():
+        return {'target_abs_filename': target_abs_filename, 'target_folder': target_folder}
+    else:
+        raise FileNotFoundError(f"JSON file not created in [{target_abs_filename}]")
 
 def write_data_to_json(aidoc_id: str, data: str):
     try:
@@ -123,3 +148,35 @@ async def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy:
     except Exception as ex:
         logger.exception(f"Exception occured in posting QC Approval complete to management service {str(ex)}")
         return False
+
+async def get_json_filename(db, aidoc_id:str, prefix):
+    """
+    Builds JSON filename
+    """
+    metadata_resource = crud.pd_protocol_metadata.get(db, id = aidoc_id)
+
+    if metadata_resource is None:
+        logger.warning(f"Rename approve file: Document in DB not active or not available [resource: {metadata_resource}]")
+        return None, None
+
+    folder_name = Path(metadata_resource.documentFilePath).parent
+    abs_filename = Path(folder_name, f"{prefix}_{aidoc_id}.json")
+
+    return folder_name, abs_filename
+
+async def rename_json_file(db, aidoc_id: str, src_prefix, target_prefix):
+    """
+    Renames JSON filename
+    Output: Success/Failure flag, Renamed filename 
+    """
+    rename_flg = False
+    target_abs_filename = None
+    try:
+        parent_path, src_abs_filename = await get_json_filename(db, aidoc_id = aidoc_id, prefix = src_prefix)
+        target_abs_filename = Path(parent_path, f"{target_prefix}_{aidoc_id}.json")
+        _ = shutil.move(src_abs_filename, target_abs_filename)
+        rename_flg = True
+    except Exception as exc:
+        logger.warning(f"Could not rename file. Exceptin: {str(exc)}")
+    
+    return rename_flg, target_abs_filename

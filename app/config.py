@@ -30,15 +30,9 @@ OVERRIDE_QC_FIELDS = ()
 DIGITIZATION_COMPLETED_STATUS = "PROCESS_COMPLETED"
 QC_COMPLETED_STATUS = QcStatus.COMPLETED.value
 
-# Redaction profile
+# ---------------------- Redaction
+# Profiles
 USERROLE_REDACTPROFILE_MAP = {"primary": "profile_1", "secondary": "profile_0", "default": "profile_0"}
-
-# Redaction
-REDACTION_FLAG = {"profile_1": False, "profile_0": True}
-EXCLUDE_REDACT_PROPERTY_FLAG = {"profile_1": False, "profile_0": True}
-HIDE_TABLE_JSON_FLAG = {"profile_1": True, "profile_0": True}
-RETURN_REFRESHED_TABLE_HTML_FLAG = {"profile_1": False, "profile_0": True}
-
 REGEX_SPECIAL_CHAR_REPLACE = re.compile('([\(\)\[\]])')
 
 GENRE_ENTITY_NAME = 'entity'
@@ -47,6 +41,20 @@ GENRE_ACTION_NAME = 'action'
 GENRE_SECTION_NAME = 'section'
 REDACT_ATTR_STR = '~REDACTED~'
 REDACT_PARAGRAPH_STR = '~REDACTED~'
+
+# Redaction
+REDACTION_FLAG = {"profile_1": False, "profile_0": True}
+EXCLUDE_REDACT_PROPERTY_FLAG = {"profile_1": False, "profile_0": True}
+HIDE_TABLE_JSON_FLAG = {"profile_1": True, "profile_0": True}
+RETURN_REFRESHED_TABLE_HTML_FLAG = {"profile_1": False, "profile_0": True}
+
+# QC process
+QC_WIP_SRC_DB_FILE_PREFIX = "WIP_SRC_DB"
+QC_WIP_SRC_QC_FILE_PREFIX = "WIP_SRC_QC"
+QC_APPROVED_FILE_PREFIX = "QC"
+
+START_INDEX_PATTERN = "start_idx"
+END_INDEX_PATTERN = "end_idx"
 
 # Redaction Footnotes
 FOOTNOTES_TEXT = "Text"
