@@ -22,10 +22,10 @@ def test_redact_profile_view(new_token_on_headers, aidoc_id, userId, protocol, u
     content = json.loads(follow_response.content.decode('utf-8'))
     profile_name, _, _ = redactor.get_current_redact_profile(current_db=db, user_id=userId, protocol=protocol)
     if profile_name == 'profile_0':
-        assert content['id'] is not None and content['userId'] is not None and content['iqvdataToc'] is not None
+        assert content['id'] is not None and content['documentFilePath'] is not None and content['iqvdataToc'] is not None
         assert REDACT_STR in content['iqvdataToc'] or REDACT_STR in content['iqvdataSoa'] \
                or REDACT_STR in content['iqvdataSummary']
     else:
-        assert content['id'] is not None and content['userId'] is not None and content['iqvdataToc'] is not None
+        assert content['id'] is not None and content['documentFilePath'] is not None and content['iqvdataToc'] is not None
         assert REDACT_STR not in content['iqvdataToc'] and REDACT_STR not in content['iqvdataSoa'] \
                and REDACT_STR not in content['iqvdataSummary']
