@@ -124,7 +124,7 @@ deploy-dev1:
 
 deploy-dev2:
   tags:
-    - pd-dev-windows-ml06d
+    - pd-dev-windows-06d-runner
   stage: deploy-dev
   variables:
     VERIFICATION_URL: "http://ca2spdml06d:8000/api/health/"  

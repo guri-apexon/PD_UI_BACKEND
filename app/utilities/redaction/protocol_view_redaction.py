@@ -35,6 +35,19 @@ class ProtocolViewRedaction:
                                               redact_text=config.REDACT_PARAGRAPH_STR,
                                               redact_profile_entities=self.entity_profile_genre)
 
+    def get_section_to_be_redacted(self, profile_details):
+        redact_toc_flag = False
+        redact_soa_flag = False
+        redact_summary_flag = False
+        if profile_details['section']:
+            if 'File contents' in profile_details['section']:
+                redact_toc_flag = True
+            if 'SOA Tables' in profile_details['section']:
+                redact_soa_flag = True
+            if 'Summary Attributes' in profile_details['section']:
+                redact_summary_flag = True
+        return redact_toc_flag, redact_soa_flag, redact_summary_flag
+
     def on_paragraph(self, text, font_info, redact_profile_entities=[], redact_flg=True,
                      exclude_redact_property_flg=True) -> Tuple[str, dict]:
         """
@@ -52,9 +65,10 @@ class ProtocolViewRedaction:
         """
         redacted_text = text
         redacted_property = deepcopy(font_info)
+        text_redaction_entity = font_info.get('entity', [])
 
-        if redact_flg:
-            for idx, entity in enumerate(font_info.get('entity', [])):
+        if redact_flg and text and text_redaction_entity:
+            for idx, entity in enumerate(text_redaction_entity):
                 try:
                     if entity.get('subcategory', '') in redact_profile_entities:
                         logger.debug(f"Processing for idx[{idx}] with entity:{entity}")
@@ -138,7 +152,6 @@ class ProtocolViewRedaction:
         Parse iqviadataTOC json, send parsed json for adding redaction tag and convert redacted data into original json structure
         """
         redacted_toc = iqv_data_toc
-
         if iqv_data_toc:
             toc_data = json.loads(json.loads(iqv_data_toc))
             toc_with_redacted_tag = self.update_toc_with_redacted_tag(toc_data)
@@ -151,7 +164,6 @@ class ProtocolViewRedaction:
         Parse iqviadataSOA json, send parsed json for adding redaction tag and convert redacted data into original json structure
         """
         redacted_soa = iqv_data_soa
-
         if iqv_data_soa:
             soa_data = json.loads(json.loads(iqv_data_soa))
             soa_with_redacted_tag = self.update_soa_with_redacted_tag(soa_data)
@@ -163,32 +175,36 @@ class ProtocolViewRedaction:
         Parse iqviadataSummary json, send parsed json for adding redaction tag and convert redacted data into original json structure
         """
         redacted_summary = iqv_data_summary
-
         if iqv_data_summary:
             summary_data = json.loads(json.loads(iqv_data_summary))
             summary_with_redacted_tag = self.update_summary_with_redacted_tag(summary_data)
-
             redacted_summary = str(json.dumps(json.dumps(summary_with_redacted_tag)))
         return redacted_summary
 
     def redact_protocol_data(self, aidoc_id, user):
         """
-        Get protocol data and call individual function for each section i.e, soa, toc, summar
+        Get protocol data and call individual function for each section i.e, soa, toc, summary
         """
         redacted_protocol_data = dict()
         protocol_data = self.get_protocol_data(aidoc_id, user)
+        redact_toc_flag, redact_soa_flag, redact_summary_flag = self.get_section_to_be_redacted(self.profile_details)
         if protocol_data:
             iqvdata_toc = protocol_data.iqvdataToc
             iqvdata_soa = protocol_data.iqvdataSoa
             iqvdata_summary = protocol_data.iqvdataSummary
 
-            redacted_toc = self.redact_toc(iqvdata_toc)
-            redacted_soa = self.redact_soa(iqvdata_soa)
-            redacted_summary = self.redact_summary(iqvdata_summary)
+            if redact_toc_flag:
+                iqvdata_toc = self.redact_toc(iqvdata_toc)
+            if redact_soa_flag:
+                iqvdata_soa = self.redact_soa(iqvdata_soa)
+            if redact_summary_flag:
+                iqvdata_summary = self.redact_summary(iqvdata_summary)
 
-            redacted_protocol_data = {"documentFilePath": protocol_data.documentFilePath, "fileName": protocol_data.fileName, "id": protocol_data.id,
-                           "iqvdata": protocol_data.iqvdata, "iqvdataSoa": redacted_soa, "iqvdataSoaStd": protocol_data.iqvdataSoaStd,
-                           "iqvdataSummary": redacted_summary, "iqvdataToc": redacted_toc, "isActive": protocol_data.isActive}
+            redacted_protocol_data = {"documentFilePath": protocol_data.documentFilePath, "id": protocol_data.id,
+                                      "userId": protocol_data.userId, "fileName": protocol_data.fileName,
+                                      "iqvdata": protocol_data.iqvdata, "iqvdataSoa": iqvdata_soa,
+                                      "iqvdataSoaStd": protocol_data.iqvdataSoaStd, "iqvdataSummary": iqvdata_summary,
+                                      "iqvdataToc": iqvdata_toc, "isActive": protocol_data.isActive}
 
         return redacted_protocol_data
 
