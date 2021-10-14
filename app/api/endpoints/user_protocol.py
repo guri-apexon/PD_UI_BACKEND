@@ -24,6 +24,10 @@ def add_user_protocol_one_to_one(
     """
     Add User Protocol One To One.
     """
+    if user_protocol_in.userId == "" or user_protocol_in.protocol == "" or user_protocol_in.follow == "" or user_protocol_in.userRole == "":
+        raise HTTPException(status_code=403, detail=f"Can't Add with null values userId:{user_protocol_in.userId},"
+                                                    f" protocol:{user_protocol_in.protocol},"
+                                                    f" follow:{user_protocol_in.follow} & userRole:{user_protocol_in.userRole}")
     logger.info("add_user_protocol_one_to_one POST method called")
     user_protocol = crud.pd_user_protocols.add_protocol(db, obj_in=user_protocol_in)
     if not user_protocol:

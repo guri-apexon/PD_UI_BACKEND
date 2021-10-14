@@ -32,4 +32,5 @@ def add_user_protocol_many_to_many(*, user_protocol_xls_file: UploadFile = File(
     except Exception as ex:
         logger.exception(f'pd-ui-backend: Exception occured in qc_protocol_upload {str(ex)}')
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                            detail="Invalid file received, please provide excel file(.xlsx) or Excel file may not contain data" + str(ex))
+                            detail="Invalid file received, please provide excel file(.xlsx format) or Excel file may not contain data " + str(ex))
+
