@@ -70,8 +70,8 @@ def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_fl
                                                         projectId=project_id,
                                                         isActive=True)
     expected_json = {
-        'detail': f"Details Already exists for userId: {user_id}, "
-                        f"protocol: {protocol}"
+        'detail': f"Mapping for userId: {user_id}, "
+                  f"protocol: {protocol} is already available & has been activated"
     }
 
     with patch('app.crud.pd_user_protocols.userId_protocol_check') as mock_protocol:

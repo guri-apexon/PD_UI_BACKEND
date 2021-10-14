@@ -62,7 +62,7 @@ api_router.include_router(keyword_search.router, prefix="/keyword_search", tags=
 api_router.include_router(user_alert.router, prefix="/user_alert", tags=["User Alert"])
 api_router.include_router(notification_read.router, prefix="/notification_read", tags=["User Alert Read Notification"])
 api_router.include_router(auth.router, prefix="/token", tags=["Authentication"])
-api_router.include_router(pd_user_get_all_active_users.router, prefix="/user", tags=["Retreving Active Users'"])
+api_router.include_router(pd_user_get_all_active_users.router, prefix="/user", tags=["Retreving Active Users"])
 api_router.include_router(pd_user_UpdateExisting_SoftDelete.router, prefix="/user_login", tags=["Update Existing Users & Soft Delete"])
 api_router.include_router(pd_user_login_CreateNewUser.router, prefix="/create_new_user", tags=["Creating New User In User & Login"])
 api_router.include_router(pd_roles_GetAllRoles_CreateNewRoles.router, prefix="/roles", tags=["Get All Roles And Create New Roles"])

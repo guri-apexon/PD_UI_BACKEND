@@ -6,13 +6,13 @@ from app.schemas.pd_user import User
 #Below To Be Displayed In the ui
 class LoginBase(BaseModel):
     username: Optional[str] = None
-    active_user: Optional[bool] = None
+    active_user: Optional[bool] = True
     lastUpdated: Optional[datetime] = None
 
 
 class Soft_Delete(LoginBase):
     username: Optional[str] = None
-    active_user: Optional[bool] = None
+    active_user: Optional[bool] = True
     lastUpdated: Optional[datetime] = None
 
 

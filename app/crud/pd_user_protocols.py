@@ -105,25 +105,33 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             PD_User_Protocols.userId == userId).first()
 
     @staticmethod
-    def add_protocol(db: Session, *, obj_in: UserProtocolAdd) -> PD_User_Protocols:
-        user_protocol = pd_user_protocols.userId_protocol_check(db, obj_in.userId, obj_in.protocol)
-        if user_protocol:
+    def update_protocol(db:Session, obj_in, user_protocol, redact_profile):
+        try:
             if user_protocol.isActive == False:
                 user_protocol.isActive = True
-                user_protocol.userRole = obj_in.userRole
-                user_protocol.projectId = obj_in.projectId
-                db.commit()
-                db.refresh(user_protocol)
-            raise HTTPException(
-                status_code=403,
-                detail=f"Details Already exists for userId: {obj_in.userId}, "
-                        f"protocol: {obj_in.protocol}",
-                )
+            user_protocol.userRole=obj_in.userRole
+            user_protocol.follow = obj_in.follow
+            user_protocol.projectId = obj_in.projectId
+            user_protocol.redactProfile=redact_profile
+            db.add(user_protocol)
+            db.commit()
+        except:
+            db.rollback()
 
+    @staticmethod
+    def add_protocol(db: Session, *, obj_in: UserProtocolAdd) -> PD_User_Protocols:
+        user_protocol = pd_user_protocols.userId_protocol_check(db, obj_in.userId, obj_in.protocol)
         if obj_in.userRole == "primary":
             redact_profile = "profile_1"
         else:
             redact_profile = "profile_0"
+        if user_protocol:
+            pd_user_protocols.update_protocol(db,obj_in,user_protocol,redact_profile)
+            raise HTTPException(
+                status_code=403,
+                detail=f"Mapping for userId: {obj_in.userId}, "
+                       f"protocol: {obj_in.protocol} is already available & has been activated",
+            )
         try:
             db_obj = PD_User_Protocols(isActive=True,
                                        userId=obj_in.userId,
@@ -150,7 +158,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
     def get_by_userid_protocol(self, db: Session, userid: Any, protocol: Any) -> PD_User_Protocols:
         """Retrieves record from table"""
         return db.query(self.model).filter(PD_User_Protocols.userId == userid).filter(
-            PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive == '1').first()
+            PD_User_Protocols.protocol == protocol).filter(PD_User_Protocols.isActive=='1').first()
 
     def userId_protocol_check(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
         """Getting userId & protocol without isActive"""
@@ -201,6 +209,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         except Exception as ex:
             db.rollback()
             return ex
+
    #Below func is for Bulk Upload Loading .xlsx file's data into db
     def excel_data_to_db(self, db:Session, bulk_upload_file_path:str):
         try:
@@ -209,8 +218,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                 return False
             excel_data_df = pd.read_excel(bulk_upload_file_path)
             excel_data_df.fillna(value='', inplace=True)
-            excel_data_df= excel_data_df.astype({'userId':str, 'protocol':str, 'projectId':str,'follow':bool, 'userRole':str})
-
+            excel_data_df = excel_data_df.astype({'userId': str, 'protocol': str, 'projectId': str, 'follow': bool, 'userRole': str})
             response = []
             for i, j in excel_data_df.iterrows():
                 try:
