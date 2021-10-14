@@ -50,6 +50,7 @@ def test_normal_user(new_token_on_headers, user_id, protocol, doc_id, dig_status
     assert follow_response.status_code == 200
 
     get_protocols = client.get("/api/protocol_metadata/", params={"userId": user_id}, headers = new_token_on_headers)
+
     assert get_protocols.status_code == status.HTTP_200_OK
 
     all_curr_user_protocol = json.loads(get_protocols.content)
@@ -136,6 +137,9 @@ def test_QC2_user(new_token_on_headers, user_id, protocol, doc_id, dig_status, s
     all_curr_user_protocol = json.loads(get_protocols.content)
     if expected_flg:
         assert any([doc['id'] in doc_id for doc in all_curr_user_protocol])
+        for doc in all_curr_user_protocol:
+            if doc['redactProfile'] in ['profile_0']:
+                assert config.REDACT_PARAGRAPH_STR in doc.values()
     else:
         assert any([doc['id'] in doc_id for doc in all_curr_user_protocol]) == False
 
@@ -175,5 +179,7 @@ def test_single_doc_id(new_token_on_headers, user_id, protocol, doc_id, dig_stat
     if expected_flg:
         assert len(all_curr_user_protocol) == 1
         assert any([doc['id'] in doc_id for doc in all_curr_user_protocol])
+        if all_curr_user_protocol[0]['redactProfile'] in [None, 'profile_0']:
+            assert config.REDACT_PARAGRAPH_STR in all_curr_user_protocol[0].values()
     else:
-        assert any([doc['id'] in doc_id for doc in all_curr_user_protocol]) == False         
+        assert any([doc['id'] in doc_id for doc in all_curr_user_protocol]) == False
