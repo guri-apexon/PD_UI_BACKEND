@@ -149,7 +149,7 @@ async def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy:
         logger.exception(f"Exception occured in posting QC Approval complete to management service {str(ex)}")
         return False
 
-async def get_json_filename(db, aidoc_id:str, prefix):
+def get_json_filename(db, aidoc_id:str, prefix):
     """
     Builds JSON filename
     """
@@ -164,7 +164,7 @@ async def get_json_filename(db, aidoc_id:str, prefix):
 
     return folder_name, abs_filename
 
-async def rename_json_file(db, aidoc_id: str, src_prefix, target_prefix):
+def rename_json_file(db, aidoc_id: str, src_prefix, target_prefix):
     """
     Renames JSON filename
     Output: Success/Failure flag, Renamed filename 
@@ -172,7 +172,7 @@ async def rename_json_file(db, aidoc_id: str, src_prefix, target_prefix):
     rename_flg = False
     target_abs_filename = None
     try:
-        parent_path, src_abs_filename = await get_json_filename(db, aidoc_id = aidoc_id, prefix = src_prefix)
+        parent_path, src_abs_filename = get_json_filename(db, aidoc_id = aidoc_id, prefix = src_prefix)
         target_abs_filename = Path(parent_path, f"{target_prefix}_{aidoc_id}.json")
         _ = shutil.move(src_abs_filename, target_abs_filename)
         rename_flg = True

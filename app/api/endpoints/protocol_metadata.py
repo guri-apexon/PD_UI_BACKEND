@@ -165,7 +165,7 @@ async def approve_qc(
 
     try:
         # Rename file
-        rename_flg, target_abs_filename = await file_utils.rename_json_file(db, aidoc_id = aidoc_id, src_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX, target_prefix=config.QC_APPROVED_FILE_PREFIX)
+        rename_flg, target_abs_filename = file_utils.rename_json_file(db, aidoc_id = aidoc_id, src_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX, target_prefix=config.QC_APPROVED_FILE_PREFIX)
 
         # Save file contents to DB
         if rename_flg:
