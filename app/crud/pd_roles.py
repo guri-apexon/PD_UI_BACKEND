@@ -15,7 +15,7 @@ class CRUDRoles(CRUDBase[Roles, RolesBaseInDBBase, RolesCreate]):
 
     def create(self, db: Session, *, obj_in: schemas.RolesCreate) -> Roles:
         try:
-            db_obj = Roles(roleName=obj_in.roleName, roleDescription=obj_in.roleDescription)
+            db_obj = Roles(roleName=obj_in.roleName, roleDescription=obj_in.roleDescription, roleLevel=obj_in.roleLevel)
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)

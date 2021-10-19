@@ -17,7 +17,7 @@ def get_all_roles(*, db: Session = Depends(deps.get_db),
 @router.post("/new_role",response_model=schemas.RolesBaseInDBBase)
 def create_new_roles(*, db:Session = Depends(deps.get_db), new_role: schemas.RolesCreate,
                      _: str = Depends(auth.validate_user_token)):
-    if new_role.roleName == "" or new_role.roleDescription == "":
+    if new_role.roleName == "" or new_role.roleDescription == "" or new_role.roleLevel == "" :
         raise HTTPException(status_code= 422, detail="Unable To Add New Role Details Please Fill All The Details Above.")
 
     role = crud.roles.get_by_roleName(db, new_role.roleName)
