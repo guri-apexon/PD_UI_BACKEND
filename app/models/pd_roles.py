@@ -6,3 +6,4 @@ class Roles(Base):
     id = Column(Integer, primary_key=True, index=True)
     roleName = Column(String, nullable=True)
     roleDescription = Column(String, nullable=True)
+    roleLevel = Column(String, nullable=True)
