@@ -154,43 +154,41 @@ async def approve_qc(
 ) -> Any:
     """
     Perform following activities once the QC activity is completed and approved:
-        * Rename latest JSON file from "WIP_SRC_DB" to "QC" prefix
-        * Sync pd_protocol_qcdata to pd_protocol_data table
-        * Mark qcStatus as complete
-        * Ask mgmt svc API to insert/update qc_summary table with updated details (SRC='QC')
-        * Update elastic search with latest details
+        * Create QC file
+        * Create DIG file
+        * Initiate mgmt svc API to insert/update qc_summary table with updated details (SRC='QC'), setup for Feedback RUN
     """
-    qc_status_update_flg = False
-    current_timestamp = datetime.utcnow()
+    qc_filename = None
 
     try:
-        # Rename file
-        rename_flg, target_abs_filename = file_utils.rename_json_file(db, aidoc_id = aidoc_id, src_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX, target_prefix=config.QC_APPROVED_FILE_PREFIX)
+        # Get current state
+        metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id = aidoc_id)
+        if not metadata_resource:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"No Document found for {aidoc_id}")
 
-        # Save file contents to DB
-        if rename_flg:
-            _ = crud.pd_protocol_data.save_qc_jsondata_to_db(db, aidoc_id, iqvdata_qc_file_path=target_abs_filename)
+        run_prefix = "R" + str(metadata_resource.runId).zfill(2)
+
+        # Create QC file
+        qc_file_prefix = run_prefix + config.QC_APPROVED_FILE_PREFIX
+        qc_file_flg, target_abs_filename = file_utils.rename_json_file(db, aidoc_id = aidoc_id, src_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX, target_prefix=qc_file_prefix)
+
+        if not qc_file_flg:
+            _, qc_filename = crud.pd_protocol_qcdata.save_db_jsondata_to_file(db, aidoc_id=aidoc_id, file_prefix=qc_file_prefix)
+            qc_file_flg = True if qc_filename is not None else False
 
         # Make a post call to management service end point for post-qc process
-        mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy)
+        if qc_file_flg:
+            parent_path = target_abs_filename.parent
+            mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy, parent_path)
 
-        # Update elastic search
-        update_es_res = crud.qc_update_elastic(aidoc_id, db, qc_status = config.QC_COMPLETED_STATUS, current_timestamp = current_timestamp)
-
-        # Update qcStatus
-        if update_es_res['ResponseCode'] == status.HTTP_200_OK and mgmt_svc_flg and rename_flg:
-            qc_status_update_flg, _ = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidoc_id, 
-                                                    target_status = config.QC_COMPLETED_STATUS, current_timestamp = current_timestamp)
-            logger.debug(f"change_qc_status returned with {qc_status_update_flg}")
-
-        if qc_status_update_flg:
+        if qc_file_flg and mgmt_svc_flg:
             logger.info(f'{aidoc_id}: qc_approve completed successfully')
             return True
         else:
             logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \
-                            \nrename_flg={rename_flg}; qc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
+                            \nrename_flg={qc_file_flg}; mgmt_svc_flg={mgmt_svc_flg}; """)
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"""{aidoc_id}: qc_approve did NOT completed successfully. \
-                            \nqc_status_update_flg={qc_status_update_flg}; mgmt_svc_flg={mgmt_svc_flg}; ES_update_flg={update_es_res['ResponseCode']}; """)
+                            \nrename_flg={qc_file_flg}; mgmt_svc_flg={mgmt_svc_flg}; """)
     except Exception as ex:
         logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Exception occurred in qc_approve {str(ex)}')

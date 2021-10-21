@@ -10,6 +10,7 @@ from app import config, crud
 from app.utilities.config import settings
 from fastapi import HTTPException, UploadFile
 from starlette import status
+import glob
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -128,14 +129,14 @@ def write_data_to_xlsx(aidoc_id: str, data: str):
         raise HTTPException(status_code=401, detail=f"Exception occured in writing data to XLSX file {str(ex)}")
 
 
-async def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy: str) -> bool:
+async def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy: str, parent_path: str) -> bool:
     """
     Make a post call to management service to update qc_summary table with updated details
     """
     mgmt_svc_status_code = status.HTTP_404_NOT_FOUND
     try:
         management_api_url = settings.MANAGEMENT_SERVICE_URL + "pd_qc_check_update"
-        parameters = {'aidoc_id': aidoc_id, 'qcApprovedBy': qcApprovedBy}
+        parameters = {'aidoc_id': aidoc_id, 'qcApprovedBy': qcApprovedBy, 'parent_path': parent_path}
         mgmt_svc_status_code = requests.post(management_api_url, data=parameters, headers=settings.MGMT_CRED_HEADERS)
         logger.debug(f"[{aidoc_id}] QC Approval Complete request sent to Management service")
         
@@ -149,10 +150,30 @@ async def post_qc_approval_complete_to_mgmt_service(aidoc_id: str, qcApprovedBy:
         logger.exception(f"Exception occured in posting QC Approval complete to management service {str(ex)}")
         return False
 
-def get_json_filename(db, aidoc_id:str, prefix):
+def get_latest_file_path(dfs_folder_path, prefix, suffix="*.xml*"):
+    """
+    Get latest file amound digitized and feedback run
+    """
+    feedback_pattern = "R??"+prefix+suffix
+    digitization_pattern = prefix+suffix
+
+    full_feedback_pattern = os.path.join(dfs_folder_path, feedback_pattern)
+    feedback_files = glob.glob(full_feedback_pattern)
+
+    if feedback_files:
+        sorted_feedback_files = sorted(feedback_files, reverse=True)
+        return sorted_feedback_files[0]
+
+    full_digitization_pattern = os.path.join(dfs_folder_path, digitization_pattern)
+    digitization_files = glob.glob(full_digitization_pattern)
+    if digitization_files:
+        return sorted(digitization_files)[0]        
+
+def get_json_filename(db, aidoc_id:str, prefix, feedback_flag = False):
     """
     Builds JSON filename
     """
+    abs_filename = None
     metadata_resource = crud.pd_protocol_metadata.get(db, id = aidoc_id)
 
     if metadata_resource is None:
@@ -160,11 +181,15 @@ def get_json_filename(db, aidoc_id:str, prefix):
         return None, None
 
     folder_name = Path(metadata_resource.documentFilePath).parent
-    abs_filename = Path(folder_name, f"{prefix}_{aidoc_id}.json")
+    
+    if feedback_flag:
+        abs_filename = Path(get_latest_file_path(folder_name, prefix=prefix, suffix="*.json"))
+    else:
+        abs_filename = Path(folder_name, f"{prefix}_{aidoc_id}.json")
 
     return folder_name, abs_filename
 
-def rename_json_file(db, aidoc_id: str, src_prefix, target_prefix):
+def rename_json_file(db, aidoc_id: str, src_prefix, target_prefix, feedback_flag = False):
     """
     Renames JSON filename
     Output: Success/Failure flag, Renamed filename 
@@ -172,11 +197,11 @@ def rename_json_file(db, aidoc_id: str, src_prefix, target_prefix):
     rename_flg = False
     target_abs_filename = None
     try:
-        parent_path, src_abs_filename = get_json_filename(db, aidoc_id = aidoc_id, prefix = src_prefix)
+        parent_path, src_abs_filename = get_json_filename(db, aidoc_id = aidoc_id, prefix = src_prefix, feedback_flag=feedback_flag)
         target_abs_filename = Path(parent_path, f"{target_prefix}_{aidoc_id}.json")
         _ = shutil.move(src_abs_filename, target_abs_filename)
         rename_flg = True
     except Exception as exc:
-        logger.warning(f"Could not rename file. Exceptin: {str(exc)}")
+        logger.warning(f"Could not rename file. Exception: {str(exc)}")
     
     return rename_flg, target_abs_filename

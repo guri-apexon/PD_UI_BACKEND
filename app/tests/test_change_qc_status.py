@@ -48,7 +48,7 @@ def test_qcapproved(new_token_on_headers, user_id, protocol, doc_id,  approver_i
     current_timestamp = datetime.utcnow()
 
     # Rename file
-    _, _ = file_utils.rename_json_file(db, aidoc_id = doc_id, src_prefix=config.QC_APPROVED_FILE_PREFIX, target_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX)
+    _, _ = file_utils.rename_json_file(db, aidoc_id = doc_id, src_prefix=config.QC_APPROVED_FILE_PREFIX, target_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX, feedback_flag=True)
 
     # Approve
     qc_status_resp = client.put("/api/protocol_metadata/qc_approve", params={"aidoc_id": doc_id, "approvedBy": approver_id}, headers = new_token_on_headers)
@@ -59,7 +59,7 @@ def test_qcapproved(new_token_on_headers, user_id, protocol, doc_id,  approver_i
         protocol_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
         
         if protocol_metadata_doc:
-            assert protocol_metadata_doc.qcStatus == config.QC_COMPLETED_STATUS
+            assert protocol_metadata_doc.qcStatus == config.QC_APPROVED_STATUS
         else:
             logger.error(f"test_qcapproved[{comments}]: Could not locate active test file [{doc_id}] of {user_id}/{protocol}")
             assert False
@@ -75,26 +75,6 @@ def test_qcapproved(new_token_on_headers, user_id, protocol, doc_id,  approver_i
             logger.error(f"test_qcapproved[{comments}]: Could not locate SRC record in  [{doc_id}] of {user_id}/{protocol}")
             assert False
 
-        # Verify ES
-        from app.utilities.elastic_utilities import get_elastic_doc_by_id
-        es_doc = get_elastic_doc_by_id(aidocid = doc_id)
-
-        if es_doc:
-            assert es_doc['_source']['QC_Flag'] == True
-        else:
-            logger.error(f"test_qcapproved[{comments}]: Could not locate record in ES for [{doc_id}] of {user_id}/{protocol}")
-            assert False
-
         # Verify QC file
-        _, abs_filename = file_utils.get_json_filename(db, aidoc_id=doc_id, prefix=config.QC_APPROVED_FILE_PREFIX)
+        _, abs_filename = file_utils.get_json_filename(db, aidoc_id=doc_id, prefix=config.QC_APPROVED_FILE_PREFIX, feedback_flag=True)
         assert abs_filename.is_file()
-
-        # Check Data sync
-        protocol_data = crud.pd_protocol_data.get_by_id(db, id=doc_id)
-        protocol_qcdata = crud.pd_protocol_qcdata.get_by_id(db, id=doc_id)
-
-        assert protocol_data.iqvdataToc == protocol_qcdata.iqvdataToc
-        assert protocol_data.iqvdataSoa == protocol_qcdata.iqvdataSoa
-        assert protocol_data.iqvdataSummary == protocol_qcdata.iqvdataSummary
-        assert protocol_data.timeUpdated >= current_timestamp
-    
