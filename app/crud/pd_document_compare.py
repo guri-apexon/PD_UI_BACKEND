@@ -13,7 +13,6 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 class CRUDDocumentCompare(CRUDBase[PD_Document_Compare, DocumentCompareCreate, DocumentCompareUpdate]):
 
     def get_compare_path(self, db: Session, id1: Any, id2: Any, redact_profile: Any) -> Optional[PD_Document_Compare]:
-        compare_record = None
         try:
             resource = db.query(PD_Document_Compare).filter(PD_Document_Compare.id1 == id1,
                                                                     PD_Document_Compare.id2 == id2, 
@@ -21,14 +20,12 @@ class CRUDDocumentCompare(CRUDBase[PD_Document_Compare, DocumentCompareCreate, D
             if not resource:
                 logger.exception(f'No Document Found for id1:{id1} and id2:{id2} in pd_protocol_compare Table.')
                 raise HTTPException(status_code=404, detail=f"No Document Found for id1:{id1} and id2:{id2} in pd_protocol_compare Table.")
-            else:
-                for row in resource:
-                    if row.feedbackRun is None:
-                        return compare_record
+
             compare_record = max(resource, key = lambda record : record.feedbackRun)
             return compare_record
 
         except Exception as ex:
             logger.exception(f'Exception occured during pulling of data from db {str(ex)}')
+
 
 pd_document_compare = CRUDDocumentCompare(PD_Document_Compare)

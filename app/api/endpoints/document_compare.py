@@ -1,4 +1,5 @@
 import logging
+import os
 
 from app import config
 from app.api import deps
@@ -7,7 +8,7 @@ from app.api.endpoints import auth
 from app.api.endpoints.download_file import stream_file
 from app.crud.pd_document_compare import pd_document_compare
 from app.utilities.config import settings
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from app.utilities.redact import redactor
@@ -18,9 +19,12 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 @router.get("/")
 async def get_compare_doc(
         db: Session = Depends(deps.get_db),
-        id1: str = "id1",
-        id2: str = "id2",
-        userId: str = None, protocol: str = None, action_type: str = config.COMPARED_DOC_ACTION_TYPE,
+        id1: str = Query(..., description = "id1"),
+        id2: str = Query(..., description = "id2"),
+        userId: str = None,
+        protocol: str = None,
+        file_type: str = Query(..., description = "file extension"),
+        action_type: str = config.COMPARED_DOC_ACTION_TYPE,
         _: str = Depends(auth.validate_user_token)
 ):
     """
@@ -43,7 +47,24 @@ async def get_compare_doc(
             logger.debug(f"No compare changes for id1[{id1}] and id2[{id2}]: [numChangesTotal={num_compare_changes}]")
             return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-        return stream_file(document_process.compareCSVPath)
+        document_compare_path = (settings.DFS_UPLOAD_FOLDER + '/compare/' + document_process.compareId)
+        file_suffix = 'compare_detail'+file_type
+        file_name = None
+        if os.path.isdir(document_compare_path):
+            for file in os.listdir(document_compare_path):
+                if file.endswith(file_suffix):
+                    file_name = file
+                    break
+            if not file_name:
+                logger.error(f"Compare result is not available in {file_type} format")
+                return Response(status_code=status.HTTP_404_NOT_FOUND,
+                                content=f"Compare result is not available in {file_type} format")
+            else:
+                file_path = (document_compare_path + '/' + file_name)
+                return stream_file(file_path)
+        else:
+            return Response(status_code=status.HTTP_404_NOT_FOUND,
+                            content="Compare result is not available for the selected documents")
 
     except Exception as exc:
         logger.error(f"Exception received for id1[{id1}] and id2[{id2}]: {str(exc)}")
