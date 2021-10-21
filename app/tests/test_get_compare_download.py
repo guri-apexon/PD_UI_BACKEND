@@ -11,19 +11,23 @@ db = SessionLocal()
 client = TestClient(app)
 
 
-@pytest.mark.parametrize("id1, id2, user_id, protocol, status_code",[
-    ("e8a66b4f-aa2e-497f-a40e-5d8e0350c0a7", "3b2bf59f-f25b-4308-95eb-2df3ec721d04", "q1036048", "AKB-6548-CI-0014", 200),
-    ("e8a66b4f-aa2e-497f-a40e-5d8e0350c0a7", "3b2bf59f-f25b-4308-95eb-2df3ec721d04", "q1021402", "protocol1", 200),
-    ("", "3b2bf59f-f25b-4308-95eb-2df3ec721d04", "q1021402", "protocol1", 404),
-    ("e8a66b4f-aa2e-497f-a40e-5d8e0350c0a7", "", "q1021402", "protocol1", 404),
-    ("e8a66b4f-aa2e-497f-a40e-5d8e0350c0a7", "3b2bf59f-f25b-4308-95eb-2df3ec721d04", "", "protocol1", 200),
-    ("e8a66b4f-aa2e-497f-a40e-5d8e0350c0a7", "3b2bf59f-f25b-4308-95eb-2df3ec721d04", "q1021402", "", 200),
-    ("e8a66b4f-aa2e-497f-a40e-5d8e0350c0a7", "", "", "", 404),
-    ("", "", "", "", 404)
+@pytest.mark.parametrize("id1, id2, user_id, protocol, file_type, status_code",[
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1036048", "AKB-6548-CI-0014", ".csv", 200),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1036048", "AKB-6548-CI-0014", ".xlsx", 200),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1036048", "AKB-6548-CI-0014", ".tiff", 404),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "protocol1", ".csv", 200),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "protocol1", ".xlsx", 200),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "protocol1", ".tiff", 404),
+    ("", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "protocol1", ".csv", 404),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "", "q1021402", "protocol1", ".csv", 404),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "", "protocol1", ".csv", 200),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "", ".csv", 200),
+    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "", "", "", "", 404),
+    ("", "", "", "", "", 404)
 ])
-def test_get_compare(new_token_on_headers, id1, id2, user_id, protocol, status_code):
-    download_response = client.get("/api/document_compare/", params={"id1": id1,  "id2": id2, "userId": user_id, "protocol": protocol}, headers = new_token_on_headers)
+def test_get_compare(new_token_on_headers, id1, id2, user_id, protocol, file_type, status_code):
+    download_response = client.get("/api/document_compare/", params={"id1": id1,  "id2": id2, "userId": user_id, "protocol": protocol, "file_type": file_type}, headers = new_token_on_headers)
     assert download_response.status_code == status_code
-    
+
     if status_code == status.HTTP_200_OK:
         assert download_response.headers['content-length'] != 0
