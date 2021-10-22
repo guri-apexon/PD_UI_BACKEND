@@ -1,7 +1,7 @@
 import logging
 
 import pytest
-from app import crud, schemas
+from app import crud, schemas, config
 from app.db.session import SessionLocal
 from app.main import app
 from fastapi.testclient import TestClient
@@ -104,6 +104,10 @@ def test_query_elastic(key, toc, sponsor, indication, phase, documentStatus, dat
             sponsor_flag = all([data['SponsorName'] in sponsor for data in ret_val['data'] if data['UserRole'] == 'primary'])
             all_flags.append(sponsor_flag)
             assert sponsor_flag
+
+            redacted_sponsor_flag = all([data['SponsorName'] == config.REDACT_ATTR_STR for data in ret_val['data'] if data['UserRole'] == 'secondary'])
+            all_flags.append(redacted_sponsor_flag)
+            assert redacted_sponsor_flag
 
         if indication:
             indication_flag = all([data['Indication'] in indication for data in ret_val['data']  if data['UserRole'] == 'primary'])

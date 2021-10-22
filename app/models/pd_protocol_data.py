@@ -19,3 +19,7 @@ class PD_Protocol_Data(Base):
     isActive = Column(Boolean, default=True)
     timeCreated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
     timeUpdated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
+
+    def as_dict(self, exclude_cols=["timeCreated", "timeUpdated"]):
+        obj = {col.name: getattr(self, col.name) for col in self.__table__.columns if col.name not in exclude_cols}
+        return obj  

@@ -20,6 +20,7 @@ class QcStatus(Enum):
     NOT_STARTED = 'QC_NOT_STARTED'
     QC1 = 'QC1'
     QC2 = 'QC2'
+    FEEDBACK = 'FEEDBACK_RUN'
     COMPLETED = 'QC_COMPLETED'
 
 VALID_QC_STATUS = [status.value for status in QcStatus]
@@ -28,6 +29,7 @@ OVERRIDE_QC_FIELDS = ()
 
 # -------------- Misc
 DIGITIZATION_COMPLETED_STATUS = "PROCESS_COMPLETED"
+QC_APPROVED_STATUS = QcStatus.FEEDBACK.value
 QC_COMPLETED_STATUS = QcStatus.COMPLETED.value
 
 # ---------------------- Redaction
@@ -48,10 +50,11 @@ EXCLUDE_REDACT_PROPERTY_FLAG = {"profile_1": False, "profile_0": True}
 HIDE_TABLE_JSON_FLAG = {"profile_1": True, "profile_0": True}
 RETURN_REFRESHED_TABLE_HTML_FLAG = {"profile_1": False, "profile_0": True}
 
-# QC process
+# File prefix
 QC_WIP_SRC_DB_FILE_PREFIX = "WIP_SRC_DB"
 QC_WIP_SRC_QC_FILE_PREFIX = "WIP_SRC_QC"
 QC_APPROVED_FILE_PREFIX = "QC"
+DIG_FILE_PREFIX = "DIG"
 
 START_INDEX_PATTERN = "start_idx"
 END_INDEX_PATTERN = "end_idx"

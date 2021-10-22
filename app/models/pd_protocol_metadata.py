@@ -26,6 +26,7 @@ class PD_Protocol_Metadata(Base):
     errorReason = Column(String, nullable=True)
     status = Column(String, nullable=True)
     qcStatus = Column(String, nullable=True)
+    runId = Column(Integer, default=0)
     isProcessing = Column(Boolean, default=False)
     percentComplete = Column(String, nullable=True)
     compareStatus = Column(String, nullable=True)
