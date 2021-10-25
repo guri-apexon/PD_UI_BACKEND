@@ -1,19 +1,20 @@
 import logging
+from datetime import datetime
+from pathlib import Path
 from typing import Any, List
 
 from app import config, crud, schemas
 from app.api import deps
-from app.schemas.pd_protocol_metadata import ProtocolMetadataUserId, ChangeQcStatus
-from app.utilities import utils
-from app.utilities import file_utils
+from app.api.endpoints import auth
+from app.schemas.pd_protocol_metadata import (ChangeQcStatus,
+                                              ProtocolMetadataUserId)
+from app.utilities import file_utils, utils
 from app.utilities.config import settings
+from app.utilities.elastic_utilities import update_elastic
+from app.utilities.file_utils import post_qc_approval_complete_to_mgmt_service
 from app.utilities.redact import redactor
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from app.utilities.file_utils import post_qc_approval_complete_to_mgmt_service
-from app.utilities.elastic_utilities import update_elastic
-from datetime import datetime
-from app.api.endpoints import auth
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -176,19 +177,26 @@ async def approve_qc(
             _, qc_filename = crud.pd_protocol_qcdata.save_db_jsondata_to_file(db, aidoc_id=aidoc_id, file_prefix=qc_file_prefix)
             qc_file_flg = True if qc_filename is not None else False
 
+        # Create DIG file															
+        dig_file_prefix = run_prefix + config.DIG_FILE_PREFIX															
+        target_folder = Path(metadata_resource.documentFilePath).parent															
+        dig_saved_filename = crud.pd_protocol_data.save_db_jsondata_to_dig_file(db, aidoc_id=aidoc_id, target_folder=target_folder, file_prefix=dig_file_prefix)															
+        logger.debug(f"dig_saved_filename: {dig_saved_filename}")															
+
+
         # Make a post call to management service end point for post-qc process
         if qc_file_flg:
             parent_path = target_abs_filename.parent
             mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy, parent_path)
 
-        if qc_file_flg and mgmt_svc_flg:
+        if qc_file_flg and dig_saved_filename and mgmt_svc_flg:
             logger.info(f'{aidoc_id}: qc_approve completed successfully')
             return True
         else:
             logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \
-                            \nrename_flg={qc_file_flg}; mgmt_svc_flg={mgmt_svc_flg}; """)
+                            \nrename_flg={qc_file_flg}; mgmt_svc_flg={mgmt_svc_flg};  dig_saved_filename={dig_saved_filename}""")
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"""{aidoc_id}: qc_approve did NOT completed successfully. \
-                            \nrename_flg={qc_file_flg}; mgmt_svc_flg={mgmt_svc_flg}; """)
+                            \nrename_flg={qc_file_flg}; mgmt_svc_flg={mgmt_svc_flg};  dig_saved_filename={dig_saved_filename}""")
     except Exception as ex:
         logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Exception occurred in qc_approve {str(ex)}')

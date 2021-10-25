@@ -1,20 +1,22 @@
 import json
 import logging
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import pandas as pd
 import requests
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-
+from app import config, crud
 from app.crud.base import CRUDBase
 from app.models.pd_protocol_data import PD_Protocol_Data
-from app.models.pd_protocol_qcdata import PD_Protocol_QCData
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
+from app.models.pd_protocol_qcdata import PD_Protocol_QCData
 from app.schemas.pd_protocol_data import ProtocolDataCreate, ProtocolDataUpdate
 from app.utilities.config import settings
-from app.utilities.file_utils import write_data_to_json, write_data_to_xlsx
-from datetime import datetime
+from app.utilities.file_utils import (save_json_file, write_data_to_json,
+                                      write_data_to_xlsx)
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -174,5 +176,18 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
                 raise HTTPException(status_code=401, detail=f"Error in Generating xlsx file, No data found.")
         except Exception as ex:
             raise HTTPException(status_code=402, detail=f"Exception occured in generating iqvdata-excel-file {str(ex)}")
+
+    def save_db_jsondata_to_dig_file(self, db: Session, aidoc_id: str, target_folder: str, file_prefix=config.DIG_FILE_PREFIX):
+        """
+        Extract aidoc_id contents from DB and store it in file
+        Inputs: Document id and optional file prefix
+        Output: Returns stored file name
+
+        """
+        target_abs_filename = Path(target_folder, f"{file_prefix}_{aidoc_id}.json")
+        data_resource = self.get_by_id(db=db, id = aidoc_id)
+        saved_file_details = save_json_file(target_folder=target_folder, target_abs_filename=target_abs_filename, data_obj = data_resource.as_dict())
+        
+        return saved_file_details.get('target_abs_filename')
   
 pd_protocol_data = CRUDProtocolData(PD_Protocol_Data)
