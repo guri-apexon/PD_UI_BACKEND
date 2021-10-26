@@ -31,12 +31,11 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
             resource = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()
             if resource is None:
                 return resource
-            if resource.qcStatus == 'QC_COMPLETED' and user == 'normal':
-                resource = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id).first()
-            elif resource.qcStatus in ('QC1', 'QC2', 'QC_NOT_STARTED') and user == 'qc':
+            if user == 'normal':
                 resource = db.query(PD_Protocol_Data).filter(PD_Protocol_Data.id == id).first()
             else:
-                resource = db.query(PD_Protocol_QCData).filter(PD_Protocol_QCData.id == id).first()
+                logger.error(f"No such user type exists in DB: {user}")
+                raise Exception
         except Exception as ex:
             resource = None
             logger.exception("Exception in retrieval of data from table", ex)
