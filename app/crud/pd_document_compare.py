@@ -21,7 +21,7 @@ class CRUDDocumentCompare(CRUDBase[PD_Document_Compare, DocumentCompareCreate, D
                 logger.exception(f'No Document Found for id1:{id1} and id2:{id2} in pd_protocol_compare Table.')
                 raise HTTPException(status_code=404, detail=f"No Document Found for id1:{id1} and id2:{id2} in pd_protocol_compare Table.")
 
-            compare_record = max(resource, key = lambda record : record.feedbackRun)
+            compare_record = max(resource, key = lambda record : record.compareRun)
             return compare_record
 
         except Exception as ex:

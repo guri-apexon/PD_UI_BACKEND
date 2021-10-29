@@ -12,17 +12,17 @@ client = TestClient(app)
 
 
 @pytest.mark.parametrize("id1, id2, user_id, protocol, file_type, status_code",[
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1036048", "AKB-6548-CI-0014", ".csv", 200),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1036048", "AKB-6548-CI-0014", ".xlsx", 200),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1036048", "AKB-6548-CI-0014", ".tiff", 404),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "protocol1", ".csv", 200),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "protocol1", ".xlsx", 200),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "protocol1", ".tiff", 404),
-    ("", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "protocol1", ".csv", 404),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "", "q1021402", "protocol1", ".csv", 404),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "", "protocol1", ".csv", 200),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "216d2604-9040-4159-a2c8-8b0993e0b93e", "q1021402", "", ".csv", 200),
-    ("2e4ea1e9-023e-4d0c-b201-26bd55b1676b", "", "", "", "", 404),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "1036048", "AKB-6548-CI-0014", ".csv", 200),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "1036048", "AKB-6548-CI-0014", ".xlsx", 200),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "1036048", "AKB-6548-CI-0014", ".tiff", 404),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "1021402", "protocol1", ".csv", 200),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "1021402", "protocol1", ".xlsx", 200),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "1021402", "protocol1", ".tiff", 404),
+    ("", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "1021402", "protocol1", ".csv", 404),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "", "1021402", "protocol1", ".csv", 404),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "", "protocol1", ".csv", 200),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "7a1a151b-b49d-4db3-a90b-ab1b8f4d1284", "1021402", "", ".csv", 200),
+    ("65199ae2-960c-4b6b-ada3-409b3d7990af", "", "", "", "", 404),
     ("", "", "", "", "", 404)
 ])
 def test_get_compare(new_token_on_headers, id1, id2, user_id, protocol, file_type, status_code):
