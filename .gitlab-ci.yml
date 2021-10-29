@@ -7,8 +7,8 @@ variables:
   NSSM_PATH: "/D/Projects/PD/softwares/nssm/nssm-2.24/win64/nssm.exe"
   SERVICE_NAME: "pd-ci-ui-backend"
   PACKAGE: "pd-ui-backend"
-#   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
-#   CI_DEBUG_TRACE: "false"
+#  GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+#  CI_DEBUG_TRACE: "false"
 
 
 stages:
@@ -61,7 +61,7 @@ unit-tests:
     refs:
       - develop
       - merge_requests
-    variables: 
+    variables:
       - $ENVIRONMENT== "dev"
       
 Perform Sonarqube Analysis and quality gate:  # for all environments
