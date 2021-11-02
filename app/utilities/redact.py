@@ -1,5 +1,6 @@
 import logging
 import re
+import json
 from copy import deepcopy
 from itertools import zip_longest
 from typing import Tuple
@@ -16,6 +17,7 @@ from starlette import status
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 db = SessionLocal()
+
 
 class Redactor:
     def __init__(self):
@@ -45,7 +47,7 @@ class Redactor:
         all_redaction_dict = dict()
         all_redaction_profiles = set(config.USERROLE_REDACTPROFILE_MAP.values())
         for redaction_profile in all_redaction_profiles:
-            genre_grouped = self.redact_df.loc[self.redact_df[redaction_profile] == True , ['genre', 'subCategory']].groupby('genre')
+            genre_grouped = self.redact_df.loc[self.redact_df[redaction_profile] == True, ['genre', 'subCategory']].groupby('genre')
             redact_dict = genre_grouped['subCategory'].apply(lambda sub_cat: sub_cat.tolist()).to_dict()
             redact_dict = {**empty_profile_dict, **redact_dict}
             all_redaction_dict[redaction_profile] = redact_dict
@@ -55,34 +57,42 @@ class Redactor:
     def get_profiles(self):
         return self.redact_dict
 
-    def get_current_redact_profile(self, current_db, user_id=None, protocol=None, profile_name=None, genre=config.GENRE_ENTITY_NAME) -> Tuple[str, dict, list]:
+    def get_current_redact_profile(self, current_db, user_id=None, protocol=None, profile_name=None,
+                                   genre=config.GENRE_ENTITY_NAME) -> Tuple[str, dict, list]:
         """
         Input: profile_name or user_id+protocol
-        Ouput: Valid profile name, current profile's details AND its particular genre details
+        Output: Valid profile name, current profile's details AND its particular genre details
         """
         if not profile_name and (user_id and protocol):
-            user_protocol_obj = crud.pd_user_protocols.get_by_userid_protocol(current_db, userid=user_id, protocol=protocol)
+            user_protocol_obj = crud.pd_user_protocols.get_by_userid_protocol(current_db, userid=user_id,
+                                                                              protocol=protocol)
             logger.debug(f"user_protocol_obj: {user_protocol_obj}")
             if user_protocol_obj:
                 profile_name = user_protocol_obj.redactProfile
 
-        valid_profile_name = profile_name if profile_name in config.USERROLE_REDACTPROFILE_MAP.values() else config.USERROLE_REDACTPROFILE_MAP['default']
+        valid_profile_name = profile_name if profile_name in config.USERROLE_REDACTPROFILE_MAP.values() \
+            else config.USERROLE_REDACTPROFILE_MAP['default']
         profile = self.redact_dict.get(valid_profile_name) 
         profile_genre = profile.get(genre, [])
         return valid_profile_name, profile, profile_genre
 
-    def check_allow_download(self, current_db, user_id=None, protocol=None, redact_profile_name=None, action_type=None) -> Tuple[bool, str]:
+    def check_allow_download(self, current_db, user_id=None, protocol=None, redact_profile_name=None,
+                             action_type=None) -> Tuple[bool, str]:
         """
         Verifies whether action_type is allowed or not
         Input: UserId/protocol OR profile name
         Output: Yes/No AND profile_name
         """
-        profile_name, _, profile_genre = self.get_current_redact_profile(current_db=current_db, user_id=user_id, protocol=protocol, 
-                                                                            profile_name=redact_profile_name, genre='action')
+        profile_name, _, profile_genre = self.get_current_redact_profile(current_db=current_db,
+                                                                         user_id=user_id,
+                                                                         protocol=protocol,
+                                                                         profile_name=redact_profile_name,
+                                                                         genre='action')
         if action_type not in profile_genre:
             return True, profile_name
 
-        logger.debug(f"{user_id}/{protocol} has {profile_name}; Requested action [{action_type}] exists in deny list {profile_genre}")
+        logger.debug(f"{user_id}/{protocol} has {profile_name}; Requested action [{action_type}] "
+                     f"exists in deny list {profile_genre}")
         return False, profile_name
 
     def on_attributes(self, current_db, multiple_doc_attributes: list = [], single_doc_attributes: dict = {}) -> Tuple[list, dict]:
@@ -90,26 +100,57 @@ class Redactor:
         Each dict need to have key 'redactProfile' which represent the profile which is to be applied on the attributes.
 
         Input: multiple_doc_attributes as list[dict]. single_doc_attributes as dict. If both inputs are present, single_doc_attributes takes priority
-        Ouput: Redacted multiple_doc_attributes and single_doc_attributes
+        Output: Redacted multiple_doc_attributes and single_doc_attributes
         """
         redacted_multiple_doc_attributes = []
         if single_doc_attributes:
            multiple_doc_attributes = list(single_doc_attributes)
 
         if multiple_doc_attributes:
-            default_redact_attr = dict(zip_longest(multiple_doc_attributes[0].keys(), '', fillvalue = config.REDACT_ATTR_STR))
+            default_redact_attr = dict(zip_longest(multiple_doc_attributes[0].keys(), '', fillvalue=config.REDACT_ATTR_STR))
         else:
-            logger.warning(f"Redaction on attributes did not received valid inputs. multiple_doc_attributes: {multiple_doc_attributes}; single_doc_attributes: {single_doc_attributes}")
+            logger.warning(f"Redaction on attributes did not received valid inputs. multiple_doc_attributes: "
+                           f"{multiple_doc_attributes}; single_doc_attributes: {single_doc_attributes}")
             return multiple_doc_attributes, single_doc_attributes
 
         for doc_attributes in multiple_doc_attributes:
-            profile_name, _, profile_attributes = self.get_current_redact_profile(current_db=current_db, profile_name=doc_attributes.get('redactProfile'), genre=config.GENRE_ATTRIBUTE_NAME)
+            profile_name, profile, profile_attributes = self.get_current_redact_profile(current_db=current_db,
+                                                                                        profile_name=doc_attributes.get('redactProfile'), genre=config.GENRE_ATTRIBUTE_NAME)
             logger.debug(f"profile_name: {profile_name}; profile_attributes: {profile_attributes}")
+
+            doc_attributes = self.redact_protocolTitle(current_db=current_db,
+                                                       attribute="protocolTitle",
+                                                       profile=profile,
+                                                       doc_attributes=doc_attributes,
+                                                       redact_flg=config.REDACTION_FLAG[profile_name])
+
             nonredact_attr = {name: value for name, value in doc_attributes.items() if name not in profile_attributes}
             redact_attr = {**default_redact_attr, **nonredact_attr}
             redacted_multiple_doc_attributes.append(redact_attr)
         
         return redacted_multiple_doc_attributes, redacted_multiple_doc_attributes[0]        
+
+    def redact_protocolTitle(self, current_db, attribute, profile, doc_attributes, redact_flg=True):
+        aidocId = doc_attributes.get("id", None)
+        if not aidocId:
+            return doc_attributes
+
+        if redact_flg:
+            redacted_entities = profile.get(config.GENRE_ENTITY_NAME, [])
+            summary_entities = crud.pd_protocol_summary_entities.get_protocol_summary_entities(db=current_db,
+                                                                                               aidocId=aidocId)
+            if summary_entities and summary_entities.iqvdataSummaryEntities:
+                summary_entities = json.loads(json.loads(summary_entities.iqvdataSummaryEntities))
+                content = doc_attributes.get(attribute, "")
+                if content:
+                    for entity in sorted(summary_entities.get("ProtocolTitle", []),
+                                         key=lambda x: (x["start_idx"], x["end_idx"]),
+                                         reverse=True):
+                        if entity["subcategory"] in redacted_entities:
+                            entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity.get('text', ''))
+                            content = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, content)
+                    doc_attributes[attribute] = content
+        return doc_attributes
 
     def on_paragraph(self, text, font_info, redact_profile_entities=[], redact_flg=True, exclude_redact_property_flg=True) -> Tuple[str, dict]:
         """
@@ -143,5 +184,6 @@ class Redactor:
             _ = redacted_property.pop('entity', "entity is not present")
             
         return redacted_text, redacted_property
+
 
 redactor = Redactor()
