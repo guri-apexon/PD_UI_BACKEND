@@ -119,7 +119,7 @@ class Redactor:
             logger.debug(f"profile_name: {profile_name}; profile_attributes: {profile_attributes}")
 
             doc_attributes = self.redact_protocolTitle(current_db=current_db,
-                                                       attribute="protocolTitle",
+                                                       attribute="protocolTitle" if "protocolTitle" in doc_attributes else "ProtocolTitle",
                                                        profile=profile,
                                                        doc_attributes=doc_attributes,
                                                        redact_flg=config.REDACTION_FLAG[profile_name])
@@ -131,7 +131,7 @@ class Redactor:
         return redacted_multiple_doc_attributes, redacted_multiple_doc_attributes[0]        
 
     def redact_protocolTitle(self, current_db, attribute, profile, doc_attributes, redact_flg=True):
-        aidocId = doc_attributes.get("id", None)
+        aidocId = doc_attributes.get("id", None) or doc_attributes.get("AiDocId", None)
         if not aidocId:
             return doc_attributes
 
