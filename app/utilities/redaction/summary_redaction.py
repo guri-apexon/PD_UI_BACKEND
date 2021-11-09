@@ -1,9 +1,13 @@
 import sys
 import logging
 import pandas as pd
+from app import config
 from app.utilities.config import settings
+from app.db.session import SessionLocal
+from app.utilities.redact import redactor
 
 logger = logging.getLogger(settings.PROJECT_NAME)
+db = SessionLocal()
 
 
 class SummaryRedaction:
@@ -17,20 +21,36 @@ class SummaryRedaction:
             True: secondary user_role
             False: primary & QC user_role
         redacted_placeholder: value will be redacted with redacted string provided as a placeholder
+        current_profile (optional): current profile of a user
+        AIdoc_id (optional): document id
     """
-    def __init__(self, summary_data: list, redacted_attributes: list, redact_flag: bool, redacted_placeholder: str):
+    def __init__(self, summary_data: list, redacted_attributes: list, redact_flag: bool,
+                 redacted_placeholder: str, current_profile: dict = None, aidoc_id: str = None):
         self.summary_data = summary_data
         self.redacted_attributes = redacted_attributes
         self.redact_flag = redact_flag
         self.redacted_placeholder = redacted_placeholder
+        self.current_profile = current_profile
+        self.aidoc_id = aidoc_id
 
     def redact_summary(self, summary: dict) -> str:
         try:
             attr_name = summary["attr_name"]
             attr_value = summary["attr_value"]
 
-            if self.redact_flag and attr_name in self.redacted_attributes:
-                attr_value = self.redacted_placeholder
+            if self.redact_flag:
+                if attr_name in self.redacted_attributes:
+                    attr_value = self.redacted_placeholder
+                elif attr_name in self.current_profile.get(config.GENRE_ATTRIBUTE_ENTITY, []):
+                    doc_attributes = {"AiDocId": self.aidoc_id,
+                                      attr_name: attr_value}
+                    redacted_doc_attributes = redactor.redact_protocolTitle(current_db=db,
+                                                                            attribute=attr_name,
+                                                                            profile=self.current_profile,
+                                                                            doc_attributes=doc_attributes,
+                                                                            redact_flg=self.redact_flag)
+                    attr_value = redacted_doc_attributes[attr_name]
+
             return attr_value
         except Exception:
             err_type, value, _ = sys.exc_info()
