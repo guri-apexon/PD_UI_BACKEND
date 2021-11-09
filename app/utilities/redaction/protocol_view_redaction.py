@@ -115,6 +115,30 @@ class ProtocolViewRedaction:
                 logger.error(f"Exception raised while updating Redaction tag in TOC: {str(exc)}")
         return paragraph_dict['data']
 
+    def update_toc_metadata_with_redacted_tag(self, aidoc_id: str, metadata_dict: dict):
+        """
+        Partially Redact on protocol title and protocol title short.
+        """
+
+        try:
+            for attribute in self.profile_details.get(config.GENRE_ATTRIBUTE_ENTITY, []):
+                protocol_title = metadata_dict.get(attribute, "")
+                if protocol_title:
+                    doc_attributes = {
+                        "AiDocId": aidoc_id,
+                        attribute: protocol_title
+                    }
+                    redacted_doc_attributes = redactor.redact_protocolTitle(current_db=db,
+                                                                            attribute=attribute,
+                                                                            profile=self.profile_details,
+                                                                            doc_attributes=doc_attributes,
+                                                                            redact_flg=config.REDACTION_FLAG[self.profile_name])
+
+                    metadata_dict[attribute] = redacted_doc_attributes[attribute]
+        except Exception as exc:
+            logger.error(f"Exception raised while updating Redaction tag in TOC Metadata: {str(exc)}")
+        return metadata_dict
+
     def update_soa_with_redacted_tag(self, table_list: list):
         """
         Update the json with redacted tag for tables.
@@ -131,7 +155,7 @@ class ProtocolViewRedaction:
                 logger.error(f"Exception raised while updating Redaction tag in SOA: {str(exc)}")
         return table_list
 
-    def update_summary_with_redacted_tag(self, summary_dict: dict):
+    def update_summary_with_redacted_tag(self, aidoc_id: str, summary_dict: dict):
         """
         Update the json with redacted tag for summary data.
         """
@@ -141,13 +165,13 @@ class ProtocolViewRedaction:
         if records:
             try:
                 redacted_summary_list = SummaryRedaction(records, protocol_attributes, config.REDACTION_FLAG[self.profile_name],
-                                                         config.REDACT_PARAGRAPH_STR).redact_summary_pipeline()
+                                                         config.REDACT_PARAGRAPH_STR, self.profile_details, aidoc_id).redact_summary_pipeline()
                 summary_dict['data'] = redacted_summary_list
             except Exception as exc:
                 logger.error(f"Exception raised while updating Redaction tag in Summary: {str(exc)}")
         return summary_dict
 
-    def redact_toc(self, iqv_data_toc):
+    def redact_toc(self, aidoc_id, iqv_data_toc):
         """
         Parse iqviadataTOC json, send parsed json for adding redaction tag and convert redacted data into original json structure
         """
@@ -156,6 +180,8 @@ class ProtocolViewRedaction:
             toc_data = json.loads(json.loads(iqv_data_toc))
             toc_with_redacted_tag = self.update_toc_with_redacted_tag(toc_data)
             toc_data['data'] = toc_with_redacted_tag
+            toc_metadata_redacted_tag = self.update_toc_metadata_with_redacted_tag(aidoc_id, toc_data.get("metadata", {}))
+            toc_data['metadata'] = toc_metadata_redacted_tag
             redacted_toc = str(json.dumps(json.dumps(toc_data)))
         return redacted_toc
 
@@ -170,14 +196,14 @@ class ProtocolViewRedaction:
             redacted_soa = str(json.dumps(json.dumps(soa_with_redacted_tag)))
         return redacted_soa
 
-    def redact_summary(self, iqv_data_summary):
+    def redact_summary(self, aidoc_id, iqv_data_summary):
         """
         Parse iqviadataSummary json, send parsed json for adding redaction tag and convert redacted data into original json structure
         """
         redacted_summary = iqv_data_summary
         if iqv_data_summary:
             summary_data = json.loads(json.loads(iqv_data_summary))
-            summary_with_redacted_tag = self.update_summary_with_redacted_tag(summary_data)
+            summary_with_redacted_tag = self.update_summary_with_redacted_tag(aidoc_id, summary_data)
             redacted_summary = str(json.dumps(json.dumps(summary_with_redacted_tag)))
         return redacted_summary
 
@@ -194,11 +220,11 @@ class ProtocolViewRedaction:
             iqvdata_summary = protocol_data.iqvdataSummary
 
             if redact_toc_flag:
-                iqvdata_toc = self.redact_toc(iqvdata_toc)
+                iqvdata_toc = self.redact_toc(aidoc_id, iqvdata_toc)
             if redact_soa_flag:
                 iqvdata_soa = self.redact_soa(iqvdata_soa)
             if redact_summary_flag:
-                iqvdata_summary = self.redact_summary(iqvdata_summary)
+                iqvdata_summary = self.redact_summary(aidoc_id, iqvdata_summary)
 
             redacted_protocol_data = {"documentFilePath": protocol_data.documentFilePath, "id": protocol_data.id,
                                       "userId": protocol_data.userId, "fileName": protocol_data.fileName,
