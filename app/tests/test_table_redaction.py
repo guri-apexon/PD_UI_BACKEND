@@ -49,7 +49,7 @@ def test_table_redaction(new_token_on_headers, user_id, protocol, aidocid, redac
                                      return_refreshed_table_html = return_refreshed_table_html,
                                      redact_profile_entities = profile_genre)
 
-    protocol_data = crud.pd_protocol_data.get(db, aidocid, user=None)
+    protocol_data = crud.pd_protocol_data.get(db, aidocid, user='normal')
 
     tables_list = [i for i in enumerate(json.loads(json.loads(protocol_data.iqvdataToc))['data']) if
                    i[1][2] == 'table']
