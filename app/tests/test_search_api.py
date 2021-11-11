@@ -17,7 +17,7 @@ return_fields = ["AiDocId", "ProtocolNo", "ProtocolTitle", "SponsorName", "Indic
 
 key = "hcc"
 toc = ["Protocol Summary" ,"Synopsis" , "Schema", "Schedule of Activities (SoA)", "Introduction", "Study Rationale",
-       "Background", "Benefit/Risk Assessment", "Risk Assessment", "Benefit Assessment", "Overall Benefit: Risk Conclusion"]
+       "Background", "Benefit/Risk Assessment", "Risk Assessment", "Benefit Assessment", "Overall Benefit: Risk Conclusion", "Unmapped"]
 sponsor = ["AstraZeneca", "Merck KGaA", "3D Medical", "NVT AG", "Eisai Co., Ltd."]
 sponsor_astrazeneca = ["AstraZeneca"]
 indication = ["ABCC6 deficiency"]
