@@ -52,8 +52,7 @@ class TableRedaction():
     def refresh_html_table(self, properties_df_cols, properties_df):
         table_df = pd.DataFrame()
         for col_idx in properties_df_cols:
-            table_df[col_idx] = [x['content'] if x and x['content'] else x for x in
-                                 properties_df[col_idx]]
+            table_df[col_idx] = [prop['content'] if prop and prop['content'] else '' for prop in properties_df[col_idx]]
 
         return table_df
 
@@ -86,10 +85,10 @@ class TableRedaction():
                     if self.redact_flag:
                         # Table redaction
                         for col_idx in properties_df_cols:
-                            properties_df[col_idx] = [self.redact_entity(x) if x and x['entities'] else x for x in
+                            properties_df[col_idx] = [self.redact_entity(prop) if prop and prop['entities'] else prop for prop in
                                                       properties_df[col_idx]]
 
-                            table_df = self.refresh_html_table(properties_df_cols, properties_df)
+                        table_df = self.refresh_html_table(properties_df_cols, properties_df)
 
                         table_dictonary['Table'] = table_df.to_html(escape=False)
 
