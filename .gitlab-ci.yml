@@ -153,6 +153,7 @@ build-test:
     refs:
       - develop
       - pd-release/1.3_qc
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "test"
   
@@ -170,6 +171,7 @@ deploy-test:
     refs:
       - develop
       - pd-release/1.3_qc
+      - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "test"
       
@@ -187,6 +189,7 @@ build-svt:
     refs:
       - master
       - pd-release/1.3_qc
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
       
@@ -207,6 +210,7 @@ deploy-svt:
     refs:
       - master
       - pd-release/1.3_qc
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
 
@@ -224,6 +228,7 @@ deploy-svt2:
     refs:
       - master
       - pd-release/1.3_qc
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
       
@@ -243,6 +248,7 @@ build-uat:
       
       - master
       - pd-release/1.3_qc
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
 
@@ -261,6 +267,7 @@ deploy-uat:
       
       - master
       - pd-release/1.3_qc
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
 deploy-uat2:
@@ -278,6 +285,7 @@ deploy-uat2:
       
       - master
       - pd-release/1.3_qc
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
       
