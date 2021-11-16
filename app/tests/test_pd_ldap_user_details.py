@@ -6,7 +6,7 @@ client = TestClient(app)
 
 def test_get_ldap_user_details(new_token_on_headers):
     input_json = {
-        "userId": "ypd"
+        "userId": "1012525"
     }
 
     response = client.get("/api/ldap_user_details/", params=input_json, headers=new_token_on_headers)
