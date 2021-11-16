@@ -7,16 +7,16 @@ def get_ldap_user_details(user_id):
     server = settings.LDAP_SERVER
     base = "dc=quintiles,dc=net"
     scope = ldap.SCOPE_SUBTREE
-    l_filter = f"(&(objectClass=user)(sAMAccountName={user_id}))"
+    l_filter = f"(&(objectClass=user)(EmployeeID={user_id}))"
     attrs = ["*"]
 
-    l = ldap.initialize(server)
-    l.protocol_version = 3
-    l.set_option(ldap.OPT_REFERRALS, 0)
+    l_init = ldap.initialize(server)
+    l_init.protocol_version = 3
+    l_init.set_option(ldap.OPT_REFERRALS, 0)
 
-    l.simple_bind_s(settings.LDAP_USERNAME, settings.LDAP_PWD)
-    r = l.search(base, scope, l_filter, attrs)
-    _, user = l.result(r, 60)
+    l_init.simple_bind_s(settings.LDAP_USERNAME, settings.LDAP_PWD)
+    r = l_init.search(base, scope, l_filter, attrs)
+    _, user = l_init.result(r, 60)
 
     name, attrs = user[0]
     if type(attrs) is not dict:
