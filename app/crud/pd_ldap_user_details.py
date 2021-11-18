@@ -27,7 +27,7 @@ def get_ldap_user_details(user_id):
 
     default_value = [b""]
     user_details = {
-        "userId": user_id,
+        "userId": bytes.decode(attrs.get("sAMAccountName", default_value)[0]),
         "first_name": bytes.decode(attrs.get("givenName", default_value)[0]),
         "last_name": bytes.decode(attrs.get("sn", default_value)[0]),
         "email": bytes.decode(attrs.get("mail", default_value)[0]),
