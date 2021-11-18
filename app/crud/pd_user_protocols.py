@@ -115,7 +115,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             user_protocol.redactProfile=redact_profile
             db.add(user_protocol)
             db.commit()
-        except:
+        except Exception as ex:
             db.rollback()
 
     @staticmethod
@@ -126,7 +126,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         else:
             redact_profile = "profile_0"
         if user_protocol:
-            pd_user_protocols.update_protocol(db,obj_in,user_protocol,redact_profile)
+            pd_user_protocols.update_protocol(db, obj_in, user_protocol, redact_profile)
             raise HTTPException(
                 status_code=403,
                 detail=f"Mapping for userId: {obj_in.userId}, "

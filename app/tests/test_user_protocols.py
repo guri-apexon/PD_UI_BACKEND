@@ -12,6 +12,16 @@ from fastapi.testclient import TestClient
 client = TestClient(app)
 db = SessionLocal()
 
+@pytest.mark.parametrize("user_id, protocol, primary_flg", [
+    ("1034911", "AKB-6548-CI-0014_SSR_1027", 1),
+    ("1061485", "AKB-6548-CI-0014_SSR_1027", 0)
+])
+def test_is_user_primary_api(new_token_on_headers, user_id, protocol, primary_flg):
+
+    is_primary = client.get("/api/user_protocol/is_primary_user", params={"userId": user_id, "protocol":protocol}, headers=new_token_on_headers)
+    is_primary = is_primary.json()
+
+    assert is_primary == primary_flg
 
 @pytest.mark.parametrize("insert_flg, user_id, protocol, follow_flg, user_role, expected_user_role, expected_redact_profile", [
     ("0", "1034911", "SSR_1002-043", True, "secondary", "secondary", config.USERROLE_REDACTPROFILE_MAP.get("secondary", "")),
@@ -50,11 +60,12 @@ def test_follow_protocol(new_token_on_headers, insert_flg, user_id, protocol, fo
         assert follow_record.timeCreated == follow_record.lastUpdated
 
 
-@pytest.mark.parametrize("user_id, protocol, follow_flg, user_role, project_id", [
-    ("1012424", "SSR_1002-043", True, "primary", "pid")
+@pytest.mark.parametrize("user_id, protocol, follow_flg, user_role, project_id, expected_json, status_code", [
+    ("1012424", "SSR_1002-043", True, "primary", "pid", {'userId': '1012424', 'protocol': 'SSR_1002-043', 'userRole': 'primary', 'userCreated': None, 'userUpdated': None}, 200),
+    ("1012424", "SSR_1002-043", True, "primary", "pid", {'detail': "Mapping for userId: 1012424, protocol: SSR_1002-043 is already available & has been activated"}, 403),
+    ("", "SSR_1002-043", True, "primary", "pid", {'detail': "Can't Add with null values userId:, protocol:SSR_1002-043, follow:True & userRole:primary"}, 403)
 ])
-def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_flg,
-                              user_role, project_id):
+def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_flg, user_role, project_id, expected_json, status_code):
     sample_query_json = {
         "userId": user_id,
         "protocol": protocol,
@@ -63,20 +74,17 @@ def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_fl
         "projectId": project_id
     }
 
-    sample_pd_userprotocol_response = PD_User_Protocols(userId=user_id,
-                                                        protocol=protocol,
-                                                        userRole=user_role,
-                                                        follow=follow_flg,
-                                                        projectId=project_id,
-                                                        isActive=True)
-    expected_json = {
-        'detail': f"Mapping for userId: {user_id}, "
-                  f"protocol: {protocol} is already available & has been activated"
-    }
+    if status_code == 200:
+        user_protocol = pd_user_protocols.userId_protocol_check(db, user_id, protocol)
+        if user_protocol:
+            db.delete(user_protocol)
+            db.commit()
 
-    with patch('app.crud.pd_user_protocols.userId_protocol_check') as mock_protocol:
-        mock_protocol.return_value = sample_pd_userprotocol_response
-        response = client.post("/api/user_protocol/", json=sample_query_json, headers=new_token_on_headers)
-        assert mock_protocol.called
-        assert response.status_code == 403
-        assert response.json() == expected_json
+    response = client.post("/api/user_protocol/", json=sample_query_json, headers=new_token_on_headers)
+    assert response.status_code == status_code
+    response_json = response.json()
+    if status_code == 200:
+        response_json.pop('id')
+
+    assert response_json == expected_json
+
