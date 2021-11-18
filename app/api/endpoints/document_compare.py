@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from app import config
 from app.api import deps
@@ -48,19 +49,20 @@ async def get_compare_doc(
             return Response(status_code=status.HTTP_204_NO_CONTENT)
 
         document_compare_path = (settings.DFS_UPLOAD_FOLDER + '/compare/' + document_process.compareId)
-        file_suffix = 'compare_detail'+file_type
         file_name = None
         if os.path.isdir(document_compare_path):
             for file in os.listdir(document_compare_path):
-                if file.endswith(file_suffix):
-                    file_name = file
+                compare_file_name = re.findall(".*\.compare_detail\.\d*", file)
+                if compare_file_name:
+                    file_name = compare_file_name[0].rstrip('.')
                     break
+
             if not file_name:
                 logger.error(f"Compare result is not available in {file_type} format")
                 return Response(status_code=status.HTTP_404_NOT_FOUND,
                                 content=f"Compare result is not available in {file_type} format")
             else:
-                file_path = (document_compare_path + '/' + file_name)
+                file_path = os.path.join(document_compare_path, file_name) + file_type
                 return stream_file(file_path)
         else:
             return Response(status_code=status.HTTP_404_NOT_FOUND,

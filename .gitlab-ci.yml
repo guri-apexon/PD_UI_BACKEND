@@ -241,9 +241,7 @@ deploy-svt2:
 build-uat:
   tags:
     - ca2spdml03c
-  stage: build-uat
-  before_script:
-    - . $VE_PATH  
+  stage: build-uat 
   script:
     - python setup.py sdist
   artifacts:
