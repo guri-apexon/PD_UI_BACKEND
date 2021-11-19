@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional, Union
 from sqlalchemy.orm import Session
 import logging
+from app import config
 from app.crud.base import CRUDBase
 from app.models.pd_document_compare import PD_Document_Compare
 from app.utilities.config import settings
@@ -17,6 +18,8 @@ class CRUDDocumentCompare(CRUDBase[PD_Document_Compare, DocumentCompareCreate, D
             resource = db.query(PD_Document_Compare).filter(PD_Document_Compare.id1 == id1,
                                                                     PD_Document_Compare.id2 == id2, 
                                                                     PD_Document_Compare.redactProfile == redact_profile).all()
+            if not resource and redact_profile == config.USERROLE_REDACTPROFILE_MAP['primary']:
+                resource = db.query(PD_Document_Compare).filter(PD_Document_Compare.id1 == id1, PD_Document_Compare.id2 == id2).all()
             if not resource:
                 logger.exception(f'No Document Found for id1:{id1} and id2:{id2} in pd_protocol_compare Table.')
                 raise HTTPException(status_code=404, detail=f"No Document Found for id1:{id1} and id2:{id2} in pd_protocol_compare Table.")
