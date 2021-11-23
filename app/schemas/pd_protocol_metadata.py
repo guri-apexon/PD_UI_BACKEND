@@ -111,6 +111,11 @@ class ProtocolMetadataInDBBase(ProtocolMetadataBase):
 class ProtocolMetadata(ProtocolMetadataInDBBase):
     pass
 
+# Additional properties to return via API
+class ProtocolMetadataUploadUser(ProtocolMetadataInDBBase):
+    uploadedBy: str = ''
+    userRole: str = ''
+
 class ProtocolMetadataDuplicateBase(BaseModel):   
     protocol: Optional[str] = None
     sponsor: Optional[str] = None

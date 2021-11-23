@@ -15,7 +15,10 @@ router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 @router.post("/")
-def search_elastic(search_json_in: schemas.SearchJson, db: Session = Depends(deps.get_db), _: str = Depends(auth.validate_user_token)):
+def search_elastic(search_json_in: schemas.SearchJson,
+                   db: Session = Depends(deps.get_db),
+                   _: str = Depends(auth.validate_user_token)
+                   ):
     try:
         logger.info("Received request in ES keyword_search.search_elastic: {}".format(search_json_in))
         res = crud.query_elastic(search_json_in, db)
