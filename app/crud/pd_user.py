@@ -60,5 +60,18 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
             db.rollback()
             return ex
 
+    def get_by_username_list(self, db:Session, user_ids:list):
+        corrected_user_ids = list()
+        for user_id in user_ids:
+            if 'q' not in user_id.lower() and 'u' not in user_id.lower() and 's' not in user_id.lower():
+                corrected_user_ids.extend(['q' + user_id, 'u' + user_id, 's' + user_id])
+            else:
+                corrected_user_ids.append(user_id)
+        user_ids = corrected_user_ids
+        user_ids = list(set(user_ids))
+
+        user_details = db.query(User).filter(User.username.in_(user_ids)).all()
+
+        return user_details
 
 user = CRUDUserSearch(User)

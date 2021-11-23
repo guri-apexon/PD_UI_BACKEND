@@ -8,13 +8,14 @@ from app.models.pd_user_protocols import PD_User_Protocols
 from app.utilities.config import settings
 from app.utilities.elastic_utilities import search_elastic
 from app.utilities.redact import redactor
+from .pd_user import user
 
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 return_fields = ["AiDocId", "ProtocolNo", "ProtocolTitle", "SponsorName", "Indication", "DocumentStatus", "phase",
-                 "approval_date", "uploadDate",
-                 "MoleculeDevice", "is_active", "SourceFileName", "documentPath", "ProjectId", "VersionNumber", "qcStatus"
+                 "approval_date", "uploadDate", "UserId", "MoleculeDevice", "is_active", "SourceFileName",
+                 "documentPath", "ProjectId", "VersionNumber", "qcStatus"
                  ]
 
 
@@ -216,6 +217,11 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
             total_len = es_res['hits']['total']['value']
             es_res = es_res['hits']['hits']
             res["data"] = [val["_source"] for val in es_res]
+
+            user_ids = list({data.get('UserId', '') for data in res['data'] if data.get('UserId', '')})
+            user_details = user.get_by_username_list(db, user_ids)
+            user_details = {user_detail.username.lower():' '.join([user_detail.first_name, user_detail.last_name]) for user_detail in user_details}
+
             correct_approval = list()
             incorrect_approval = list()
             for row in res['data']:
@@ -227,7 +233,24 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
                 else:
                     row['Follow'] = user_protocol_detail.get('follow', False)
                     row['UserRole'] = user_protocol_detail.get('userRole', 'secondary')
-                    row['redactProfile'] = user_protocol_detail.get('redactProfile')                    
+                    row['redactProfile'] = user_protocol_detail.get('redactProfile')
+
+                row['uploadedBy'] = ''
+                if row.get('UserId', ''):
+                    if row['UserId'].lower().startswith(('q', 'u', 's')):
+                        row['uploadedBy'] = user_details.get(row['UserId'].lower(), '')
+                    else:
+                        q_user_id = 'q' + row['UserId'].lower()
+                        u_user_id = 'u' + row['UserId'].lower()
+                        s_user_id = 's' + row['UserId'].lower()
+                        uploaded_by = ''
+                        if q_user_id in user_details:
+                            uploaded_by = user_details.get(q_user_id, '')
+                        elif u_user_id in user_details:
+                            uploaded_by = user_details.get(u_user_id, '')
+                        elif s_user_id in user_details:
+                            uploaded_by = user_details.get(s_user_id, '')
+                        row['uploadedBy'] = uploaded_by
 
                 if row['approval_date'].isnumeric() and len(row['approval_date']) != 8:
                     row['approval_date'] = ''
