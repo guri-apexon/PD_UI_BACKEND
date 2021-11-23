@@ -18,7 +18,9 @@ $NSSM_PATH stop "$SERVICE_NAME"
 
 ## Re-install the package
 echo "Re-installing service package..."
-pip uninstall "$PACKAGE" -y
+pip uninstall "$PACKAGE" -y && pip uninstall etmfa-core -y
+
+REGISTRY_PYPI_URL=$REGISTRY_PYPI_URL REGISTRY_SERVER=$REGISTRY_SERVER
 
 echo "REGISTRY_PYPI_URL is $REGISTRY_PYPI_URL"
 echo "REGISTRY_SERVER is $REGISTRY_SERVER"
@@ -26,6 +28,8 @@ echo "INSTALL_PACKAGE is $INSTALL_PACKAGE"
 
 pip install -e . --no-cache-dir --upgrade --extra-index-url "$REGISTRY_PYPI_URL/simple" --trusted-host "$REGISTRY_SERVER" "$INSTALL_PACKAGE"
 pip install -e . --no-cache-dir --upgrade $INSTALL_PACKAGE
+
+pip install --upgrade --extra-index-url "$REGISTRY_PYPI_URL/simple" etmfa-core
 ## Start service
 echo "Starting service..."
 $NSSM_PATH start "$SERVICE_NAME"
