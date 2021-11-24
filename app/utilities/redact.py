@@ -29,6 +29,7 @@ class Redactor:
 
         self.redact_df = self.get_all_profiles_df()
         self.redact_dict = self.get_all_profiles_dict()
+        self.legacy_protocol_upload_date = pd.to_datetime(config.LEGACY_PROTOCOL_UPLOAD_DATE).date()
         
     def get_all_profiles_df(self) -> pd.DataFrame:
         """
@@ -132,10 +133,18 @@ class Redactor:
 
     def redact_protocolTitle(self, current_db, attribute, profile, doc_attributes, redact_flg=True):
         aidocId = doc_attributes.get("id", None) or doc_attributes.get("AiDocId", None)
+        upload_date_obj = doc_attributes.get("uploadDate", None)
+        if upload_date_obj and type(upload_date_obj) == str:
+            upload_date_obj = pd.to_datetime(upload_date_obj)
+
         if not aidocId:
             return doc_attributes
 
         if redact_flg:
+            if upload_date_obj and upload_date_obj.date() <= self.legacy_protocol_upload_date:
+                doc_attributes[attribute] = config.REDACT_PARAGRAPH_STR
+                return doc_attributes
+
             redacted_entities = profile.get(config.GENRE_ENTITY_NAME, [])
             summary_entities = crud.pd_protocol_summary_entities.get_protocol_summary_entities(db=current_db,
                                                                                                aidocId=aidocId)
