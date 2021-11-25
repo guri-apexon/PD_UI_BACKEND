@@ -58,4 +58,15 @@ class CRUDLoginUser(CRUDBase[Login, LoginBaseInDBBase, User_Soft_Delete]):
             db.rollback()
             return ex
 
+    def update_status(self, db: Session, obj_in: schemas.Login):
+        try:
+            obj_in.active_user = True
+            obj_in.lastUpdated = datetime.utcnow()
+            db.add(obj_in)
+            db.commit()
+            return True
+        except Exception as ex:
+            db.rollback()
+            return ex
+
 login = CRUDLoginUser(Login)
