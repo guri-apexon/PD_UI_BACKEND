@@ -71,4 +71,3 @@ FOOTNOTE_STR = "FootnoteText"
 SRC_DOC_ACTION_TYPE = 'download_source_document'
 COMPARED_DOC_ACTION_TYPE = 'download_compare_document'
 
-LEGACY_PROTOCOL_UPLOAD_DATE = "2021-09-19"

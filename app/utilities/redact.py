@@ -29,7 +29,7 @@ class Redactor:
 
         self.redact_df = self.get_all_profiles_df()
         self.redact_dict = self.get_all_profiles_dict()
-        self.legacy_protocol_upload_date = pd.to_datetime(config.LEGACY_PROTOCOL_UPLOAD_DATE).date()
+        self.legacy_protocol_upload_date = pd.to_datetime(settings.LEGACY_PROTOCOL_UPLOAD_DATE).date()
         
     def get_all_profiles_df(self) -> pd.DataFrame:
         """
