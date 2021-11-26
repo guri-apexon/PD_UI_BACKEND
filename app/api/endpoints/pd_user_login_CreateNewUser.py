@@ -22,6 +22,7 @@ def adding_new_user(*, db: Session = Depends(deps.get_db), new_user: schemas.Use
     if login_exist:
         user_exist = crud.user.get_by_username(db, new_user.username)
         if user_exist:
+            crud.user.update(db, obj_in=new_user)
             update_status = crud.login.update_status(db, obj_in=login_exist)
             if update_status:
                 return user_exist
