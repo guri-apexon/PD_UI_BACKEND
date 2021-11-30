@@ -112,9 +112,21 @@ class ProtocolMetadata(ProtocolMetadataInDBBase):
     pass
 
 # Additional properties to return via API
-class ProtocolMetadataUploadUser(ProtocolMetadataInDBBase):
-    uploadedBy: str = ''
-    userRole: str = ''
+class ProtocolMetadataRelatedProtocols(BaseModel):
+    id: Optional[str] = None
+    userId: Optional[str] = None
+    fileName: Optional[str] = None
+    documentFilePath: Optional[str] = None
+    protocol: Optional[str] = None
+    versionNumber: Optional[str] = None
+    documentStatus: Optional[str] = None
+    status: Optional[str] = None
+    qcStatus: Optional[str] = None
+    uploadDate: Optional[datetime] = None
+    approvalDate: Optional[date] = None
+    isActive: Optional[bool] = None
+    uploadedBy: Optional[str] = None
+    userRole: Optional[str] = None
 
 class ProtocolMetadataDuplicateBase(BaseModel):   
     protocol: Optional[str] = None

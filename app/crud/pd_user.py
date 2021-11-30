@@ -1,4 +1,3 @@
-from typing import Any, Dict, Optional, Union, List
 from datetime import datetime
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -6,11 +5,12 @@ from app.crud.base import CRUDBase
 from app.models.pd_user import User
 from app.schemas.pd_user import UserUpdate, UserCreate, UserBaseInDBBase
 from app.models.pd_login import Login
+from app import config
 
 
 class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
     def get_all_user(self, db: Session, userId: str = None) -> User:
-        if userId != "":
+        if userId and userId != "":
             search = "%{}%".format(userId)
             protocolmetadata_data = db.query(User.username, User.first_name, User.last_name).filter(
                 User.username.like(search)).first()
@@ -61,17 +61,18 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
             return ex
 
     def get_by_username_list(self, db:Session, user_ids:list):
-        corrected_user_ids = list()
-        for user_id in user_ids:
-            if 'q' not in user_id.lower() and 'u' not in user_id.lower() and 's' not in user_id.lower():
-                corrected_user_ids.extend(['q' + user_id, 'u' + user_id, 's' + user_id])
-            else:
-                corrected_user_ids.append(user_id)
-        user_ids = corrected_user_ids
-        user_ids = list(set(user_ids))
+        user_ids = [config.REGEX_EMP_ID_ALPHA_REPLACE.sub('', user_id) for user_id in user_ids]
+        if 'user_details' not in self.__dict__ or self.user_details == None or any(
+                (False for user_id in user_ids if user_id not in self.user_details)):
+            self.update_user_details(db)
 
-        user_details = db.query(User).filter(User.username.in_(user_ids)).all()
+        user_details_ret = {user_id:self.user_details.get(user_id, None) for user_id in user_ids}
+        user_details_ret = {user_id:user_detail for user_id, user_detail in user_details_ret.items() if user_detail}
 
-        return user_details
+        return user_details_ret
+
+    def update_user_details(self, db:Session):
+        self.user_details = self.get_all_user(db)
+        self.user_details = {config.REGEX_EMP_ID_ALPHA_REPLACE.sub('', detail.username): detail for detail in self.user_details}
 
 user = CRUDUserSearch(User)

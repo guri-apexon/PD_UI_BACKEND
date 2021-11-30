@@ -51,8 +51,8 @@ flake8:
       - develop
       - merge_requests
       - /^pd-release/*/
-    variables: 
-      - $ENVIRONMENT== "dev"    
+    variables:
+      - $ENVIRONMENT== "dev"
   
 unit-tests:
   tags:
@@ -98,8 +98,8 @@ Perform Sonarqube Analysis and quality gate:  # for all environments
       - develop
       - merge_requests
       - /^pd-release/*/
-    variables: 
-      - $ENVIRONMENT== "dev" 
+    variables:
+      - $ENVIRONMENT== "dev"
 
 build:
   tags:

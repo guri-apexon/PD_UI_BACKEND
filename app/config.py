@@ -22,6 +22,7 @@ class QcStatus(Enum):
     QC2 = 'QC2'
     FEEDBACK = 'FEEDBACK_RUN'
     COMPLETED = 'QC_COMPLETED'
+    QC = 'QC'
 
 VALID_QC_STATUS = [status.value for status in QcStatus]
 
@@ -70,4 +71,10 @@ FOOTNOTE_STR = "FootnoteText"
 
 SRC_DOC_ACTION_TYPE = 'download_source_document'
 COMPARED_DOC_ACTION_TYPE = 'download_compare_document'
+
+# Regex for
+REGEX_EMP_ID_ALPHA_REPLACE = re.compile('^[a-zA-Z]+')
+
+# Value for QC
+QC = 'QC'
 
