@@ -18,7 +18,7 @@ $NSSM_PATH stop "$SERVICE_NAME"
 
 ## Re-install the package
 echo "Re-installing service package..."
-pip uninstall "$PACKAGE" -y && pip uninstall etmfa-core -y
+pip uninstall "$PACKAGE" -y && pip uninstall etmfa-core -y 
 
 REGISTRY_PYPI_URL=$REGISTRY_PYPI_URL REGISTRY_SERVER=$REGISTRY_SERVER
 
