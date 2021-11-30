@@ -67,7 +67,6 @@ def delete_user_protocol(
         db.rollback()
     return user_protocol
 
-
 @router.get("/is_primary_user")
 def is_user_primary(
         *,

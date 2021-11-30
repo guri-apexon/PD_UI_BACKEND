@@ -12,7 +12,7 @@ logger = logging.getLogger("unit-test")
 
 return_fields = ["AiDocId", "ProtocolNo", "ProtocolTitle", "SponsorName", "Indication", "DocumentStatus", "phase",
                  "approval_date", "uploadDate", "MoleculeDevice", "is_active", "SourceFileName", "documentPath", "ProjectId",
-                 "VersionNumber"
+                 "VersionNumber", "UserId"
                  ]
 
 key = "hcc"
@@ -161,5 +161,8 @@ def test_query_elastic(key, toc, sponsor, indication, phase, documentStatus, dat
         if res_count == 0 and dateFrom > dateTo:
             all_flags.append(True)
             assert dateFrom > dateTo
+
+        uploaded_by_flag = all([True for data in ret_val['data'] if 'uploadedBy' in data])
+        assert uploaded_by_flag
 
     assert all(all_flags)

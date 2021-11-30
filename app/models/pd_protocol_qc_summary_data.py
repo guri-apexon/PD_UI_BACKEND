@@ -38,6 +38,7 @@ class PDProtocolQCSummaryData(Base):
     exclusionCriteria = Column(String(4096))
     primaryObjectives = Column(String(4096))
     secondaryObjectives = Column(String(4096))
+    runId = Column(Integer, default=0)
 
     isActive = Column(Boolean(), default=True)
     qcApprovedBy = Column(String(16))

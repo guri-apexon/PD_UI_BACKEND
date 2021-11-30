@@ -220,7 +220,7 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
 
             user_ids = list({data.get('UserId', '') for data in res['data'] if data.get('UserId', '')})
             user_details = user.get_by_username_list(db, user_ids)
-            user_details = {user_detail.username.lower():' '.join([user_detail.first_name, user_detail.last_name]) for user_detail in user_details}
+            user_details = {user_id: ' '.join([user_detail.first_name, user_detail.last_name]) for user_id, user_detail in user_details.items()}
 
             correct_approval = list()
             incorrect_approval = list()
@@ -237,20 +237,7 @@ def query_elastic(search_json_in: schemas.SearchJson, db, return_fields = return
 
                 row['uploadedBy'] = ''
                 if row.get('UserId', ''):
-                    if row['UserId'].lower().startswith(('q', 'u', 's')):
-                        row['uploadedBy'] = user_details.get(row['UserId'].lower(), '')
-                    else:
-                        q_user_id = 'q' + row['UserId'].lower()
-                        u_user_id = 'u' + row['UserId'].lower()
-                        s_user_id = 's' + row['UserId'].lower()
-                        uploaded_by = ''
-                        if q_user_id in user_details:
-                            uploaded_by = user_details.get(q_user_id, '')
-                        elif u_user_id in user_details:
-                            uploaded_by = user_details.get(u_user_id, '')
-                        elif s_user_id in user_details:
-                            uploaded_by = user_details.get(s_user_id, '')
-                        row['uploadedBy'] = uploaded_by
+                    row['uploadedBy'] = user_details.get(row['UserId'].lower(), '')
 
                 if row['approval_date'].isnumeric() and len(row['approval_date']) != 8:
                     row['approval_date'] = ''

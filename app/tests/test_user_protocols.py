@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import pytest
-from mock import patch
 from app import config
 from app.crud.pd_user_protocols import pd_user_protocols
 from app.models.pd_user_protocols import PD_User_Protocols
@@ -87,3 +86,19 @@ def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_fl
 
     assert response_json == expected_json
 
+@pytest.mark.parametrize("user_id, protocol, status_code", [
+    ("1034911", "AKB-6548-CI-0014_SSR_1027", 200),
+    ("1061485", "AKB-6548-CI-0014_SSR_1027", 404)
+])
+def test_user_protocol_delete(new_token_on_headers, user_id, protocol, status_code):
+
+    response = client.delete("/api/user_protocol/", params={"userId": user_id, "protocol":protocol}, headers=new_token_on_headers)
+
+    if response.status_code == 200:
+        user_protocol = pd_user_protocols.userId_protocol_check(db, user_id, protocol)
+        if user_protocol:
+            user_protocol.isActive = True
+            db.commit()
+            db.refresh(user_protocol)
+
+    assert response.status_code == status_code
