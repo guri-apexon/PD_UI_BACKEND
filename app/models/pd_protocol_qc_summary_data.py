@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, Float, Date
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, Date
 
 from app.db.base_class import Base
 
@@ -14,6 +14,7 @@ class PDProtocolQCSummaryData(Base):
     protocolNumber = Column(String(64))
     trialPhase = Column(String(16))
     versionNumber = Column(String(64))
+    isAmendment = Column(String(8))
     amendmentNumber = Column(String(64))
     approvalDate = Column(Date)
     versionDate = Column(Date)
