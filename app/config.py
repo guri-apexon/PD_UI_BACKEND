@@ -36,7 +36,7 @@ QC_COMPLETED_STATUS = QcStatus.COMPLETED.value
 # ---------------------- Redaction
 # Profiles
 USERROLE_REDACTPROFILE_MAP = {"primary": "profile_1", "secondary": "profile_0", "default": "profile_0"}
-REGEX_SPECIAL_CHAR_REPLACE = re.compile('([\(\)\[\]\+\^\$\|\#\?\{\}\.\=\&])')
+REGEX_SPECIAL_CHAR_REPLACE = re.compile('([^a-zA-Z0-9])')
 
 GENRE_ENTITY_NAME = 'entity'
 GENRE_ATTRIBUTE_NAME = 'attributes'
