@@ -22,13 +22,15 @@ def adding_new_user(*, db: Session = Depends(deps.get_db), new_user: schemas.Use
     if login_exist:
         user_exist = crud.user.get_by_username(db, new_user.username)
         if user_exist:
-            crud.user.update(db, obj_in=new_user)
-            update_status = crud.login.update_status(db, obj_in=login_exist)
-            if update_status:
-                crud.user.update_user_details(db)
-                return user_exist
+            if login_exist.active_user:
+                raise HTTPException(status_code=409, detail="User profile already exist")
             else:
-                raise HTTPException(status_code=400, detail=f"Login status updating failed Details:{update_status}")
+                update_status = crud.login.update_status(db, obj_in=login_exist)
+                if update_status:
+                    crud.user.update_user_details(db)
+                    return user_exist
+                else:
+                    raise HTTPException(status_code=400, detail=f"Login status updating failed Details:{update_status}")
         else:
             user_create = crud.user.create(db, obj_in=new_user, login_id=login_exist.id)
             return user_create

@@ -13,7 +13,7 @@ logger = logging.getLogger("unit-test")
 
 
 @pytest.mark.parametrize("insert_flag, username, first_name,last_name,email,country,user_type, expected_response",
-                         [("0", "class101", "CS", "IT", "cs.it@iqvia.com", "USA", "normal", status.HTTP_200_OK),
+                         [("0", "class101", "CS", "IT", "cs.it@iqvia.com", "USA", "normal", status.HTTP_409_CONFLICT),
                           ("1", "casio", "Casio", "Watch Brand IN", "casio.watchbrand@iqvia.com", "India", "normal", status.HTTP_200_OK),
                           ("0", "newclass", "", "new", "", "India", "", status.HTTP_422_UNPROCESSABLE_ENTITY)
                           ])
