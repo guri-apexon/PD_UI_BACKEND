@@ -25,6 +25,7 @@ def adding_new_user(*, db: Session = Depends(deps.get_db), new_user: schemas.Use
             if login_exist.active_user:
                 raise HTTPException(status_code=409, detail="User profile already exist")
             else:
+                crud.user.update(db, obj_in=new_user)
                 update_status = crud.login.update_status(db, obj_in=login_exist)
                 if update_status:
                     crud.user.update_user_details(db)
