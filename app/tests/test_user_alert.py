@@ -14,8 +14,8 @@ logger = logging.getLogger("unit-test")
 
 
 @pytest.mark.parametrize("test_setup_flg, user_id, protocol, adjust_alert_created_time, expected_num_alert, comments", [
-    (True, "1034911", "SSR_J4_1002-043", 0, 1, "Recent alert"),
-    (True, "1034911", "SSR_J4_1002-043", -120, 0, "Old alert"),
+    (True, "1012525", "Alert-Test", 0, 2, "Recent alert"),
+    (True, "1012525", "Alert-Test", -120, 1, "Old alert"),
     (False, "XXX1034911", "SSR_J4_1002-043", 0, 0, "No alert")
 ])
 def test_user_alert(new_token_on_headers, test_setup_flg, user_id, protocol, adjust_alert_created_time,

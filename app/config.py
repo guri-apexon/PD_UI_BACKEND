@@ -22,6 +22,7 @@ class QcStatus(Enum):
     QC2 = 'QC2'
     FEEDBACK = 'FEEDBACK_RUN'
     COMPLETED = 'QC_COMPLETED'
+    QC = 'QC'
 
 VALID_QC_STATUS = [status.value for status in QcStatus]
 
@@ -35,7 +36,7 @@ QC_COMPLETED_STATUS = QcStatus.COMPLETED.value
 # ---------------------- Redaction
 # Profiles
 USERROLE_REDACTPROFILE_MAP = {"primary": "profile_1", "secondary": "profile_0", "default": "profile_0"}
-REGEX_SPECIAL_CHAR_REPLACE = re.compile('([\(\)\[\]])')
+REGEX_SPECIAL_CHAR_REPLACE = re.compile('([^a-zA-Z0-9])')
 
 GENRE_ENTITY_NAME = 'entity'
 GENRE_ATTRIBUTE_NAME = 'attributes'
@@ -70,3 +71,10 @@ FOOTNOTE_STR = "FootnoteText"
 
 SRC_DOC_ACTION_TYPE = 'download_source_document'
 COMPARED_DOC_ACTION_TYPE = 'download_compare_document'
+
+# Regex for
+REGEX_EMP_ID_ALPHA_REPLACE = re.compile('^[a-zA-Z]+')
+
+# Value for QC
+QC = 'QC'
+

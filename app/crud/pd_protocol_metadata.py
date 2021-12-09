@@ -12,6 +12,7 @@ from app.crud.base import CRUDBase
 from app.models.pd_protocol_data import PD_Protocol_Data
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.models.pd_user_protocols import PD_User_Protocols
+from app.models.pd_protocol_qc_summary_data import PDProtocolQCSummaryData
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
 from app.utilities.config import settings
 from datetime import datetime
@@ -158,7 +159,35 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         if protocol_metadata_first:
             protocol_metadata = [{**protocol_metadata_first[0].as_dict(),
                                   **{"redactProfile": protocol_metadata_first[1]}}]
-        return protocol_metadata                                                                          
+        return protocol_metadata
+
+    def get_by_qc_approved_protocol(self, db: Session, protocol: str):
+        """Retrieves protocol metadata for given protocol number and approval date from pd_protocol_qc_summary_data if QC Completed"""
+
+        resource = db.query(PD_Protocol_Metadata.id,
+                            PD_Protocol_Metadata.userId,
+                            PD_Protocol_Metadata.fileName,
+                            PD_Protocol_Metadata.documentFilePath,
+                            PD_Protocol_Metadata.protocol,
+                            PD_Protocol_Metadata.versionNumber,
+                            PD_Protocol_Metadata.documentStatus,
+                            PD_Protocol_Metadata.status,
+                            PD_Protocol_Metadata.qcStatus,
+                            PD_Protocol_Metadata.uploadDate,
+                            PD_Protocol_Metadata.isActive,
+                            PDProtocolQCSummaryData.source,
+                            case([(PD_Protocol_Metadata.qcStatus == config.QcStatus.COMPLETED.value,
+                                   PDProtocolQCSummaryData.approvalDate)
+                                  ],
+                                 else_= PD_Protocol_Metadata.approvalDate).label('approvalDate')
+                            ).join(PDProtocolQCSummaryData,
+                                   and_(PD_Protocol_Metadata.id == PDProtocolQCSummaryData.aidocId,
+                                        PDProtocolQCSummaryData.source == config.QC,),
+                                   isouter = True).filter(PD_Protocol_Metadata.protocol == protocol,
+                                                          PD_Protocol_Metadata.isActive == True,
+                                                          PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS
+                                                          ).all()
+        return resource
 
     async def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[list]:
         """Retrieves all protocol metadata along with follow flag and user roles"""

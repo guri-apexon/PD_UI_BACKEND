@@ -105,18 +105,19 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             PD_User_Protocols.userId == userId).first()
 
     @staticmethod
-    def update_protocol(db:Session, obj_in, user_protocol, redact_profile):
+    def update_protocol(db: Session, obj_in, user_protocol, redact_profile):
         try:
-            if user_protocol.isActive == False:
-                user_protocol.isActive = True
-            user_protocol.userRole=obj_in.userRole
+            user_protocol.isActive = True
+            user_protocol.userRole = obj_in.userRole
             user_protocol.follow = obj_in.follow
             user_protocol.projectId = obj_in.projectId
-            user_protocol.redactProfile=redact_profile
+            user_protocol.redactProfile = redact_profile
             db.add(user_protocol)
             db.commit()
-        except:
+        except Exception as ex:
             db.rollback()
+            logger.error(f"Exception received for userID: {obj_in.userId} and "
+                         f"protocol: {obj_in.protocol} \n ERROR Details: {str(ex)}")
 
     @staticmethod
     def add_protocol(db: Session, *, obj_in: UserProtocolAdd) -> PD_User_Protocols:
@@ -126,12 +127,9 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         else:
             redact_profile = "profile_0"
         if user_protocol:
-            pd_user_protocols.update_protocol(db,obj_in,user_protocol,redact_profile)
-            raise HTTPException(
-                status_code=403,
-                detail=f"Mapping for userId: {obj_in.userId}, "
-                       f"protocol: {obj_in.protocol} is already available & has been activated",
-            )
+            pd_user_protocols.update_protocol(db, obj_in, user_protocol, redact_profile)
+            return user_protocol
+
         try:
             db_obj = PD_User_Protocols(isActive=True,
                                        userId=obj_in.userId,

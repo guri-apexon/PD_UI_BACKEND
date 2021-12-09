@@ -17,6 +17,7 @@ def update_existing(*, db: Session = Depends(deps.get_db), update_user:schemas.U
        try:
            if update_user.username is not None:
                updated_user = crud.user.update(db, obj_in=update_user)
+               crud.user.update_user_details(db)
                return updated_user
            else:
                return False
@@ -33,6 +34,7 @@ def deleting_user(*, db: Session = Depends(deps.get_db), user_status: schemas.Us
         try:
             if user_status.active_user is not None and type(user_status.active_user) == bool and user_status.active_user == False:
                 status = crud.login.soft_delete(db, obj_in=user_status)
+                crud.user.update_user_details(db)
                 return status
             else:
                 return False

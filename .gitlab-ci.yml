@@ -7,8 +7,7 @@ variables:
   NSSM_PATH: "/D/Projects/PD/softwares/nssm/nssm-2.24/win64/nssm.exe"
   SERVICE_NAME: "pd-ci-ui-backend"
   PACKAGE: "pd-ui-backend"
-#  GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
-#  CI_DEBUG_TRACE: "false"
+  CI_DEBUG_TRACE: "false"
 
 
 stages:
@@ -23,6 +22,11 @@ stages:
   - deploy-svt
   - build-uat
   - deploy-uat
+  - build-uat1
+  - deploy-uat1
+  - build-prod
+  - deploy-prod
+
 
 
 default:
@@ -35,20 +39,27 @@ flake8:
   tags:
     - pd-dev-windows-ml01q
   stage: static_analysis
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+    REGISTRY_SERVER: $REGISTRY_SERVER
   script:
-    - flake8 --ignore=E ui-backend
-  allow_failure: true # Remove it, when ready
+    - flake8 --exit-zero --max-line-length=120
+  allow_failure: true
   only:
     refs:
       - develop
       - merge_requests
-    variables: 
-      - $ENVIRONMENT== "dev"    
+      - /^pd-release/*/
+    variables:
+      - $ENVIRONMENT== "dev"
   
 unit-tests:
   tags:
       - pd-dev-windows-ml01q
   stage: test
+  before_script:
+    - . $VE_PATH
   script:
     - python -m pytest --cov=./ --cov-report xml -v --junitxml="test_results.xml"
   artifacts:
@@ -56,11 +67,12 @@ unit-tests:
       - coverage.xml
     reports:
       junit: test_results.xml
-  allow_failure: true # Remove it, when ready
+  allow_failure: true
   only:
     refs:
       - develop
       - merge_requests
+      - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "dev"
       
@@ -85,8 +97,9 @@ Perform Sonarqube Analysis and quality gate:  # for all environments
     refs:
       - develop
       - merge_requests
-    variables: 
-      - $ENVIRONMENT== "dev" 
+      - /^pd-release/*/
+    variables:
+      - $ENVIRONMENT== "dev"
 
 build:
   tags:
@@ -103,6 +116,7 @@ build:
     refs:
       - develop
       - merge_requests
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "dev"
   
@@ -111,7 +125,12 @@ deploy-dev1:
     - pd-dev-windows-ml01q
   stage: deploy-dev
   variables:
-    VERIFICATION_URL: "http://ca2spdml01q:8000/api/health/"  
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+    REGISTRY_SERVER: $REGISTRY_SERVER
+    VERIFICATION_URL: "http://ca2spdml01q:8000/api/health/"
+  before_script:
+    - . $VE_PATH
   script:
     - sh app/ci_scripts/deploy.sh dist
   environment:
@@ -119,6 +138,7 @@ deploy-dev1:
   only:
     refs:
       - develop
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "dev"
 
@@ -127,7 +147,10 @@ deploy-dev2:
     - pd-dev-windows-06d-runner
   stage: deploy-dev
   variables:
-    VERIFICATION_URL: "http://ca2spdml06d:8000/api/health/"  
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+    REGISTRY_SERVER: $REGISTRY_SERVER
+    VERIFICATION_URL: "http://ca2spdml06d:8000/api/health/"
   script:
     - sh app/ci_scripts/deploy.sh dist
   environment:
@@ -135,6 +158,7 @@ deploy-dev2:
   only:
     refs:
       - develop
+      - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "dev"
       
@@ -142,8 +166,10 @@ build-test:
   tags:
     - pd-test-windows-ml110q
   stage: build-test
-  before_script:
-    - . $VE_PATH 
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+    REGISTRY_SERVER: $REGISTRY_SERVER
   script:
     - python setup.py sdist
   artifacts:
@@ -152,7 +178,7 @@ build-test:
   only:
     refs:
       - develop
-      - pd-release/1.3_qc
+      - merge_requests
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "test"
@@ -162,7 +188,12 @@ deploy-test:
     - pd-test-windows-ml110q
   stage: deploy-test
   variables:
-    VERIFICATION_URL: "http://ca2spdml110q:8000/api/health/"  
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+    REGISTRY_SERVER: $REGISTRY_SERVER
+    VERIFICATION_URL: "http://ca2spdml110q:8000/api/health/"
+  before_script:
+    - . $VE_PATH
   script:
     - sh app/ci_scripts/deploy.sh dist
   environment:
@@ -170,16 +201,18 @@ deploy-test:
   only:
     refs:
       - develop
-      - pd-release/1.3_qc
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "test"
-      
 
 build-svt:
   tags:
     - pd-svt-windows-ml13q
   stage: build-svt
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
   script:
     - python setup.py sdist
   artifacts:
@@ -187,29 +220,27 @@ build-svt:
       - dist/
   only:
     refs:
-      - master
-      - pd-release/1.3_qc
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
-      
-
-      
 
 deploy-svt:
   tags:
     - pd-svt-windows-ml13q
   stage: deploy-svt
   variables:
-    VERIFICATION_URL: "http://ca2spdml13q:8000/api/health/"  
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    VERIFICATION_URL: "http://ca2spdml13q:8000/api/health/"
+  before_script:
+    - . $VE_PATH
   script:
     - sh app/ci_scripts/deploy.sh dist
   environment:
     name: svt
   only:
     refs:
-      - master
-      - pd-release/1.3_qc
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
@@ -219,6 +250,9 @@ deploy-svt2:
     - pd-svt-windows-ml16q
   stage: deploy-svt
   variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
     VERIFICATION_URL: "http://ca2spdml16q:8000/api/health/"  
   script:
     - sh app/ci_scripts/deploy.sh dist
@@ -226,8 +260,6 @@ deploy-svt2:
     name: svt2
   only:
     refs:
-      - master
-      - pd-release/1.3_qc
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
@@ -236,8 +268,10 @@ build-uat:
   tags:
     - ca2spdml03c
   stage: build-uat
-  before_script:
-    - . $VE_PATH  
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
   script:
     - python setup.py sdist
   artifacts:
@@ -245,9 +279,6 @@ build-uat:
       - dist/
   only:
     refs:
-      
-      - master
-      - pd-release/1.3_qc
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
@@ -257,24 +288,30 @@ deploy-uat:
     - ca2spdml03c
   stage: deploy-uat
   variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
     VERIFICATION_URL: "http://ca2spdml03c:8000/api/health"
+  before_script:
+    - . $VE_PATH
   script:
     - sh app/ci_scripts/deploy.sh dist
   environment:
     name: uat
   only:
     refs:
-      
-      - master
-      - pd-release/1.3_qc
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
+
 deploy-uat2:
   tags:
     - ca2spdml06c
   stage: deploy-uat
   variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
     VERIFICATION_URL: "http://ca2spdml06c:8000/api/health"
   script:
     - sh app/ci_scripts/deploy.sh dist
@@ -282,12 +319,111 @@ deploy-uat2:
     name: uat2
   only:
     refs:
-      
-      - master
-      - pd-release/1.3_qc
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
+
+build-uat1:
+  tags:
+    - ca2spdml110d
+  stage: build-uat1
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+  script:
+    - python setup.py sdist
+  artifacts:
+    paths:
+      - dist/
+  only:
+    refs:
+      - feature/ci-cd-uat1
+      - /^pd-release/*/
+    variables:
+      - $ENVIRONMENT== "uat1"
+
+deploy-uat1:
+  tags:
+    - ca2spdml110d
+  stage: deploy-uat1
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    VERIFICATION_URL: "http://ca2spdml110d:8000/api/health"
+  before_script:
+    - . $VE_PATH
+  script:
+    - sh app/ci_scripts/deploy.sh dist
+  environment:
+    name: uat1
+  only:
+    refs:
+      - feature/ci-cd-uat1
+      - /^pd-release/*/
+    variables:
+      - $ENVIRONMENT== "uat1"
+
+build-prod:
+  tags:
+    - ca2spdml03p
+  stage: build-prod
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $PROD_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $PROD_REGISTRY_PYPI_URL
+  script:
+    - python setup.py sdist
+  artifacts:
+    paths:
+      - dist/
+  only:
+    refs:
+      - /^pd-release/*/
+    variables:
+      - $ENVIRONMENT== "prod"
+
+deploy-prod:
+  tags:
+    - ca2spdml03p
+  stage: deploy-prod
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $PROD_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $PROD_REGISTRY_PYPI_URL
+    VERIFICATION_URL: "http://ca2spdml03p:8000/api/health"
+  before_script:
+    - . $VE_PATH
+  script:
+    - sh app/ci_scripts/deploy.sh dist
+  environment:
+    name: prod
+  only:
+    refs:
+      - /^pd-release/*/
+    variables:
+      - $ENVIRONMENT== "prod"
+
+deploy-prod2:
+  tags:
+    - ca2spdml06p
+  stage: deploy-prod
+  variables:
+    GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+    REGISTRY_SERVER: $PROD_REGISTRY_SERVER
+    REGISTRY_PYPI_URL: $PROD_REGISTRY_PYPI_URL
+    VERIFICATION_URL: "http://ca2spdml06p:8000/api/health"
+  script:
+    - sh app/ci_scripts/deploy.sh dist
+  environment:
+    name: prod2
+  only:
+    refs:
+      - /^pd-release/*/
+    variables:
+      - $ENVIRONMENT== "prod"
+
       
 
       

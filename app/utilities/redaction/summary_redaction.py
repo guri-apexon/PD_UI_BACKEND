@@ -1,7 +1,7 @@
 import sys
 import logging
 import pandas as pd
-from app import config
+from app import config, crud
 from app.utilities.config import settings
 from app.db.session import SessionLocal
 from app.utilities.redact import redactor
@@ -33,6 +33,10 @@ class SummaryRedaction:
         self.current_profile = current_profile
         self.aidoc_id = aidoc_id
 
+        self.redacted_entities = self.current_profile.get(config.GENRE_ENTITY_NAME, [])
+        self.doc_summary_entities = crud.pd_protocol_summary_entities.get_protocol_summary_entities(db=db,
+                                                                                                    aidocId=aidoc_id)
+
     def redact_summary(self, summary: dict) -> str:
         try:
             attr_name = summary["attr_name"]
@@ -42,15 +46,13 @@ class SummaryRedaction:
                 if attr_name in self.redacted_attributes:
                     attr_value = self.redacted_placeholder
                 elif attr_name in self.current_profile.get(config.GENRE_ATTRIBUTE_ENTITY, []):
-                    doc_attributes = {"AiDocId": self.aidoc_id,
-                                      attr_name: attr_value}
-                    redacted_doc_attributes = redactor.redact_protocolTitle(current_db=db,
-                                                                            attribute=attr_name,
-                                                                            profile=self.current_profile,
-                                                                            doc_attributes=doc_attributes,
-                                                                            redact_flg=self.redact_flag)
+                    doc_attributes = {attr_name: attr_value}
+                    redacted_doc_attributes = redactor.redact_attribute_entity(attribute=attr_name,
+                                                                               doc_attributes=doc_attributes,
+                                                                               redacted_entities=self.redacted_entities,
+                                                                               summary_entities=self.doc_summary_entities,
+                                                                               redact_flg=self.redact_flag)
                     attr_value = redacted_doc_attributes[attr_name]
-
             return attr_value
         except Exception:
             err_type, value, _ = sys.exc_info()
