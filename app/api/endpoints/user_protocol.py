@@ -1,13 +1,15 @@
 from typing import Any
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, Depends, HTTPException, File
 from sqlalchemy.orm import Session
+from starlette import status
 from app.utilities.config import settings
 
 from app import crud, schemas
 from app.api import deps
 from app.api.endpoints import auth
+from app.utilities.file_utils import save_bulkmap_file
 
 router = APIRouter()
 
@@ -65,7 +67,6 @@ def delete_user_protocol(
         db.rollback()
     return user_protocol
 
-
 @router.get("/is_primary_user")
 def is_user_primary(
         *,
@@ -86,3 +87,50 @@ def is_user_primary(
             return 1
         else:
             return 0
+
+@router.post("/user_protocol_many")
+def add_user_protocol_many_to_many(*, user_protocol_xls_file: UploadFile = File(..., description="Upload User_Protocol Excel File(.xlsx)")
+                                   ,db: Session = Depends(deps.get_db),
+                              _: str = Depends(auth.validate_user_token)) -> Any:
+    try:
+        user_protocol_path = save_bulkmap_file(user_protocol_xls_file)
+        user_protocol_updation_status = crud.pd_user_protocols.excel_data_to_db(db, user_protocol_path)
+        if user_protocol_updation_status==False:
+            raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                detail="Invalid File Type Received, Please Provide Excel(.xlsx) file only")
+        else:
+            return user_protocol_updation_status
+
+    except Exception as ex:
+        logger.exception(f'pd-ui-backend: Exception occured in qc_protocol_upload {str(ex)}')
+        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                            detail="Invalid file received, please provide excel file(.xlsx format) or Excel file may not contain data " + str(ex))
+
+@router.put("/delete_userprotocol")
+def remove_user_protocol_mapping(*, db:Session= Depends(deps.get_db), user_protocol: schemas.UserProtocolSoftDelete, _: str = Depends(auth.validate_user_token)) -> Any:
+    if user_protocol.userId and user_protocol.userId.strip() and user_protocol.protocol and user_protocol.protocol.strip() and user_protocol.isActive is not None:
+        if type(user_protocol.isActive) == bool and user_protocol.isActive == False:
+            status = crud.pd_user_protocols.soft_delete(db, obj_in=user_protocol)
+            if status is True:
+                return {'status_code': 200, 'detail': "Record deleted successfully"}
+            else:
+                raise HTTPException(status_code=403, detail="Data Not Found for given userId or protocol")
+        else:
+            raise HTTPException(status_code=403, detail="Check whether you have given all inputs correctly & false for isActive(Boolean type).")
+    else:
+        raise HTTPException(status_code=403, detail="Unable To Delete Please Provide All The Details Above And false for isActive(boolean type).")
+
+@router.get("/read_user_protocols_by_userId_or_protocol")
+def read_user_protocol(*,
+                       db: Session = Depends(deps.get_db),
+                       userId: str = None,
+                       protocol: str = None ,_: str = Depends(auth.validate_user_token)
+                       ) -> Any:
+    if userId or protocol:
+        user_protocols = crud.pd_user_protocols.get_details_by_userId_protocol(db, userId, protocol)
+        if user_protocols:
+            return user_protocols
+        else:
+            raise HTTPException(status_code=422, detail="No record found for the given userId or Protocol")
+    else:
+        raise HTTPException(status_code=422, detail="No record found for the given userId or Protocol")

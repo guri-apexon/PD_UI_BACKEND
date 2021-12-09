@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     LDAP_USERNAME: str
     LDAP_PWD: str
 
+    # Legacy Protocol Configuration
+    LEGACY_PROTOCOL_UPLOAD_DATE: str
+
     class Config:
         env_file = ".env"
         case_sensitive = True

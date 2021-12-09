@@ -1,6 +1,7 @@
 import logging
 import os
 from typing import Any
+import pandas as pd
 
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -33,6 +34,13 @@ async def get_protocol_data(
 
     try:
         protocol_view_redaction = ProtocolViewRedaction(userId, protocol)
+
+        metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id=aidoc_id)
+        if protocol_view_redaction.profile_name == config.USERROLE_REDACTPROFILE_MAP["secondary"] \
+                and metadata_resource.uploadDate <= pd.to_datetime(settings.LEGACY_PROTOCOL_UPLOAD_DATE):
+            logger.exception(f'Secondary user trying to access document older than legacy_upload_date')
+            raise HTTPException(status_code=401, detail=f"Secondary user trying to access document older than legacy_upload_date")
+
         protocol_data = protocol_view_redaction.redact_protocol_data(aidoc_id, user)
         headers = {"Cache-Control": "no-store"}
         return JSONResponse(content=protocol_data, headers=headers)

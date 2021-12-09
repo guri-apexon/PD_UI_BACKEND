@@ -18,7 +18,9 @@ class CRUDProtocols(CRUDBase[PDProtocolQCSummaryData, ProtocolQCSummaryDataCreat
                         PDProtocolQCSummaryData.trialPhase,
                         PDProtocolQCSummaryData.protocolTitle,
                         PDProtocolQCSummaryData.sponsor,
-                        PDProtocolQCSummaryData.versionNumber
+                        PDProtocolQCSummaryData.versionNumber,
+                        PDProtocolQCSummaryData.isAmendment,
+                        PDProtocolQCSummaryData.protocolShortTitle
                         ).filter(PDProtocolQCSummaryData.aidocId == id, PDProtocolQCSummaryData.source == "QC",
                                  PDProtocolQCSummaryData.isActive == True).first()
 

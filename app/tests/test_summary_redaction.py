@@ -1,9 +1,7 @@
 import pytest
-import json
 from mock import patch
 from app import config
 from app.utilities.redaction.summary_redaction import SummaryRedaction
-from app.models.pd_protocol_summary_entiites import PDProtocolSummaryEntities
 
 
 @pytest.mark.parametrize("summary, redacted_attributes, redact_flag, redacted_placeholder, redacted_text", [
@@ -36,11 +34,8 @@ def test_summary_redaction(summary, redacted_attributes, redact_flag, redacted_p
                            "start_idx": 10,
                            "end_idx": 17}]
     }
-    sample_entities = PDProtocolSummaryEntities()
-    sample_entities.iqvdataSummaryEntities = json.dumps(json.dumps(entities))
-
     with patch("app.crud.pd_protocol_summary_entities.get_protocol_summary_entities") as mock_entities:
-        mock_entities.return_value = sample_entities
+        mock_entities.return_value = entities
         result = SummaryRedaction(summary_data=summary,
                                   redacted_attributes=redacted_attributes,
                                   redact_flag=redact_flag,
