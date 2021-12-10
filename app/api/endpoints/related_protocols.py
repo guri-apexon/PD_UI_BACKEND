@@ -38,7 +38,9 @@ def read_related_protocols(
         if related_protocol_user_id:
             uploaded_by = user_details.get(config.REGEX_EMP_ID_ALPHA_REPLACE.sub('', related_protocol_user_id.lower()), '')
 
-        approval_date = datetime.combine(related_protocol.approvalDate, datetime.min.time())
+        approval_date = related_protocol.approvalDate
+        if approval_date:
+            approval_date = datetime.combine(approval_date, datetime.min.time())
 
         protocol_metadata_related_protocols = schemas.ProtocolMetadataRelatedProtocols(id = related_protocol.id,
                                                                                        userId = related_protocol.userId,
