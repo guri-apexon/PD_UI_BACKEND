@@ -169,7 +169,10 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                             PD_Protocol_Metadata.fileName,
                             PD_Protocol_Metadata.documentFilePath,
                             PD_Protocol_Metadata.protocol,
-                            PD_Protocol_Metadata.versionNumber,
+                            case([(PD_Protocol_Metadata.qcStatus == config.QcStatus.COMPLETED.value,
+                                   PDProtocolQCSummaryData.versionNumber)
+                                  ],
+                                 else_=PD_Protocol_Metadata.versionNumber).label('versionNumber'),
                             PD_Protocol_Metadata.documentStatus,
                             PD_Protocol_Metadata.status,
                             PD_Protocol_Metadata.qcStatus,
