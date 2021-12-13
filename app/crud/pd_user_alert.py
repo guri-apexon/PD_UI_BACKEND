@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from app.crud.base import CRUDBase
+from app import crud
 from app.models.pd_protocol_alert import ProtocolAlert
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
@@ -36,16 +37,20 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
                                                                                    user_id=user_id,
                                                                                    protocol=user_alert.protocol)
 
+            redacted_entities = profile_details.get(config.GENRE_ENTITY_NAME, [])
+            summary_entities = crud.pd_protocol_summary_entities.get_protocol_summary_entities(db=db,
+                                                                                               aidocId=user_alert.id)
             for attr_name in profile_details.get(config.GENRE_ATTRIBUTE_ENTITY, []):
                 if attr_name in user_alert.__dict__:
-                    doc_attributes = {"AiDocId": user_alert.aidocId,
-                                      attr_name: user_alert.__getattribute__(attr_name),
-                                      "uploadDate": protocol_upload_date}
-                    redacted_doc_attributes = redactor.redact_protocolTitle(current_db=db,
-                                                                            attribute=attr_name,
-                                                                            profile=profile_details,
-                                                                            doc_attributes=doc_attributes,
-                                                                            redact_flg=config.REDACTION_FLAG[profile_name])
+                    doc_attributes = {
+                        attr_name: user_alert.__getattribute__(attr_name),
+                        "uploadDate": protocol_upload_date
+                    }
+                    redacted_doc_attributes = redactor.redact_attribute_entity(attribute=attr_name,
+                                                                               doc_attributes=doc_attributes,
+                                                                               redacted_entities=redacted_entities,
+                                                                               summary_entities=summary_entities,
+                                                                               redact_flg=config.REDACTION_FLAG[profile_name])
                     user_alert.__setattr__(attr_name, redacted_doc_attributes[attr_name])
         user_alerts = [user_alert[0] for user_alert in user_alerts]
         return user_alerts

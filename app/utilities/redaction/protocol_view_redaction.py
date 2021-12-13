@@ -1,4 +1,5 @@
-import logging, json
+import logging
+import json
 import re
 from copy import deepcopy
 from typing import Tuple
@@ -117,24 +118,22 @@ class ProtocolViewRedaction:
 
     def update_toc_metadata_with_redacted_tag(self, aidoc_id: str, metadata_dict: dict):
         """
-        Partially Redact on protocol title and protocol title short.
+        Redact entities on the attributes
+        Legacy date check is not required
         """
-
         try:
-            for attribute in self.profile_details.get(config.GENRE_ATTRIBUTE_ENTITY, []):
-                protocol_title = metadata_dict.get(attribute, "")
-                if protocol_title:
-                    doc_attributes = {
-                        "AiDocId": aidoc_id,
-                        attribute: protocol_title
-                    }
-                    redacted_doc_attributes = redactor.redact_protocolTitle(current_db=db,
-                                                                            attribute=attribute,
-                                                                            profile=self.profile_details,
-                                                                            doc_attributes=doc_attributes,
-                                                                            redact_flg=config.REDACTION_FLAG[self.profile_name])
+            redacted_entities = self.profile_details.get(config.GENRE_ENTITY_NAME, [])
+            summary_entities = crud.pd_protocol_summary_entities.get_protocol_summary_entities(db=db, aidocId=aidoc_id)
 
-                    metadata_dict[attribute] = redacted_doc_attributes[attribute]
+            for attribute in self.profile_details.get(config.GENRE_ATTRIBUTE_ENTITY, []):
+                doc_attributes = {attribute: metadata_dict.get(attribute, "")}
+                doc_attributes = redactor.redact_attribute_entity(attribute=attribute,
+                                                                  doc_attributes=doc_attributes,
+                                                                  redacted_entities=redacted_entities,
+                                                                  summary_entities=summary_entities,
+                                                                  redact_flg=config.REDACTION_FLAG[self.profile_name])
+
+                metadata_dict[attribute] = doc_attributes[attribute]
         except Exception as exc:
             logger.error(f"Exception raised while updating Redaction tag in TOC Metadata: {str(exc)}")
         return metadata_dict

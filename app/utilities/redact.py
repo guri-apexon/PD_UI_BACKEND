@@ -1,6 +1,5 @@
 import logging
 import re
-import json
 from copy import deepcopy
 from itertools import zip_longest
 from typing import Tuple
@@ -67,7 +66,6 @@ class Redactor:
         if not profile_name and (user_id and protocol):
             user_protocol_obj = crud.pd_user_protocols.get_by_userid_protocol(current_db, userid=user_id,
                                                                               protocol=protocol)
-            logger.debug(f"user_protocol_obj: {user_protocol_obj}")
             if user_protocol_obj:
                 profile_name = user_protocol_obj.redactProfile
 
@@ -105,7 +103,7 @@ class Redactor:
         """
         redacted_multiple_doc_attributes = []
         if single_doc_attributes:
-           multiple_doc_attributes = list(single_doc_attributes)
+            multiple_doc_attributes = list(single_doc_attributes)
 
         if multiple_doc_attributes:
             default_redact_attr = dict(zip_longest(multiple_doc_attributes[0].keys(), '', fillvalue=config.REDACT_ATTR_STR))
@@ -116,45 +114,48 @@ class Redactor:
 
         for doc_attributes in multiple_doc_attributes:
             profile_name, profile, profile_attributes = self.get_current_redact_profile(current_db=current_db,
-                                                                                        profile_name=doc_attributes.get('redactProfile'), genre=config.GENRE_ATTRIBUTE_NAME)
-            logger.debug(f"profile_name: {profile_name}; profile_attributes: {profile_attributes}")
+                                                                                        profile_name=doc_attributes.get('redactProfile'),
+                                                                                        genre=config.GENRE_ATTRIBUTE_NAME)
+            # logger.debug(f"profile_name: {profile_name}; profile_attributes: {profile_attributes}")
 
-            doc_attributes = self.redact_protocolTitle(current_db=current_db,
-                                                       attribute="protocolTitle" if "protocolTitle" in doc_attributes else "ProtocolTitle",
-                                                       profile=profile,
-                                                       doc_attributes=doc_attributes,
-                                                       redact_flg=config.REDACTION_FLAG[profile_name])
+            redacted_entities = profile.get(config.GENRE_ENTITY_NAME, [])
+            aidoc_id = doc_attributes.get("id", None) or doc_attributes.get("AiDocId", None)
+            summary_entities = crud.pd_protocol_summary_entities.get_protocol_summary_entities(db=current_db,
+                                                                                                    aidocId=aidoc_id)
+            for attribute in profile.get(config.GENRE_ATTRIBUTE_ENTITY, []):
+                doc_attributes = self.redact_attribute_entity(attribute=attribute,
+                                                              doc_attributes=doc_attributes,
+                                                              redacted_entities=redacted_entities,
+                                                              summary_entities=summary_entities,
+                                                              redact_flg=config.REDACTION_FLAG[profile_name])
 
             nonredact_attr = {name: value for name, value in doc_attributes.items() if name not in profile_attributes}
             redact_attr = {**default_redact_attr, **nonredact_attr}
             redacted_multiple_doc_attributes.append(redact_attr)
         
-        return redacted_multiple_doc_attributes, redacted_multiple_doc_attributes[0]        
+        return redacted_multiple_doc_attributes, redacted_multiple_doc_attributes[0]
 
-    def redact_protocolTitle(self, current_db, attribute, profile, doc_attributes, redact_flg=True):
-        aidocId = doc_attributes.get("id", None) or doc_attributes.get("AiDocId", None)
+    def redact_attribute_entity(self, attribute, doc_attributes, redacted_entities, summary_entities, redact_flg=True):
         upload_date_obj = doc_attributes.get("uploadDate", None)
         if upload_date_obj and type(upload_date_obj) == str:
             upload_date_obj = pd.to_datetime(upload_date_obj)
 
-        if not aidocId:
-            return doc_attributes
+        attr_lm_entity_dict = {
+            'primary_objectives': 'objectives_section',
+            'inclusion_criteria': 'inclusion_section',
+            'exclusion_criteria': 'exclusion_section',
+            'protocol_title': 'ProtocolTitle',
+            'protocolTitle': 'ProtocolTitle'}
 
         if redact_flg:
             if upload_date_obj and upload_date_obj.date() <= self.legacy_protocol_upload_date:
                 doc_attributes[attribute] = config.REDACT_PARAGRAPH_STR
                 return doc_attributes
 
-            redacted_entities = profile.get(config.GENRE_ENTITY_NAME, [])
-            summary_entities = crud.pd_protocol_summary_entities.get_protocol_summary_entities(db=current_db,
-                                                                                               aidocId=aidocId)
-            if summary_entities and summary_entities.iqvdataSummaryEntities:
-                summary_entities = json.loads(json.loads(summary_entities.iqvdataSummaryEntities))
+            if summary_entities:
                 content = doc_attributes.get(attribute, "")
                 if content:
-                    for entity in sorted(summary_entities.get("ProtocolTitle", []),
-                                         key=lambda x: (x["start_idx"], x["end_idx"]),
-                                         reverse=True):
+                    for entity in summary_entities.get(attr_lm_entity_dict.get(attribute, attribute), []):
                         if entity["subcategory"] in redacted_entities:
                             entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity.get('text', ''))
                             content = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, content)
