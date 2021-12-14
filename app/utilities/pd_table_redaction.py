@@ -36,12 +36,9 @@ class TableRedaction():
 
     def redact_entity(self, table_property):
         try:
-            table_property['entities'].sort(key = lambda x:(x[config.START_INDEX_PATTERN],
-                                                            x[config.END_INDEX_PATTERN]),
-                                            reverse = True)
 
             for entity in table_property.get('entities', list()):
-                if entity.get('subcategory', '') in self.redact_profile_entities:
+                if entity.get('subcategory', '') in self.redact_profile_entities and len(config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", entity['text'])) != 0:
                     entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity['text'])
                     table_property['content'] = re.sub(entity_adjusted_text, self.span_redact_text, table_property['content'])
 

@@ -156,7 +156,7 @@ class Redactor:
                 content = doc_attributes.get(attribute, "")
                 if content:
                     for entity in summary_entities.get(attr_lm_entity_dict.get(attribute, attribute), []):
-                        if entity["subcategory"] in redacted_entities:
+                        if entity["subcategory"] in redacted_entities and len(config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", entity['text'])) != 0:
                             entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity.get('text', ''))
                             content = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, content)
                     doc_attributes[attribute] = content
@@ -183,7 +183,7 @@ class Redactor:
         if redact_flg and text and text_redaction_entity:
             for idx, entity in enumerate(text_redaction_entity):
                 try:
-                    if entity.get('subcategory', '') in redact_profile_entities:
+                    if entity.get('subcategory', '') in redact_profile_entities and len(config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", entity['text'])) != 0:
                         logger.debug(f"Processing for idx[{idx}] with entity:{entity}")
                         entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity['text'])
                         redacted_text = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, redacted_text)
