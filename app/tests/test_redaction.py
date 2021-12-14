@@ -108,7 +108,7 @@ def test_redact_text(text, font_info, redact_profile_entities, redact_flg, exclu
 
     for each_entity in font_info.get('entity', []):
         entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", each_entity.get('text'))
-        if each_entity.get('subcategory') in redact_profile_entities and redact_flg:
+        if each_entity.get('subcategory') in redact_profile_entities and len(config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", each_entity.get('text', ''))) != 0 and redact_flg:
             assert re.search(entity_adjusted_text, redacted_text, re.I) is None
         else:
             assert re.search(entity_adjusted_text, redacted_text, re.I) is not None

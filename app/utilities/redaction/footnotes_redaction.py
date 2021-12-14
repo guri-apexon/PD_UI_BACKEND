@@ -17,7 +17,7 @@ class RedactFootNotes:
         if content:
             for entity in sorted(entities, key=lambda x: (x[config.FOOTNOTES_START_INDEX],
                                                           x[config.FOOTNOTES_END_INDEX]), reverse=True):
-                if entity.get('subcategory', '') in self.redact_profile_entities:
+                if entity.get('subcategory', '') in self.redact_profile_entities and len(config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", entity['text'])) != 0:
                     entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity.get('text', ''))
                     content = re.sub(entity_adjusted_text, self.redacted_placeholder, content)
 
