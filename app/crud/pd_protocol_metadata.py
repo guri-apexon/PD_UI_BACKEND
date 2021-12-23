@@ -211,8 +211,8 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                         PD_User_Protocols.follow.label('follow_flg'),
                         PD_User_Protocols.redactProfile.label('redactProfile')
                     ).join(PD_User_Protocols, PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol , isouter = True
-                    ).filter(and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId), 
-                                PD_Protocol_Metadata.isActive == True)).all()
+                    ).filter(and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId),
+                                PD_Protocol_Metadata.isActive == True, or_(PD_User_Protocols.userId is None, PD_User_Protocols.userId == userId))).all()
 
         protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'userUploadedFlag': row.uploaded_by_user_flg if row.uploaded_by_user_flg is not None else False, \
                                                                        'userPrimaryRoleFlag': row.primary_role_flg if row.primary_role_flg is not None else False, \
