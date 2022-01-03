@@ -15,7 +15,7 @@ logger = logging.getLogger("unit-test")
 
 @pytest.mark.parametrize("test_setup_flg, user_id, protocol, adjust_alert_created_time, expected_num_alert, comments", [
     (True, "1012525", "Alert-Test", 0, 2, "Recent alert"),
-    (True, "1012525", "Alert-Test", -120, 1, "Old alert"),
+    (True, "1012525", "Alert-Test", -120, 0, "Old alert"),
     (False, "XXX1034911", "SSR_J4_1002-043", 0, 0, "No alert")
 ])
 def test_user_alert(new_token_on_headers, test_setup_flg, user_id, protocol, adjust_alert_created_time,
@@ -33,9 +33,10 @@ def test_user_alert(new_token_on_headers, test_setup_flg, user_id, protocol, adj
         if len(test_user_alert_list) == 0:
             assert False
 
-        test_user_alert_list[0].timeCreated = new_alert_created_time
-        test_user_alert_list[0].timeUpdated = new_alert_created_time
-        db.add(test_user_alert_list[0])
+        for test_user_alert in test_user_alert_list:
+            test_user_alert.timeCreated = new_alert_created_time
+            test_user_alert.timeUpdated = new_alert_created_time
+            db.add(test_user_alert)
         db.commit()
 
     user_alerts = client.get("/api/user_alert/", params={"userId": user_id}, headers=new_token_on_headers)
@@ -44,10 +45,3 @@ def test_user_alert(new_token_on_headers, test_setup_flg, user_id, protocol, adj
     all_alerts = json.loads(user_alerts.content)
     interested_alert = [protocol for alert in all_alerts if alert.get('protocol') == protocol]
     assert len(interested_alert) == expected_num_alert
-
-    # Revert back the alert creation time for next iteration
-    if test_setup_flg:
-        test_user_alert_list[0].timeCreated = current_timestamp
-        test_user_alert_list[0].timeUpdated = current_timestamp
-        db.add(test_user_alert_list[0])
-        db.commit()
