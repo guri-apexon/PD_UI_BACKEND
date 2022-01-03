@@ -123,7 +123,7 @@ class ProtocolMetadataRelatedProtocols(BaseModel):
     status: Optional[str] = None
     qcStatus: Optional[str] = None
     uploadDate: Optional[datetime] = None
-    approvalDate: Optional[date] = None
+    approvalDate: Optional[datetime] = None
     isActive: Optional[bool] = None
     uploadedBy: Optional[str] = None
     userRole: Optional[str] = None

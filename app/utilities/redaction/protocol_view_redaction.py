@@ -71,7 +71,7 @@ class ProtocolViewRedaction:
         if redact_flg and text and text_redaction_entity:
             for idx, entity in enumerate(text_redaction_entity):
                 try:
-                    if entity.get('subcategory', '') in redact_profile_entities:
+                    if entity.get('subcategory', '') in redact_profile_entities and len(config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", entity['text'])) != 0:
                         logger.debug(f"Processing for idx[{idx}] with entity:{entity}")
                         entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity['text'])
                         redacted_text = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, redacted_text)

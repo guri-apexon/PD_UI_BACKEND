@@ -61,6 +61,7 @@ def test_follow_protocol(new_token_on_headers, insert_flg, user_id, protocol, fo
 
 @pytest.mark.parametrize("user_id, protocol, follow_flg, user_role, project_id, expected_json, status_code", [
     ("1012424", "SSR_1002-043", True, "primary", "pid", {'userId': '1012424', 'protocol': 'SSR_1002-043', 'userRole': 'primary', 'userCreated': None, 'userUpdated': None}, 200),
+    ("1012424", "SSR_1002-043", True, "primary", "pid", {'detail': "Mapping for userId: 1012424, protocol: SSR_1002-043 is already available & mapped"}, 403),
     ("", "SSR_1002-043", True, "primary", "pid", {'detail': "Can't Add with null values userId:, protocol:SSR_1002-043, follow:True & userRole:primary"}, 403)
 ])
 def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_flg, user_role, project_id, expected_json, status_code):

@@ -128,6 +128,11 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             redact_profile = "profile_0"
         if user_protocol:
             pd_user_protocols.update_protocol(db, obj_in, user_protocol, redact_profile)
+            raise HTTPException(
+                status_code=403,
+                detail=f"Mapping for userId: {obj_in.userId}, "
+                       f"protocol: {obj_in.protocol} is already available & mapped",
+            )
             return user_protocol
 
         try:

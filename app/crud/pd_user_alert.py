@@ -39,19 +39,20 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
 
             redacted_entities = profile_details.get(config.GENRE_ENTITY_NAME, [])
             summary_entities = crud.pd_protocol_summary_entities.get_protocol_summary_entities(db=db,
-                                                                                               aidocId=user_alert.id)
+                                                                                               aidocId=user_alert.aidocId)
+
+            user_alert_keys_lower = {key.lower():key for key in user_alert.__dict__}
             for attr_name in profile_details.get(config.GENRE_ATTRIBUTE_ENTITY, []):
-                if attr_name in user_alert.__dict__:
-                    doc_attributes = {
-                        attr_name: user_alert.__getattribute__(attr_name),
-                        "uploadDate": protocol_upload_date
-                    }
+                if attr_name.lower() in user_alert_keys_lower:
+                    doc_attributes = {attr_name: user_alert.__getattribute__(user_alert_keys_lower[attr_name.lower()]),
+                                      "uploadDate": protocol_upload_date
+                                      }
                     redacted_doc_attributes = redactor.redact_attribute_entity(attribute=attr_name,
                                                                                doc_attributes=doc_attributes,
                                                                                redacted_entities=redacted_entities,
                                                                                summary_entities=summary_entities,
                                                                                redact_flg=config.REDACTION_FLAG[profile_name])
-                    user_alert.__setattr__(attr_name, redacted_doc_attributes[attr_name])
+                    user_alert.__setattr__(user_alert_keys_lower[attr_name.lower()], redacted_doc_attributes[attr_name])
         user_alerts = [user_alert[0] for user_alert in user_alerts]
         return user_alerts
 
