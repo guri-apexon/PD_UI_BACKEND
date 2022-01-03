@@ -2,6 +2,7 @@ from typing import Any, List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from app import crud, schemas, config
 from app.api import deps
@@ -37,6 +38,10 @@ def read_related_protocols(
         if related_protocol_user_id:
             uploaded_by = user_details.get(config.REGEX_EMP_ID_ALPHA_REPLACE.sub('', related_protocol_user_id.lower()), '')
 
+        approval_date = related_protocol.approvalDate
+        if approval_date:
+            approval_date = datetime.combine(approval_date, datetime.min.time())
+
         protocol_metadata_related_protocols = schemas.ProtocolMetadataRelatedProtocols(id = related_protocol.id,
                                                                                        userId = related_protocol.userId,
                                                                                        fileName = related_protocol.fileName,
@@ -47,7 +52,7 @@ def read_related_protocols(
                                                                                        status = related_protocol.status,
                                                                                        qcStatus = related_protocol.qcStatus,
                                                                                        uploadDate = related_protocol.uploadDate,
-                                                                                       approvalDate = related_protocol.approvalDate,
+                                                                                       approvalDate = approval_date,
                                                                                        isActive = related_protocol.isActive,
                                                                                        uploadedBy = uploaded_by,
                                                                                        userRole = user_role)
