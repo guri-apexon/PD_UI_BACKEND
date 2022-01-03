@@ -133,7 +133,6 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                 detail=f"Mapping for userId: {obj_in.userId}, "
                        f"protocol: {obj_in.protocol} is already available & mapped",
             )
-            return user_protocol
 
         try:
             db_obj = PD_User_Protocols(isActive=True,
