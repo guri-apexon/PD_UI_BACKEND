@@ -1,11 +1,9 @@
-DEPLOY_OPT=$1
+ROLLBACK_OPT=$1
 
-if [ "$DEPLOY_OPT" == "dist" ]; then
-  INSTALL_PACKAGE=$(ls dist/*)
-elif [ "$DEPLOY_OPT" == "package" ]; then
-  INSTALL_PACKAGE="$PACKAGE"
+if [ "$ROLLBACK_OPT" == "package" ]; then
+  INSTALL_PACKAGE="$PACKAGE==$PACKAGE_VERSION"
 else
-  echo "Unknown deployment option: $DEPLOY_OPT"
+  echo "Unknown deployment option: $ROLLBACK_OPT"
   exit 1
 fi
 
@@ -18,7 +16,7 @@ $NSSM_PATH stop "$SERVICE_NAME"
 
 ## Re-install the package
 echo "Re-installing service package..."
-pip uninstall "$PACKAGE" -y && pip uninstall etmfa-core -y 
+pip uninstall "$PACKAGE" -y && pip uninstall etmfa-core -y
 
 REGISTRY_PYPI_URL=$REGISTRY_PYPI_URL REGISTRY_SERVER=$REGISTRY_SERVER
 
@@ -48,6 +46,7 @@ for i in {1..10}; do
       APP_RESPONSE=$(curl --insecure -L "$VERIFICATION_URL")
       if [ "$APP_RESPONSE" == "F5-UP" ]; then
         echo "Received success health status: $APP_RESPONSE"
+        echo "Successfully Rollback to : $PACKAGE==$PACKAGE_VERSION"
         exit 0
       else
         echo "Receiving health status: $APP_RESPONSE"
