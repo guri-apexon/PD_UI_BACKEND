@@ -236,7 +236,10 @@ class CPTExtractor:
         display_df['seq_num'] = range(1, display_df.shape[0]+1)
         display_df['qc_change_type'] = ''
         display_df.reset_index(drop=True, inplace=True)
-        display_df['line_id'] = display_df['font_info'].apply(lambda x: x.get('roi_id', '').get('para')).tolist()
+        roi_id_list = display_df['font_info'].apply(lambda x: x.get('roi_id'), dict()).tolist()
+
+        # display_df['line_id'] = display_df['font_info'].apply(lambda x: x.get('roi_id', '').get('para')).tolist()
+        display_df['line_id'] = [''.join((roi_id.get('para', ''), roi_id.get('childbox', ''), roi_id.get('subtext', ''))) for roi_id in roi_id_list]
 
         # Build search data
         search_df = cpt_df[['CPT_section', 'para_text', 'level_1_CPT_section']]
