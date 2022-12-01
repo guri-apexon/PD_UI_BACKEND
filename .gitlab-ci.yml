@@ -26,6 +26,7 @@ stages:
   - deploy-uat1
   - build-prod
   - deploy-prod
+  - rollback
 
 
 
@@ -82,7 +83,7 @@ Perform Sonarqube Analysis and quality gate:  # for all environments
   before_script:
     - echo "Setting up for Sonarqube Analysis on PD $CI_COMMIT_REF_NAME branch"
     - apk upgrade --update-cache --available && apk add openssl
-    - openssl s_client -connect   usadc-vspsq01.quintiles.net:443 | keytool -import -noprompt -alias sonarqbue_test -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit
+    - openssl s_client -connect   sonarqube.quintiles.com:443 | keytool -import -noprompt -alias sonarqbue_test -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit
   script:
     - echo "Running Sonarqube Analysis on $CI_COMMIT_REF_NAME branch"
     - apk upgrade --update-cache --available && apk add openssl
@@ -105,10 +106,16 @@ build:
   tags:
     - pd-dev-windows-ml01q
   stage: build-dev
+  variables:
+    REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+    REGISTRY_PYPI_USER: $REGISTRY_PYPI_USER
+    REGISTRY_PYPI_PWD: $REGISTRY_PYPI_PWD
+    PACKAGE_VERSION: $CURRENT_VERSION
   before_script:
     - . $VE_PATH 
   script:
     - python setup.py sdist
+    - twine upload --repository-url $REGISTRY_PYPI_URL --username ${REGISTRY_PYPI_USER} --password ${REGISTRY_PYPI_PWD}  -r nexus dist/*
   artifacts:
     paths:
       - dist/
@@ -117,7 +124,7 @@ build:
       - develop
       - merge_requests
       - /^pd-release/*/
-    variables: 
+    variables:
       - $ENVIRONMENT== "dev"
   
 deploy-dev1:
@@ -128,6 +135,7 @@ deploy-dev1:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
     REGISTRY_SERVER: $REGISTRY_SERVER
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml01q:8000/api/health/"
   before_script:
     - . $VE_PATH
@@ -138,8 +146,9 @@ deploy-dev1:
   only:
     refs:
       - develop
+      - merge_requests
       - /^pd-release/*/
-    variables: 
+    variables:
       - $ENVIRONMENT== "dev"
 
 deploy-dev2:
@@ -150,6 +159,7 @@ deploy-dev2:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
     REGISTRY_SERVER: $REGISTRY_SERVER
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml06d:8000/api/health/"
   script:
     - sh app/ci_scripts/deploy.sh dist
@@ -158,10 +168,55 @@ deploy-dev2:
   only:
     refs:
       - develop
+      - merge_requests
       - /^pd-release/*/
-    variables: 
+    variables:
       - $ENVIRONMENT== "dev"
-      
+
+DEV-Rollback1:
+ stage: rollback
+ tags:
+   - pd-dev-windows-ml01q
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+   REGISTRY_SERVER: $REGISTRY_SERVER
+   PACKAGE_VERSION: $DEV_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml01q:8000/api/health/"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: dev
+ needs:
+   - deploy-dev1
+ rules:
+   - if: $ENVIRONMENT == "dev"
+     when: on_failure
+
+DEV-Rollback2:
+ stage: rollback
+ tags:
+   - pd-dev-windows-06d-runner
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+   REGISTRY_SERVER: $REGISTRY_SERVER
+   PACKAGE_VERSION: $DEV_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml06d:8000/api/health/"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: dev2
+ needs:
+   - deploy-dev2
+ rules:
+   - if: $ENVIRONMENT == "dev"
+     when: on_failure
+
 build-test:
   tags:
     - pd-test-windows-ml110q
@@ -170,8 +225,12 @@ build-test:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
     REGISTRY_SERVER: $REGISTRY_SERVER
+    REGISTRY_PYPI_USER: $REGISTRY_PYPI_USER
+    REGISTRY_PYPI_PWD: $REGISTRY_PYPI_PWD
+    PACKAGE_VERSION: $CURRENT_VERSION
   script:
     - python setup.py sdist
+    - twine upload --repository-url $REGISTRY_PYPI_URL --username ${REGISTRY_PYPI_USER} --password ${REGISTRY_PYPI_PWD}  -r nexus dist/*
   artifacts:
     paths:
       - dist/
@@ -191,6 +250,7 @@ deploy-test:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
     REGISTRY_SERVER: $REGISTRY_SERVER
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml110q:8000/api/health/"
   before_script:
     - . $VE_PATH
@@ -205,6 +265,28 @@ deploy-test:
     variables:
       - $ENVIRONMENT== "test"
 
+TEST-Rollback:
+ stage: rollback
+ tags:
+   - pd-test-windows-ml110q
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_PYPI_URL: $REGISTRY_PYPI_URL
+   REGISTRY_SERVER: $REGISTRY_SERVER
+   PACKAGE_VERSION: $TEST_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml110q:8000/api/health/"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: test
+ needs:
+   - deploy-test
+ rules:
+   - if: $ENVIRONMENT == "test"
+     when: on_failure
+
 build-svt:
   tags:
     - pd-svt-windows-ml13q
@@ -213,8 +295,12 @@ build-svt:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $TEST_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    REGISTRY_PYPI_USER: $TEST_REGISTRY_PYPI_USER
+    REGISTRY_PYPI_PWD: $TEST_REGISTRY_PYPI_PWD
+    PACKAGE_VERSION: $CURRENT_VERSION
   script:
     - python setup.py sdist
+    - twine upload --repository-url $REGISTRY_PYPI_URL --username ${REGISTRY_PYPI_USER} --password ${REGISTRY_PYPI_PWD}  -r nexus dist/*
   artifacts:
     paths:
       - dist/
@@ -232,6 +318,7 @@ deploy-svt:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $TEST_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml13q:8000/api/health/"
   before_script:
     - . $VE_PATH
@@ -253,6 +340,7 @@ deploy-svt2:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $TEST_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml16q:8000/api/health/"  
   script:
     - sh app/ci_scripts/deploy.sh dist
@@ -263,7 +351,51 @@ deploy-svt2:
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
-      
+
+SVT-Rollback1:
+ stage: rollback
+ tags:
+   - pd-svt-windows-ml13q
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+   REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+   PACKAGE_VERSION: $SVT_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml13q:8000/api/health/"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: svt
+ needs:
+   - deploy-svt
+ rules:
+   - if: $ENVIRONMENT == "svt"
+     when: on_failure
+
+SVT-Rollback2:
+ stage: rollback
+ tags:
+   - pd-svt-windows-ml16q
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+   REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+   PACKAGE_VERSION: $SVT_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml16q:8000/api/health/"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: svt2
+ needs:
+   - deploy-svt2
+ rules:
+   - if: $ENVIRONMENT == "svt"
+     when: on_failure
+
 build-uat:
   tags:
     - ca2spdml03c
@@ -272,8 +404,12 @@ build-uat:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $TEST_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    REGISTRY_PYPI_USER: $TEST_REGISTRY_PYPI_USER
+    REGISTRY_PYPI_PWD: $TEST_REGISTRY_PYPI_PWD
+    PACKAGE_VERSION: $CURRENT_VERSION
   script:
     - python setup.py sdist
+    - twine upload --repository-url $REGISTRY_PYPI_URL --username ${REGISTRY_PYPI_USER} --password ${REGISTRY_PYPI_PWD}  -r nexus dist/*
   artifacts:
     paths:
       - dist/
@@ -291,6 +427,7 @@ deploy-uat:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $TEST_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml03c:8000/api/health"
   before_script:
     - . $VE_PATH
@@ -312,6 +449,7 @@ deploy-uat2:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $TEST_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml06c:8000/api/health"
   script:
     - sh app/ci_scripts/deploy.sh dist
@@ -323,6 +461,50 @@ deploy-uat2:
     variables: 
       - $ENVIRONMENT== "uat"
 
+UAT-Rollback1:
+ stage: rollback
+ tags:
+   - ca2spdml03c
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+   REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+   PACKAGE_VERSION: $UAT_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml03c:8000/api/health"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: uat
+ needs:
+   - deploy-uat
+ rules:
+   - if: $ENVIRONMENT == "uat"
+     when: on_failure
+
+UAT-Rollback2:
+ stage: rollback
+ tags:
+   - ca2spdml06c
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+   REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+   PACKAGE_VERSION: $UAT_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml06c:8000/api/health"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: uat2
+ needs:
+   - deploy-uat2
+ rules:
+   - if: $ENVIRONMENT == "uat"
+     when: on_failure
+
 build-uat1:
   tags:
     - ca2spdml110d
@@ -331,8 +513,12 @@ build-uat1:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $TEST_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    REGISTRY_PYPI_USER: $TEST_REGISTRY_PYPI_USER
+    REGISTRY_PYPI_PWD: $TEST_REGISTRY_PYPI_PWD
+    PACKAGE_VERSION: $CURRENT_VERSION
   script:
     - python setup.py sdist
+    - twine upload --repository-url $REGISTRY_PYPI_URL --username ${REGISTRY_PYPI_USER} --password ${REGISTRY_PYPI_PWD}  -r nexus dist/*
   artifacts:
     paths:
       - dist/
@@ -351,6 +537,7 @@ deploy-uat1:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $TEST_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml110d:8000/api/health"
   before_script:
     - . $VE_PATH
@@ -365,6 +552,28 @@ deploy-uat1:
     variables:
       - $ENVIRONMENT== "uat1"
 
+UAT1-Rollback:
+ stage: rollback
+ tags:
+   - ca2spdml110d
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_SERVER: $TEST_REGISTRY_SERVER
+   REGISTRY_PYPI_URL: $TEST_REGISTRY_PYPI_URL
+   PACKAGE_VERSION: $UAT1_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml110d:8000/api/health"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: uat1
+ needs:
+   - deploy-uat1
+ rules:
+   - if: $ENVIRONMENT == "uat1"
+     when: on_failure
+
 build-prod:
   tags:
     - ca2spdml03p
@@ -373,8 +582,12 @@ build-prod:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $PROD_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $PROD_REGISTRY_PYPI_URL
+    REGISTRY_PYPI_USER: $PROD_REGISTRY_PYPI_USER
+    REGISTRY_PYPI_PWD: $PROD_REGISTRY_PYPI_PWD
+    PACKAGE_VERSION: $CURRENT_VERSION
   script:
     - python setup.py sdist
+    - twine upload --repository-url $REGISTRY_PYPI_URL --username ${REGISTRY_PYPI_USER} --password ${REGISTRY_PYPI_PWD}  -r nexus dist/*
   artifacts:
     paths:
       - dist/
@@ -392,6 +605,7 @@ deploy-prod:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $PROD_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $PROD_REGISTRY_PYPI_URL
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml03p:8000/api/health"
   before_script:
     - . $VE_PATH
@@ -413,6 +627,7 @@ deploy-prod2:
     GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
     REGISTRY_SERVER: $PROD_REGISTRY_SERVER
     REGISTRY_PYPI_URL: $PROD_REGISTRY_PYPI_URL
+    PACKAGE_VERSION: $CURRENT_VERSION
     VERIFICATION_URL: "http://ca2spdml06p:8000/api/health"
   script:
     - sh app/ci_scripts/deploy.sh dist
@@ -424,8 +639,49 @@ deploy-prod2:
     variables:
       - $ENVIRONMENT== "prod"
 
-      
+PROD-Rollback1:
+ stage: rollback
+ tags:
+   - ca2spdml03p
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_SERVER: $PROD_REGISTRY_SERVER
+   REGISTRY_PYPI_URL: $PROD_REGISTRY_PYPI_URL
+   PACKAGE_VERSION: $PROD_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml03p:8000/api/health"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: prod
+ needs:
+   - deploy-prod
+ rules:
+   - if: $ENVIRONMENT == "prod"
+     when: on_failure
 
+PROD-Rollback2:
+ stage: rollback
+ tags:
+   - ca2spdml06p
+ variables:
+   GIT_CLONE_PATH: "${CI_BUILDS_DIR}/${PACKAGE}"
+   REGISTRY_SERVER: $PROD_REGISTRY_SERVER
+   REGISTRY_PYPI_URL: $PROD_REGISTRY_PYPI_URL
+   PACKAGE_VERSION: $PROD_ROLLBACK_VERSION
+   VERIFICATION_URL: "http://ca2spdml06p:8000/api/health"
+ before_script:
+   - . $VE_PATH
+ script:
+   - sh app/ci_scripts/rollback.sh package
+ environment:
+   name: prod2
+ needs:
+   - deploy-prod2
+ rules:
+   - if: $ENVIRONMENT == "prod"
+     when: on_failure
       
       
 
