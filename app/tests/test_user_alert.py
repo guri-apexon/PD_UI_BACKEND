@@ -45,3 +45,4 @@ def test_user_alert(new_token_on_headers, test_setup_flg, user_id, protocol, adj
     all_alerts = json.loads(user_alerts.content)
     interested_alert = [protocol for alert in all_alerts if alert.get('protocol') == protocol]
     assert len(interested_alert) == expected_num_alert
+
