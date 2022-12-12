@@ -65,5 +65,4 @@ api_router.include_router(pd_user_UpdateExisting_SoftDelete.router, prefix="/use
 api_router.include_router(pd_user_login_CreateNewUser.router, prefix="/create_new_user", tags=["Creating New User In User & Login"])
 api_router.include_router(pd_roles_GetAllRoles_CreateNewRoles.router, prefix="/roles", tags=["Get All Roles And Create New Roles"])
 api_router.include_router(ldap_user_details.router, prefix="/ldap_user_details", tags=["Retrieve User Details From LDAP"])
-
 api_router.include_router(cpt_data.router, prefix="/cpt_data", tags=["Get CPT data for document"])
