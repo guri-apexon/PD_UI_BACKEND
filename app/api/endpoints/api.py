@@ -31,6 +31,7 @@ from app.api.endpoints import pd_user_UpdateExisting_SoftDelete
 from app.api.endpoints import pd_user_login_CreateNewUser
 from app.api.endpoints import pd_roles_GetAllRoles_CreateNewRoles
 from app.api.endpoints import ldap_user_details
+from app.api.endpoints import cpt_data
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
 api_router.include_router(protocol_sponsor.router, prefix="/protocol_sponsor", tags=["Protocol Sponsors"])
@@ -64,3 +65,5 @@ api_router.include_router(pd_user_UpdateExisting_SoftDelete.router, prefix="/use
 api_router.include_router(pd_user_login_CreateNewUser.router, prefix="/create_new_user", tags=["Creating New User In User & Login"])
 api_router.include_router(pd_roles_GetAllRoles_CreateNewRoles.router, prefix="/roles", tags=["Get All Roles And Create New Roles"])
 api_router.include_router(ldap_user_details.router, prefix="/ldap_user_details", tags=["Retrieve User Details From LDAP"])
+
+api_router.include_router(cpt_data.router, prefix="/cpt_data", tags=["Get CPT data for document"])
