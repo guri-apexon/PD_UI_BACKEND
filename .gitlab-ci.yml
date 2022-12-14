@@ -83,7 +83,7 @@ Perform Sonarqube Analysis and quality gate:  # for all environments
   before_script:
     - echo "Setting up for Sonarqube Analysis on PD $CI_COMMIT_REF_NAME branch"
     - apk upgrade --update-cache --available && apk add openssl
-    - openssl s_client -connect   usadc-vspsq01.quintiles.net:443 | keytool -import -noprompt -alias sonarqbue_test -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit
+    - openssl s_client -connect   sonarqube.quintiles.com:443 | keytool -import -noprompt -alias sonarqbue_test -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit
   script:
     - echo "Running Sonarqube Analysis on $CI_COMMIT_REF_NAME branch"
     - apk upgrade --update-cache --available && apk add openssl
@@ -146,6 +146,7 @@ deploy-dev1:
   only:
     refs:
       - develop
+      - merge_requests
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "dev"
@@ -167,6 +168,7 @@ deploy-dev2:
   only:
     refs:
       - develop
+      - merge_requests
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "dev"
