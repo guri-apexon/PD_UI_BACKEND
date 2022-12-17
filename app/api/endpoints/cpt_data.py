@@ -25,10 +25,11 @@ async def get_cpt_headers(
         db: Session = Depends(deps.get_db),
         aidoc_id: str = "id",
         link_level: int = 1,
+        toc: int=1,
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
 
-    headers_dict = crud.get_document_links(aidoc_id, link_level)
+    headers_dict = crud.get_document_links(aidoc_id, link_level, toc)
 
     return headers_dict
 
@@ -57,13 +58,16 @@ async def get_cpt_section_data(
     print(f'diff = {diff}')
 
     from app.api.endpoints.etmfa_finalization.messaging.prepare_update_data import PrepareUpdateData
+    print("prepareupdatedata")
 
     protocol_view_redaction = ProtocolViewRedaction(userId, protocol)
-
+    print("protocol_view_redaction", protocol_view_redaction)
     st = time.time()
     finalization_req_dict = dict()
+    print("finalization_req_dict", finalization_req_dict)
     finalized_iqvxml = PrepareUpdateData(iqv_document, 0, protocol_view_redaction.profile_details,
                                          protocol_view_redaction.entity_profile_genre)
+    print("finalized_iqvxml", finalized_iqvxml)
     # finalization_req_dict["db_data"], updated_iqv_document = finalized_iqvxml.prepare_msg()
     finalization_req_dict, updated_iqv_document = finalized_iqvxml.prepare_msg()
 
