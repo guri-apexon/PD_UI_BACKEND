@@ -47,38 +47,65 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
 
 
         headers = df.to_dict(orient='records')
-
-        return headers
-
-    # else:
-    #     df = pd.DataFrame([link.__dict__ for link in iqv_doc_headers.DocumentLinks])
-    #     df = df[(df['LinkType'] == 'toc') & (df['LinkLevel'] <= link_levels)]
-    #     df = df.reset_index(drop = True)
-
-    #         df['child_level'] = ''
-    #         df['link_id'] = df.apply(lambda x: x['link_id'] if x['LinkLevel'] == 1 else x['link_id_level{}'.format(x['LinkLevel'])], axis=1)
-    #         df = df[['child_level', 'doc_id', 'group_type', 'link_id', 'LinkLevel', 'LinkPage', 'LinkPrefix', 'LinkText', 'LinkType']]
-    #         df = df.rename(columns = {'LinkText': 'source_file_section', 'LinkPage': 'page', 'LinkPrefix': 'sec_id'})
-    #         df['page'] = df['page'] + 1
-    #         df = df.sort_values(by='page').reset_index(drop=True)
-    #         df['qc_change_type'] = ''
-    #         df['sequence'] = [i for i in range(df.shape[0])]
-    #         df['section_locked'] = False
-    #         df['audit_info'] = [{'last_reviewed_date': '', 'last_reviewed_by': '', 'total_no_review': '' } for _ in range(df.shape[0])]
+        array_test = []  
 
 
-    #         headers1 = df.to_dict(orient='records')
-    #         return headers1
+        for i in headers:
+            # print("i", i)               
+
+            linkelevel = i.get('LinkLevel')
+            y = i.get('sec_id')
+            # print("yyyyy", y)
+            if linkelevel == 1:
+                array_test.append(i)
+                #print("liknlevel1", array_test)  #None
+            else:
+                y_int = y.replace(".", "")
+                # print("section_id", y, y_int)
+
+        
+                if y_int.isnumeric():
+                    y_split = y.split(".") #1.2.4 = ['1','2','4'] 
+                    # print("y_split", y_split)
+                    y_slice = y_split[:-2] # ['1', '2']
+                    # print("y_slice", y_slice)
+                    y_join = ".".join(y_slice) + "."
+                    # print("joiner", y_join)
+                    filtered_object = filter(lambda x: x.get('sec_id') == y_join, headers)
+                    for x in filtered_object:
+                        print("x",x)
+
+                        if x in array_test:
+                            index = array_test.index(x)
+                            print("index", index)
+                            if array_test[index].get('childlevel'):
+                                array_test[index].get('childlevel').append(i)
+                            else:
+                                
+                                array_test[index]['childlevel']= [i]
+                            print("array_index", array_test[index])
+
+
+                            
+
+
+                        
+
+
+
+
+
+
+
+
+
+
+                    
+        print("array_test", array_test)
+        return array_test
 
             
-    #     for idx in headers1():
-    #         print("headers1.items", headers1.items)
-    #         orig_sec_id = int(sec_id) # 1.1 = 1
-    #         if sec_id == '1':
-    #             return display_columns
 
-    #         if sec_id != '' and sec_id != orig_sec_id:
-    #             return display_columns
 
 
    
