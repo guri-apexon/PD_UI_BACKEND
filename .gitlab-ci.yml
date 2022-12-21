@@ -150,6 +150,7 @@ deploy-dev1:
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "dev"
+  when: manual
 
 deploy-dev2:
   tags:
@@ -172,6 +173,7 @@ deploy-dev2:
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "dev"
+  when: manual
 
 DEV-Rollback1:
  stage: rollback
