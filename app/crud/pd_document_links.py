@@ -29,7 +29,6 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     # iqv_doc_headers = GetIQVDocumentFromDB_headers(connection, aidoc_id)
 
     # link_levels = 1
-    if toc == 0:
         df = pd.DataFrame([link.__dict__ for link in iqv_doc_headers.DocumentLinks])
         print("main_dataframe", df)
         df = df[(df['LinkType'] == 'toc') & (df['LinkLevel'] <= link_levels)]
@@ -46,9 +45,11 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
         df['audit_info'] = [{'last_reviewed_date': '', 'last_reviewed_by': '', 'total_no_review': '' } for _ in range(df.shape[0])]
 
 
+    if toc == 0:
         headers = df.to_dict(orient='records')
+        return headers
+    else:
         array_test = []  
-
 
         for i in headers:
             # print("i", i)               
@@ -84,21 +85,6 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
                                 
                                 array_test[index]['childlevel']= [i]
                             print("array_index", array_test[index])
-
-
-                            
-
-
-                        
-
-
-
-
-
-
-
-
-
 
                     
         print("array_test", array_test)

@@ -25,7 +25,7 @@ async def get_cpt_headers(
         db: Session = Depends(deps.get_db),
         aidoc_id: str = "id",
         link_level: int = 1,
-        toc: int=1,
+        toc: int=0,
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
 
