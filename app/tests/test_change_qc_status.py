@@ -41,7 +41,7 @@ def test_qc1_qc_notstarted(new_token_on_headers, user_id, protocol, doc_id_1, do
             assert False
 
 @pytest.mark.parametrize("user_id, protocol, doc_id, approver_id, expected_response,  comments", [
-("1034911", "SSRUT_GEN_00?", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf0a", "1034911", status.HTTP_200_OK, "QC approved"),
+("1034911", "SSRUT_GEN_00?", "62166a73-bb80-441e-8ef7-4c09cce5a5d9", "1034911", status.HTTP_200_OK, "QC approved"),
 ("1034911", "SSRUT_GEN_00?", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf", "1034911", status.HTTP_403_FORBIDDEN, "QC approved - failure case")
 ])
 def test_qcapproved(new_token_on_headers, user_id, protocol, doc_id,  approver_id, expected_response, comments):
