@@ -77,10 +77,6 @@ class PrepareUpdateData:
                 display_df['semantic_extraction'] = ''
 
                 display_df["section_locked"] = False
-                display_df["audit_info"] = [{"last_reviewed_date": "", "last_reviewed_by": "", "total_no_review": "" } for _ in range(display_df.shape[0])]
-
-                display_df['audit'] = [{'last_updated_user': '1072234', 'updated_time': '2022-05-12T08:53:42.883000'}
-                                       for _ in range(display_df.shape[0])]
 
                 display_dict = display_df.to_dict(orient=self.dict_orient_type)
                 display_dict['metadata'] = metadata_fields
@@ -93,16 +89,6 @@ class PrepareUpdateData:
         except Exception as exc:
             logger.exception(f"Exception received in CPT extraction step: {exc}")
 
-        # try:
-        #     if display_df is not None:
-        #         header_record, section_content_record = jsonb_datastructure.get_jsonb_datastructure(display_df, db_data['AiDocId'])
-        #         db_data['jsonb'] = json.dumps({'header_json': header_record, 'section_json': section_content_record})
-        #         logger.info("JSONB creation step completed")
-        #     else:
-        #         logger.error("No data received at JSONB creation extraction step. display_df is empty")
-        #
-        # except Exception as exc:
-        #     logger.exception(f"Exception received in JSONB creation step: {exc}")
 
         try:
             normalized_soa = self.normalized_soa_extraction(iqv_document)
@@ -200,3 +186,4 @@ def add_compare_event(compare_req_msg, protocol_number, project_id, protocol_num
         received_documentprocessing_error_event(exception.__dict__)
         logger.error("Error while writing record to PD_document_compare file in DB for ID: {},{}".format(
             compare['compare_id'], ex))
+            
