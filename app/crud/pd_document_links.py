@@ -1,13 +1,16 @@
+from email import message
 import pandas as pd
 import numpy as np
 import psycopg2
 from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id, GetIQVDocumentFromDB_headers
 from app.db.session import psqlengine
-
+from fastapi.responses import JSONResponse
+from fastapi import status
 
 def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     connection = None
-
+    if abs(toc) > 1:
+        return JSONResponse(content={"message":"TOC required 0 or 1","status":status.HTTP_204_NO_CONTENT})
     try:
         # Getting PostgreSQL Connection
         connection = psqlengine.raw_connection()
@@ -43,7 +46,7 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     headers = df.to_dict(orient='records')
     if toc == 0:
         return headers
-    else:
+    elif toc == 1:
         array_test = []
 
         for i in headers:
