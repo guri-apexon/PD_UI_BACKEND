@@ -1,9 +1,9 @@
 import logging
 import os
 from logstash_async.handler import AsynchronousLogstashHandler
-from etmfa_finalization import Constants
-from etmfa_finalization import Globals
-from etmfa_finalization import configuration
+from app.utilities.iqvdata_extractor import Constants
+from app.utilities.iqvdata_extractor import Globals
+from app.utilities.iqvdata_extractor import configuration
 
 DB_DIR = os.path.join("logs")
 DB_FILE = os.path.join(DB_DIR, "logstash.db")

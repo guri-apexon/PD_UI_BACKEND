@@ -1,6 +1,6 @@
 import logging
 
-from etmfa_finalization import Constants, configuration
+from app.utilities.iqvdata_extractor import Constants, configuration
 
 logger = logging.getLogger(Constants.MICROSERVICE_NAME)
 

@@ -1,8 +1,8 @@
 import logging
 import re
 
-from etmfa_finalization import Constants
-from etmfa_finalization.core.iqvdata_extractor.extractor_config import ModuleConfig
+from app.utilities.iqvdata_extractor import Constants
+from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
 
 logger = logging.getLogger(Constants.MICROSERVICE_NAME)
 

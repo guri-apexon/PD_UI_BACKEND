@@ -3,12 +3,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id
 from app import crud
-from app.api.endpoints.etmfa_finalization.messaging.prepare_update_data import PrepareUpdateData
+from app.utilities.iqvdata_extractor.prepare_update_data import PrepareUpdateData
 from app.api import deps
 from app.utilities.config import settings
 from app.api.endpoints import auth
 from app.utilities.redaction.protocol_view_redaction import ProtocolViewRedaction
-# from app.db import sql_connection
 from app.db.session import psqlengine
 import logging
 import psycopg2
@@ -57,8 +56,5 @@ async def get_cpt_section_data(
     finalization_req_dict = dict()
     finalized_iqvxml = PrepareUpdateData(iqv_document, 0, protocol_view_redaction.profile_details,
                                          protocol_view_redaction.entity_profile_genre)
-    # finalization_req_dict["db_data"], updated_iqv_document = finalized_iqvxml.prepare_msg()
     finalization_req_dict, updated_iqv_document = finalized_iqvxml.prepare_msg()
-    
-
     return finalization_req_dict

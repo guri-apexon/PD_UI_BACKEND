@@ -4,11 +4,11 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 from etmfa_core.aidoc.io import IQVDocument
-from etmfa_finalization import Constants
-from etmfa_finalization.core.iqvdata_extractor.extractor_config import \
+from app.utilities.iqvdata_extractor import Constants
+from app.utilities.iqvdata_extractor.extractor_config import \
     ModuleConfig
-from iqv_finalization_error import ErrorCodes, FinalizationException
-from etmfa_finalization.core.iqvdata_extractor.table_extractor import SOAResponse as soa
+from app.utilities.iqvdata_extractor.iqv_finalization_error import ErrorCodes, FinalizationException
+from app.utilities.iqvdata_extractor.table_extractor import SOAResponse as soa
 logger = logging.getLogger(Constants.MICROSERVICE_NAME)
 
 

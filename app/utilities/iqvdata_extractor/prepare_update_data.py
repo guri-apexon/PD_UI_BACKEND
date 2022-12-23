@@ -5,14 +5,23 @@ import pandas as pd
 import sys
 sys.path.append(r'app/api/endpoints/')
 
-import etmfa_finalization.core.iqvdata_extractor.Elastic_ingest as ei
+# import etmfa_finalization.core.iqvdata_extractor.Elastic_ingest as ei
+# from etmfa_core.aidoc.io.load_xml import readXML
+# from etmfa_core.aidoc.IQVDocumentFunctions import IQVDocument, IQVKeyValueSet
+# from etmfa_finalization import Constantsapp.utilities.iqvdata_extractor.
+# from etmfa_finalization.core.iqvdata_extractor import cpt_extractor, jsonb_datastructure
+# from etmfa_finalization.core.iqvdata_extractor import summary_extractor as se
+# from etmfa_finalization.core.iqvdata_extractor import table_extractor
+# from etmfa_finalization.core.iqvdata_extractor.extractor_config import ModuleConfig
+
+import app.utilities.iqvdata_extractor.Elastic_ingest as ei
 from etmfa_core.aidoc.io.load_xml import readXML
+from app.utilities.iqvdata_extractor import Constants
 from etmfa_core.aidoc.IQVDocumentFunctions import IQVDocument, IQVKeyValueSet
-from etmfa_finalization import Constants
-from etmfa_finalization.core.iqvdata_extractor import cpt_extractor, jsonb_datastructure
-from etmfa_finalization.core.iqvdata_extractor import summary_extractor as se
-from etmfa_finalization.core.iqvdata_extractor import table_extractor
-from etmfa_finalization.core.iqvdata_extractor.extractor_config import ModuleConfig
+from app.utilities.iqvdata_extractor import cpt_extractor, jsonb_datastructure
+from app.utilities.iqvdata_extractor import summary_extractor as se
+from app.utilities.iqvdata_extractor import table_extractor
+from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
 
 logger = logging.getLogger(Constants.MICROSERVICE_NAME)
 
@@ -157,33 +166,33 @@ class PrepareUpdateData:
             logger.error("No Normalized SOA Json path")
 
 
-def add_compare_event(compare_req_msg, protocol_number, project_id, protocol_number2, project_id2, user_id):
-    compare = Documentcompare()
-    compare.compare_id = compare_req_msg['COMPARE_ID']
-    compare.doc_id = compare_req_msg['BASE_DOC_ID']
-    compare.protocol_number = protocol_number
-    compare.project_id = project_id
-    # compare.version_number = compare_req_msg['']#these will added if additional details are made mandatory
-    # compare.amendment_number = compare_req_msg['']#these will added if additional details are made mandatory
-    # compare.document_status = compare_req_msg['']#these will added if additional details are made mandatory
-    compare.doc_id2 = compare_req_msg['COMPARE_DOC_ID']
-    compare.protocol_number2 = protocol_number2
-    compare.project_id2 = project_id2
-    # compare.version_number2 = compare_req_msg['']#these will added if additional details are made mandatory
-    # compare.amendment_number2 = compare_req_msg['']#these will added if additional details are made mandatory
-    # compare.document_status2 = compare_req_msg['']#these will added if additional details are made mandatory
-    compare.user_id = user_id
-    compare.base_IQV_xml_path = compare_req_msg['BASE_IQVXML_PATH']
-    compare.compare_IQV_xml_path = compare_req_msg['COMPARE_IQVXML_PATH']
-    compare.request_type = compare_req_msg['REQUEST_TYPE']
-    try:
-        db_context.session.add(compare)
-        db_context.session.commit()
-        return compare.compare_id
-    except Exception as ex:
-        db_context.session.rollback()
-        exception = ManagementException(id, ErrorCodes.ERROR_DOCUMENT_ATTRIBUTES)
-        received_documentprocessing_error_event(exception.__dict__)
-        logger.error("Error while writing record to PD_document_compare file in DB for ID: {},{}".format(
-            compare['compare_id'], ex))
+# def add_compare_event(compare_req_msg, protocol_number, project_id, protocol_number2, project_id2, user_id):
+#     compare = Documentcompare()
+#     compare.compare_id = compare_req_msg['COMPARE_ID']
+#     compare.doc_id = compare_req_msg['BASE_DOC_ID']
+#     compare.protocol_number = protocol_number
+#     compare.project_id = project_id
+#     # compare.version_number = compare_req_msg['']#these will added if additional details are made mandatory
+#     # compare.amendment_number = compare_req_msg['']#these will added if additional details are made mandatory
+#     # compare.document_status = compare_req_msg['']#these will added if additional details are made mandatory
+#     compare.doc_id2 = compare_req_msg['COMPARE_DOC_ID']
+#     compare.protocol_number2 = protocol_number2
+#     compare.project_id2 = project_id2
+#     # compare.version_number2 = compare_req_msg['']#these will added if additional details are made mandatory
+#     # compare.amendment_number2 = compare_req_msg['']#these will added if additional details are made mandatory
+#     # compare.document_status2 = compare_req_msg['']#these will added if additional details are made mandatory
+#     compare.user_id = user_id
+#     compare.base_IQV_xml_path = compare_req_msg['BASE_IQVXML_PATH']
+#     compare.compare_IQV_xml_path = compare_req_msg['COMPARE_IQVXML_PATH']
+#     compare.request_type = compare_req_msg['REQUEST_TYPE']
+#     try:
+#         db_context.session.add(compare)
+#         db_context.session.commit()
+#         return compare.compare_id
+#     except Exception as ex:
+#         db_context.session.rollback()
+#         exception = ManagementException(id, ErrorCodes.ERROR_DOCUMENT_ATTRIBUTES)
+#         received_documentprocessing_error_event(exception.__dict__)
+#         logger.error("Error while writing record to PD_document_compare file in DB for ID: {},{}".format(
+#             compare['compare_id'], ex))
             

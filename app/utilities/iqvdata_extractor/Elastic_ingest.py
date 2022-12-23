@@ -4,9 +4,9 @@ import sys
 sys.path.append(r'app/api/endpoints/')
 
 from elasticsearch import Elasticsearch
-from etmfa_finalization import Constants, configuration
-from etmfa_finalization.core.iqvdata_extractor.extractor_config import ModuleConfig, QcStatus
-from etmfa_finalization.core.iqvdata_extractor.utils import get_redaction_entities, align_redaction_with_subtext
+from app.utilities.iqvdata_extractor import Constants, configuration
+from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig, QcStatus
+from app.utilities.iqvdata_extractor.utils import get_redaction_entities, align_redaction_with_subtext
 from datetime import datetime
 
 # Sets logger

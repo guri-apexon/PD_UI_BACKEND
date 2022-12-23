@@ -1,16 +1,16 @@
 import sys
 sys.path.append(r'app/api/endpoints/')
 
-from etmfa_finalization import Constants
-from etmfa_finalization.core.iqvdata_extractor.extractor_config import ModuleConfig
+from app.utilities.iqvdata_extractor import Constants
+from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
 import re
 import logging
 import pandas as pd
-from iqv_finalization_error import ErrorCodes, FinalizationException
+from app.utilities.iqvdata_extractor.iqv_finalization_error import ErrorCodes, FinalizationException
 import numpy as np
 import ast
 
-from etmfa_finalization.core.iqvdata_extractor import utils
+from app.utilities.iqvdata_extractor import utils
 
 logger = logging.getLogger(Constants.MICROSERVICE_NAME)
 
@@ -19,6 +19,7 @@ class SOAResponse:
     def __init__(self, iqv_document, profile_details: dict, entity_profile_genre: list):
         if iqv_document is None:
             raise FinalizationException(ErrorCodes.IQVDATA_FAILURE, f'During SOAResponse init, iqv_document object is {iqv_document}')
+            
         self.tableTypeDict={'SOA':r'\b(?:Assessments|Assessment|Schedule)\b'}
         self.iqv_document = iqv_document
 
