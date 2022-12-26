@@ -1,7 +1,6 @@
 import sys
 sys.path.append(r'app/api/endpoints/')
 
-from app.utilities.iqvdata_extractor import Constants
 from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
 import re
 import logging
@@ -11,8 +10,9 @@ import numpy as np
 import ast
 
 from app.utilities.iqvdata_extractor import utils
+from app.utilities.config import settings
 
-logger = logging.getLogger(Constants.MICROSERVICE_NAME)
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 ## The below section is for reconstruction of table from the updated iqvxml after extraction service
 class SOAResponse:

@@ -1,10 +1,10 @@
 import logging
 import re
 
-from app.utilities.iqvdata_extractor import Constants
 from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
+from app.utilities.config import settings
 
-logger = logging.getLogger(Constants.MICROSERVICE_NAME)
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 def get_redaction_entities(level_roi):
     """

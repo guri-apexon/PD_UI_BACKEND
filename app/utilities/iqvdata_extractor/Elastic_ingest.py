@@ -3,14 +3,13 @@ import logging
 import sys
 sys.path.append(r'app/api/endpoints/')
 
-from elasticsearch import Elasticsearch
-from app.utilities.iqvdata_extractor import Constants, configuration
 from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig, QcStatus
 from app.utilities.iqvdata_extractor.utils import get_redaction_entities, align_redaction_with_subtext
 from datetime import datetime
+from app.utilities.config import settings
 
 # Sets logger
-logger = logging.getLogger(Constants.MICROSERVICE_NAME)
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 """
 Keys for Extraction from DocumentLinks
@@ -74,21 +73,6 @@ ling_es_mapping = {
 
 # ["SponsorName", "AmendmentNumber", "Indication"] Old intake_field_list_priority
 intake_field_list_priority = ["SponsorName", "Indication"]
-
-
-def ingest_elastic(es_sec_dict):
-    try:
-        host = configuration.localConfig["searchDB"]["host"]
-        port = configuration.localConfig["searchDB"]["port"]
-        index = configuration.localConfig["searchDB"]["index"]
-
-        es = Elasticsearch([{'host': host, 'port': port}])
-
-        res = es.index(index=index, body=es_sec_dict, id=es_sec_dict['AiDocId'])
-        return res
-    except Exception as exc:
-        logger.exception(f"Exception received in ingest_elastic, ingestion could not occur:{exc}")
-
 
 
 def ingest_doc_elastic(iqv_document, search_df, FeedbackRunId):
@@ -252,11 +236,5 @@ def ingest_doc_elastic(iqv_document, search_df, FeedbackRunId):
 
     except Exception as exc:
         logger.exception(f"Exception received in ingest_doc_elastic, intake field extraction:{exc}")
-
-    # try:
-    #     if es_sec_dict:
-    #         ingest_elastic(es_sec_dict)
-    # except Exception as exc:
-    #     logger.exception(f"Exception received in ingest_doc_elastic, ingestion could not occur:{exc}")
 
     return es_sec_dict, summary_entities

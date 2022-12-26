@@ -26,7 +26,6 @@ async def get_cpt_headers(
 ) -> Any:
 
     headers_dict = crud.get_document_links(aidoc_id, link_level, toc)
-
     return headers_dict
 
 
@@ -41,8 +40,6 @@ async def get_cpt_section_data(
         user: str = "",
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
-
-    
     try:
         connection = psqlengine.raw_connection()
         iqv_document = GetIQVDocumentFromDB_with_doc_id(

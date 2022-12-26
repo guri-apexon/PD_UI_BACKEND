@@ -8,12 +8,13 @@ sys.path.append(r'app/api/endpoints/')
 import numpy as np
 import pandas as pd
 from etmfa_core.aidoc.io import IQVDocument
-from app.utilities.iqvdata_extractor import Constants
 from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
 from app.utilities.iqvdata_extractor.table_extractor import SOAResponse as soa
 from app.utilities.iqvdata_extractor.iqv_finalization_error import ErrorCodes, FinalizationException
 from app.utilities.iqvdata_extractor import utils
-logger = logging.getLogger(Constants.MICROSERVICE_NAME)
+from app.utilities.config import settings
+
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 class CPTExtractor:
     def __init__(self, iqv_document: IQVDocument, profile_details: dict, entity_profile_genre: list, response_type:str = "split", table_response_type:str = "html"):
