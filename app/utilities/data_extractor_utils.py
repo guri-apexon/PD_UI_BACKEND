@@ -1,10 +1,10 @@
 import logging
 import re
-
-from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
+from app.utilities.extractor_config import ModuleConfig
 from app.utilities.config import settings
 
 logger = logging.getLogger(settings.LOGGER_NAME)
+
 
 def get_redaction_entities(level_roi):
     """
@@ -19,6 +19,7 @@ def get_redaction_entities(level_roi):
                                            'text_len': len(entity.text), 'end_pos': entity.start+len(entity.text)-1, 'confidence': entity.confidence})
 
     return len(redaction_entities), redaction_entities
+
 
 def align_redaction_with_subtext(text, redaction_entities):
     """
@@ -40,38 +41,29 @@ def align_redaction_with_subtext(text, redaction_entities):
             matching_spans = [(match.start(), match.end()-1) for match in re.finditer(entity_adjusted_text, text, re.I)]
             if matching_spans:
                 matched_entity_set.add(idx)
-                _ = [subtext_redaction_entities.append({'start_idx': start, 'end_idx': end,'standard_entity_name':entity['standard_entity_name'], 'subcategory': entity['subcategory'], 'confidence': entity['confidence'] , 'text': entity['text']})
+                _ = [subtext_redaction_entities.append({'start_idx': start, 'end_idx': end, 'standard_entity_name': entity['standard_entity_name'], 'subcategory': entity['subcategory'], 'confidence': entity['confidence'], 'text': entity['text']})
                                             for start, end in matching_spans]
         except Exception as exc:
             logger.warning(f"[entity# {idx}] subtext: {text}; redaction_entities: {redaction_entities}; Exception message: {str(exc)}")
 
     return matched_entity_set, subtext_redaction_entities
 
+
 def redact_text(text, text_redaction_entity, redact_profile_entities=[], redact_flg=True):
-    # Start: The following block of code for testing redaction times
     from app import config, crud
     redacted_text = text[:]
-    # redacted_property = deepcopy(font_info)
-    # text_redaction_entity = font_info.get('entity', [])
-
     if redact_flg and text and text_redaction_entity:
         for idx, entity in enumerate(text_redaction_entity):
             try:
                 if entity.get('subcategory', '') in redact_profile_entities and len(
                         config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", entity['text'])) != 0:
-                    # logger.debug(f"Processing for idx[{idx}] with entity:{entity}")
                     entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity['text'])
                     redacted_text = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, redacted_text)
             except Exception as exc:
                 logger.warning(f"[entity# {idx}] subtext: {text}; font_info: {text_redaction_entity}; Exception message: {str(exc)}")
 
-    # if exclude_redact_property_flg:
-    #     _ = redacted_property.pop('entity', "entity is not present")
-
-    # return redacted_text, redacted_property
-
     return redacted_text
-    # End: Code for testing redaction times
+
 
 def get_matched_redact_entity_roi(roi):
     """
@@ -90,10 +82,9 @@ def get_matched_redact_entity_roi(roi):
         roi_matched_entity_set.update(matched_entity_set)
         logger.debug(f"*** roi_id[{roi.id}]: {roi_fulltext}")
         logger.debug(f"redaction_entity: {roi_redaction_entities}")
-
-        # Debug report
         debug_notfound_entity = (roi_entity_set - roi_matched_entity_set)
         if len(debug_notfound_entity) > 0:
             logger.debug(f"Debug report: [{roi.id}] [**No subtext**]: Missing entity idx: {debug_notfound_entity} \
                 roi_fulltext: {roi_fulltext} ; redaction_entities: {redaction_entities}")
+                
     return len_redaction_entities, len(roi_entity_set.intersection(roi_matched_entity_set)), roi_redaction_entities

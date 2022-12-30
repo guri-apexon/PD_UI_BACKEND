@@ -1,17 +1,16 @@
 import logging
 from collections import Counter
 from typing import Tuple
-
 import sys
 sys.path.append(r'app/api/endpoints/')
-
 import numpy as np
 import pandas as pd
 from etmfa_core.aidoc.io import IQVDocument
-from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
-from app.utilities.iqvdata_extractor.table_extractor import SOAResponse as soa
-from app.utilities.iqvdata_extractor.iqv_finalization_error import ErrorCodes, FinalizationException
-from app.utilities.iqvdata_extractor import utils
+from app.utilities import data_extractor_utils as utils
+from app.utilities.table_extractor import SOAResponse as soa
+from app.utilities.extractor_config import ModuleConfig
+from fastapi.responses import JSONResponse
+from fastapi import status
 from app.utilities.config import settings
 
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -19,28 +18,23 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 class CPTExtractor:
     def __init__(self, iqv_document: IQVDocument, profile_details: dict, entity_profile_genre: list, response_type:str = "split", table_response_type:str = "html"):
         if iqv_document is None:
-            raise FinalizationException(ErrorCodes.IQVDATA_FAILURE, f'During CPTExtractor init, iqv_document object is {iqv_document}')
+            return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
 
         self.iqv_document = iqv_document
         self.response_type = response_type
         self.table_response_type = table_response_type
         self.table_index_tag = ModuleConfig.GENERAL.std_tags_dict[ModuleConfig.GENERAL.TABLE_INDEX_KEY]
         self.footnote_tag = ModuleConfig.GENERAL.std_tags_dict[ModuleConfig.GENERAL.FOOTNOTE_KEY]
-
         self.cpt_tags = list(ModuleConfig.GENERAL.cpt_std_tags.values())
         self.file_section_tags = ['IsSectionHeader', 'HeaderText', 'HeaderNumericSection', 'LinkLevel']
         self.interested_tags = self.cpt_tags + self.file_section_tags
-
         self.hdr_tag_name = ModuleConfig.GENERAL.cpt_std_tags['KEY_std_section_hdr']
         self.hdr_level_tag_name = ModuleConfig.GENERAL.cpt_std_tags['KEY_std_section_hdr_level']
-
         self.element_tag_name = ModuleConfig.GENERAL.cpt_std_tags['KEY_std_section_element']
         self.element_level_tag_name = ModuleConfig.GENERAL.cpt_std_tags['KEY_std_section_element_level']
-
         self.default_cpt_section = ModuleConfig.GENERAL.UNMAPPED_SECTION_NAME
         self.default_init_file_section = ModuleConfig.GENERAL.INIT_FILE_SECTION_NAME
         self.good_file_section_count_min = ModuleConfig.GENERAL.GOOD_FILE_SECTION_COUNT_MIN
-
         self.profile_details = profile_details
         self.entity_profile_genre = entity_profile_genre
 
@@ -61,14 +55,11 @@ class CPTExtractor:
                 master_roi_dict[kv_obj.key] = kv_obj.value
 
             all_roi_tags = master_roi_dict.keys()
-
             master_dict = dict()
             master_font_style = master_roi_dict.get('font_style', '')
             master_dict['para_master_roi_id'] = master_roi.id
-
             # For header identification
             master_dict['font_heading_flg'] = ('heading' in master_font_style.lower())
-
             # Collect tags
             master_dict['table_index'] = master_roi_dict.get(self.table_index_tag, '')
             master_dict['not_footnote_flg'] = False if self.footnote_tag in all_roi_tags else True
@@ -80,7 +71,6 @@ class CPTExtractor:
                 master_dict['para_child_roi_id'] = level_roi.id
                 master_dict['para_child_roi_text'] = ' '.join(level_roi.strTexts)
                 master_dict['para_child_font_details'] = {'IsBold': level_roi.fontInfo.Bold, 'font_size': level_roi.fontInfo.Size}
-
                 # Prep for subtext redaction
                 len_redaction_entities, redaction_entities = utils.get_redaction_entities(level_roi)
                 tot_master_childbox_redaction_entity += len_redaction_entities
@@ -170,7 +160,7 @@ class CPTExtractor:
             tot_matching_master_childbox_redaction_entity: {tot_matching_master_childbox_redaction_entity}""")
         return all_cpt_list, tot_master_childbox_redaction_entity, tot_matching_master_childbox_redaction_entity
 
-    def set_child_sections(self, raw_cpt_df) -> (list, list):
+    def set_child_sections(self, raw_cpt_df) -> Tuple[list, list]:
         """
         Sets up level1_cpt_section for entire child levels
         Sets up 'file_section', 'file_section_num', 'file_section_level' for entire child levels
@@ -197,7 +187,7 @@ class CPTExtractor:
         return level_1_cpt_section, all_file_section_details
 
 
-    def build_display_search(self, raw_cpt_df) -> (pd.DataFrame, pd.DataFrame):
+    def build_display_search(self, raw_cpt_df) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Builds data meant for display and search database
         """
@@ -209,28 +199,23 @@ class CPTExtractor:
         cpt_df['para_text'] = raw_cpt_df['para_subtext_text']
         cpt_df['content'] = np.where(raw_cpt_df['type'].isin(['header', 'text']), raw_cpt_df['para_subtext_text'], raw_cpt_df['table_content'])
         cpt_df['font_info'] = raw_cpt_df['para_subtext_font_details']
-
         # Default CPT_section
         cpt_df['CPT_section'] = cpt_df['CPT_section'].apply(lambda section_name: ModuleConfig.GENERAL.UNMAPPED_SECTION_NAME if section_name == '' else section_name)
-
         # Setup flags
         cpt_df['keep_unique_table_flg'] = ~(cpt_df.loc[cpt_df['table_index'] > 0].duplicated(subset=['table_index'], keep='first'))
         cpt_df['keep_unique_table_flg'].fillna(value=True, inplace=True)
         cpt_df['not_footnote_flg'] = raw_cpt_df[['not_footnote_flg', 'type']].apply(lambda x: True if x['type'] == 'table' else x['not_footnote_flg'], axis=1)
         cpt_df['not_merged_table_flg'] = cpt_df['content'].apply(lambda x: x != '{}')
-
         # File section tags
         cpt_df['IsSectionHeader'] =	raw_cpt_df['IsSectionHeader']
         cpt_df['file_section'] =	raw_cpt_df['HeaderText']
         cpt_df['file_section_num'] = raw_cpt_df['HeaderNumericSection']
         cpt_df['file_section_level'] =	raw_cpt_df['LinkLevel']
-
         # Propogate level_1_cpt_section and file_section to its children levels
         file_section_columns = ['file_section', 'file_section_num', 'file_section_level']
         level1_cpt_section_list, file_section_list  = self.set_child_sections(cpt_df)
         cpt_df['level_1_CPT_section'] = level1_cpt_section_list
         cpt_df[file_section_columns] = file_section_list
-
         # Build display data
         display_columns = ['section_level', 'CPT_section', 'type', 'content', 'font_info', 'level_1_CPT_section']  + file_section_columns
         display_df = cpt_df.loc[(cpt_df['keep_unique_table_flg']) & (cpt_df['not_footnote_flg']) & (cpt_df['not_merged_table_flg']), display_columns]
@@ -238,10 +223,7 @@ class CPTExtractor:
         display_df['qc_change_type'] = ''
         display_df.reset_index(drop=True, inplace=True)
         roi_id_list = display_df['font_info'].apply(lambda x: x.get('roi_id'), dict()).tolist()
-
-        # display_df['line_id'] = display_df['font_info'].apply(lambda x: x.get('roi_id', '').get('para')).tolist()
         display_df['line_id'] = [''.join((roi_id.get('para', ''), roi_id.get('childbox', ''), roi_id.get('subtext', ''))) for roi_id in roi_id_list]
-
         # Build search data
         search_df = cpt_df[['CPT_section', 'para_text', 'level_1_CPT_section']]
         search_df.rename(columns = {'para_text': 'content'}, inplace=True)
@@ -280,20 +262,16 @@ class CPTExtractor:
 
             raw_cpt_df.fillna(value='', inplace=True)
             raw_cpt_df['table_index'] = raw_cpt_df['table_index'].apply(lambda x: int(float(x)) if len(x)> 0 else -1)
-
             unique_table_index = [table_index for table_index in set(raw_cpt_df['table_index']) if table_index > 0]
-
             # Populate table contents
-            table_list, table_redaction_count = soa.getTOIfromProprties(soa(self.iqv_document, self.profile_details, self.entity_profile_genre), table_indexes=unique_table_index, returntype=self.table_response_type)
+            table_list, table_redaction_count = soa.getTOIfromProprties(soa(self.iqv_document, self.profile_details, self.entity_profile_genre), table_indexes=unique_table_index)
             table_index_dict = {int(float(item['TableIndex'])):item for item in table_list}
             raw_cpt_df['table_content'] = raw_cpt_df['table_index'].apply(lambda col: table_index_dict.get(col, ''))
             del table_list
-
             # Identify type of contents
             type_conditions = [raw_cpt_df['table_index'] > 0, (raw_cpt_df[self.hdr_tag_name] != '') | (raw_cpt_df['font_heading_flg'])]
             type_choices = ['table', 'header']
             raw_cpt_df['type'] = np.select(type_conditions, type_choices, default='text')
-
             display_df, search_df = self.build_display_search(raw_cpt_df)
 
             try:

@@ -1,16 +1,15 @@
 import sys
 sys.path.append(r'app/api/endpoints/')
-
-from app.utilities.iqvdata_extractor.extractor_config import ModuleConfig
 import re
 import logging
 import pandas as pd
-from app.utilities.iqvdata_extractor.iqv_finalization_error import ErrorCodes, FinalizationException
 import numpy as np
 import ast
-
-from app.utilities.iqvdata_extractor import utils
 from app.utilities.config import settings
+from app.utilities import data_extractor_utils as utils
+from app.utilities.extractor_config import ModuleConfig
+from fastapi.responses import JSONResponse
+from fastapi import status
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 class SOAResponse:
     def __init__(self, iqv_document, profile_details: dict, entity_profile_genre: list):
         if iqv_document is None:
-            raise FinalizationException(ErrorCodes.IQVDATA_FAILURE, f'During SOAResponse init, iqv_document object is {iqv_document}')
+            return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
             
         self.tableTypeDict={'SOA':r'\b(?:Assessments|Assessment|Schedule)\b'}
         self.iqv_document = iqv_document
@@ -69,7 +68,7 @@ class SOAResponse:
 
     tableTypeDict={'SOA':r'\b(?:Assessments|Assessment|Schedule)\b'}
 
-    def getTOIfromProprties(self,returntype,roi=None,toi=None,table_indexes=[]):
+    def getTOIfromProprties(self,roi=None,toi=None,table_indexes=[]):
         try:
             df=pd.DataFrame()
             poi=list(ModuleConfig.GENERAL.std_tags_dict.values())
@@ -117,18 +116,17 @@ class SOAResponse:
                                 redacted_txt = '{} {}'.format(dictTableMeta['AttachmentList'][-1]['Key'], dictTableMeta['AttachmentList'][-1]['Text'])
                                 redacted_txt = utils.redact_text(redacted_txt, nlp_entities_list_aligned, self.profile_details, self.entity_profile_genre)
                                 dictTableMeta['FootnoteText_{}'.format(len(dictTableMeta['AttachmentList']) - 1)] = redacted_txt
-
                     for row in table.ChildBoxes:
                         for column in row.ChildBoxes:
                             for textblock in column.ChildBoxes:
                                 dictTable=dict()
                                 dfList=[]
-                                x=[]
+                                column_index_list=[]
                                 for propT in textblock.Properties:
                                     if (propT.key!='ColIndex' and  propT.key in poi ):
                                         dictTable[propT.key]=propT.value
                                     elif propT.key=='ColIndex':
-                                        x=propT.value[1:-1].split(',')
+                                        column_index_list=propT.value[1:-1].split(',')
                                 # Start For handling redaction and QC workflow
                                 nlp_entities_list = list()
                                 for entity in column.NLP_Entities:
@@ -144,7 +142,7 @@ class SOAResponse:
                                             nlp_entities_count += 1
                                 # END For handling redaction and QC workflow
 
-                                for col in x :
+                                for col in column_index_list :
                                     dictTableCol=dict()
                                     dictTableCol=dictTable.copy()
                                     dictTableCol['ColIndex']=col.strip()
@@ -241,27 +239,13 @@ class SOAResponse:
                     append=1
                     for tabIndex in [i for i in dictTableMetaList if i]:
                         if ((int(float(tabIndex['TableIndex'])) == int(float(tabseq))) and append==1):
-                            if returntype=='json':
-                                resultreturn['Table']=resulttable.to_json(orient="records")
-                                resultreturn.update(tabIndex)
-                                resultreturn['Header']=keep_header
-                                result.append(resultreturn)
-                                append=0
-
-                            if returntype=='dataframe':
-                                resultreturn['Table']=resulttable
-                                tabIndex.update({'Header':keep_header})
-                                resultreturn['MetaInfo']=pd.DataFrame([tabIndex])
-                                result.append(resultreturn)
-
-                            if returntype=='html':
-                                resulttable=resulttable.reset_index(drop=True)
-                                resultreturn['Table']=resulttable.to_html(escape=False)
-                                resultreturn['TableProperties'] = resulttable_redact.to_json(orient="records")
-                                resultreturn.update(tabIndex)
-                                resultreturn['Header']=keep_header
-                                result.append(resultreturn)
-                                append=0
+                            resulttable=resulttable.reset_index(drop=True)
+                            resultreturn['Table']=resulttable.to_html(escape=False)
+                            resultreturn['TableProperties'] = resulttable_redact.to_json(orient="records")
+                            resultreturn.update(tabIndex)
+                            resultreturn['Header']=keep_header
+                            result.append(resultreturn)
+                            append=0
 
 
             return (result, nlp_entities_count)
