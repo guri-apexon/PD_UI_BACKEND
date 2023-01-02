@@ -105,8 +105,8 @@ class SOAResponse:
                             dictTableMeta['AttachmentList'].append('' if prop.value == 'nan' else eval(prop.value))
                             dictTableMeta['AttachmentList'][-1]['qc_change_type'] = ''
 
-                            _, redaction_entities = utils.get_redaction_entities(
-                                table.Attachments[int(dictTableMeta['AttachmentList'][-1]['AttachmentIndex'])])
+                            _, redaction_entities, _ = utils.get_redaction_entities(
+                                level_roi=table.Attachments[int(dictTableMeta['AttachmentList'][-1]['AttachmentIndex'])])
 
                             _, nlp_entities_list_aligned = utils.align_redaction_with_subtext(
                                 dictTableMeta['AttachmentList'][-1]['Text'], redaction_entities)
@@ -114,7 +114,7 @@ class SOAResponse:
                             dictTableMeta['AttachmentList'][-1]['entities'] = nlp_entities_list_aligned
                             if len(nlp_entities_list_aligned) > 0:
                                 redacted_txt = '{} {}'.format(dictTableMeta['AttachmentList'][-1]['Key'], dictTableMeta['AttachmentList'][-1]['Text'])
-                                redacted_txt = utils.redact_text(redacted_txt, nlp_entities_list_aligned, self.profile_details, self.entity_profile_genre)
+                                _, _, redacted_txt = utils.get_redaction_entities(text=redacted_txt, text_redaction_entity=nlp_entities_list_aligned, redact_profile_entities=self.profile_details, redact_flg=self.entity_profile_genre)
                                 dictTableMeta['FootnoteText_{}'.format(len(dictTableMeta['AttachmentList']) - 1)] = redacted_txt
                     for row in table.ChildBoxes:
                         for column in row.ChildBoxes:
@@ -160,9 +160,9 @@ class SOAResponse:
                                     dictTableCol['table_properties']['qc_change_type'] = ''
                                     if len(nlp_entities_list_aligned) > 0:
                                         redacted_txt = dictTableCol['FullText']
-                                        redacted_txt = utils.redact_text(redacted_txt, nlp_entities_list_aligned,
-                                                                         self.profile_details,
-                                                                         self.entity_profile_genre)
+                                        _, _, redacted_txt = utils.get_redaction_entities(text=redacted_txt, text_redaction_entity=nlp_entities_list_aligned,
+                                                                         redact_profile_entities=self.profile_details,
+                                                                         redact_flg=self.entity_profile_genre)
                                         dictTableCol['FullText'] = redacted_txt
                                     # END For handling redaction and QC workflow
                                     dfList.append(dictTableCol)

@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id
+# from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id
 from app import crud
 from app.utilities.extractor.prepare_cpt_section_data import PrepareUpdateData
 from app.api import deps
@@ -12,7 +12,6 @@ from app.db.session import psqlengine
 from fastapi.responses import JSONResponse
 from fastapi import status
 import logging
-import psycopg2
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -27,13 +26,15 @@ async def get_cpt_headers(
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
-    Get CPT Sections/Headers  list for a particular document 
-    Input
-        aidoc_id and link_level is required and toc is optional with value 0 or 1
-    Output
-        returns list of all section/headers
-        if toc will be 1 link_level is 6 it will returs multi dimentional list according to parent child relationship
+    Get CPT Sections/Headers  list for a particular document.
+
+    :param aidoc_id: document id
+    :param link_level: level of headers in toc
+    :param toc: is optional with value 0 or 1
+    :returns: list of all section/headers 
+              if toc will be 1 link_level is 6 it will returs multi dimentional list according to parent child relationship
     """
+
     headers_dict = crud.get_document_links(aidoc_id, link_level, toc)
     return headers_dict
 
@@ -51,23 +52,20 @@ async def get_cpt_section_data(
 ) -> Any:
     """
     Get CPT Section/Header data for particular document
-    Input
-        aidoc_id, link_level, protocol, userid are required and user is optional
-    Output
-        return requested section/header data
+    
+    :param aidoc_id: document id
+    :param link_level: level of headers in toc
+    :param protocol: protocol of document 
+    :param userid: userid 
+    :param user: user optional
+    :returns: requested section/header data
+              if document does not exist return json response with "docid does not exist"
     """
-    try:
-        connection = psqlengine.raw_connection()
-        iqv_document = GetIQVDocumentFromDB_with_doc_id(
-                connection, aidoc_id, link_level=link_level, link_id=link_id)
-        if iqv_document == None:
-            logger.info(f"Docid {aidoc_id} does not exists")
-            return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
-    except (Exception, psycopg2.Error) as error:
-        logger.exception(f"Failed to get connection to postgresql : {error}")
-    finally:
-        if connection:
-            connection.close()
+
+    iqv_document = crud.get_header_list(aidoc_id,link_level,link_id)
+    if iqv_document == None:
+        logger.info(f"Docid {aidoc_id} does not exists")
+        return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
     protocol_view_redaction = ProtocolViewRedaction(userId, protocol)
     finalization_req_dict = dict()
     finalized_iqvxml = PrepareUpdateData(iqv_document, protocol_view_redaction.profile_details,

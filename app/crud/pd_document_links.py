@@ -1,3 +1,4 @@
+from typing import Optional
 import pandas as pd
 import numpy as np
 import psycopg2
@@ -7,19 +8,21 @@ from fastapi.responses import JSONResponse
 from fastapi import status,Response
 from app.utilities.config import settings
 import logging
+from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id
+from etmfa_core.aidoc.IQVDocumentFunctions import IQVDocument
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     """
     Get document links for the requestd aidoc_id with link_level
-    Inputs
-        aidoc_id: document id 
-        link_level: link level of document
-        toc: table of content list with parent child relationship
-    Outputs
-        returns list of sections/headers
+
+    :param aidoc_id: document id 
+    :param link_level: link level of document
+    :param toc: table of content list with parent child relationship
+    :returns: list of sections/headers
     """
+
     connection = None
     if abs(toc) > 1:
         return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"TOC required 0 or 1"})
@@ -108,3 +111,24 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     except Exception as error:
         logger.exception(f"doc id {aidoc_id} having issue : {error}")
         return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid having some issue"})
+
+
+def get_header_list(aidoc_id: str, link_level: int, link_id: int) -> Optional[IQVDocument]:
+    """
+    :param aidoc_id: document id
+    :param link_level: level of headers in toc
+    :param link_id: link id of document 
+    :returns: requested section/header data
+    """
+
+    try:
+        connection = psqlengine.raw_connection()
+        iqv_document = GetIQVDocumentFromDB_with_doc_id(
+                connection, aidoc_id, link_level=link_level, link_id=link_id)
+        return iqv_document
+    except (Exception, psycopg2.Error) as error:
+        logger.exception(f"Failed to get connection to postgresql : {error}, {aidoc_id}")
+        return None
+    finally:
+        if connection:
+            connection.close()
