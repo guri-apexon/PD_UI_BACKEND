@@ -2,9 +2,6 @@ import json
 import logging
 from typing import Tuple
 import pandas as pd
-
-import sys
-sys.path.append(r'app/api/endpoints/')
 import app.utilities.elastic_ingest as ei
 from etmfa_core.aidoc.IQVDocumentFunctions import IQVDocument, IQVKeyValueSet
 from app.utilities.extractor import cpt_extractor

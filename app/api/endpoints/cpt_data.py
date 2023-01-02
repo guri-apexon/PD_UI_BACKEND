@@ -24,7 +24,7 @@ async def get_cpt_headers(
         aidoc_id: str = "",
         link_level: int = 1,
         toc: int = 0,
-        # _: str = Depends(auth.validate_user_token)
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get CPT Sections/Headers  list for a particular document 

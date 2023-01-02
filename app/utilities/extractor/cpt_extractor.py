@@ -1,6 +1,6 @@
 import logging
 from collections import Counter
-from typing import Tuple
+from typing import Optional, Tuple
 import sys
 sys.path.append(r'app/api/endpoints/')
 import numpy as np
@@ -231,7 +231,7 @@ class CPTExtractor:
         return display_df, search_df
 
 
-    def get_cpt_iqvdata(self) -> Tuple[dict, pd.DataFrame, int, int]:
+    def get_cpt_iqvdata(self) -> Tuple[dict, pd.DataFrame, Optional[int], Optional[int], Optional[int]]:
         """
         Input arguments:
         id: Unique ID of the document
