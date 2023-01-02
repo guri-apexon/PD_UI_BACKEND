@@ -61,7 +61,7 @@ async def get_cpt_section_data(
               if document does not exist return json response with "docid does not exist"
     """
 
-    iqv_document = crud.get_header_list(aidoc_id,link_level,link_id)
+    iqv_document = crud.get_document_object(aidoc_id,link_level,link_id)
     if iqv_document == None:
         logger.info(f"Docid {aidoc_id} does not exists")
         return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
