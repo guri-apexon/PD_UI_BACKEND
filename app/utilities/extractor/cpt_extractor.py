@@ -1,8 +1,6 @@
 import logging
 from collections import Counter
 from typing import Optional, Tuple
-import sys
-sys.path.append(r'app/api/endpoints/')
 import numpy as np
 import pandas as pd
 from etmfa_core.aidoc.io import IQVDocument

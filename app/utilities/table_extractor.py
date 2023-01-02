@@ -1,5 +1,3 @@
-import sys
-sys.path.append(r'app/api/endpoints/')
 import re
 import logging
 import pandas as pd

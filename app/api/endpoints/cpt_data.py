@@ -1,7 +1,6 @@
 from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-# from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id
 from app import crud
 from app.utilities.extractor.prepare_cpt_section_data import PrepareUpdateData
 from app.api import deps

@@ -1,6 +1,4 @@
 import logging
-import sys
-sys.path.append(r'app/api/endpoints/')
 from app.utilities.extractor_config import ModuleConfig, QcStatus
 from app.utilities.data_extractor_utils import get_redaction_entities, align_redaction_with_subtext
 from datetime import datetime
