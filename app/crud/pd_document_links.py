@@ -2,13 +2,12 @@ from typing import Optional
 import pandas as pd
 import numpy as np
 import psycopg2
-from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_headers
+from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_headers, GetIQVDocumentFromDB_with_doc_id
 from app.db.session import psqlengine
 from fastapi.responses import JSONResponse
 from fastapi import status,Response
 from app.utilities.config import settings
 import logging
-from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id
 from etmfa_core.aidoc.IQVDocumentFunctions import IQVDocument
 
 logger = logging.getLogger(settings.LOGGER_NAME)
