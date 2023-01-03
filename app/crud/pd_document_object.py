@@ -13,7 +13,7 @@ def get_document_object(aidoc_id: str, link_level: int, link_id: int) -> Optiona
     """
     :param aidoc_id: document id
     :param link_level: level of headers in toc
-    :param link_id: link id of document 
+    :param link_id: link id of particular section 
     :returns: requested section/header data
     """
 

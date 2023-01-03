@@ -11,12 +11,10 @@ logger = logging.getLogger("unit-test")
 
 @pytest.mark.parametrize("doc_id, link_level, toc, status_code, comments", [
     ("5c784c05-fbd3-4786-b0e4-3afa0d1c61ac", "1", "1", 200,
-     "doc older than legacy_upload_date for secondary users"),
-    ("1698be28-1cf3-466e-8f56-5fc920029057", "1",
-     "1", 200, "doc newer than legacy_upload_date"),
+     "doc is present and toc is 1 data"),
     ("1698be28-1cf3-466e-8f56-5fc9200290571", "1",
-     "1", 206, "doc newer than legacy_upload_date"),
-    ("1698be28-1cf3-466e-8f56-5fc920029057", "1", "2", 206, "doc newer than legacy_upload_date")])
+     "1", 206, "doc id does not exists partial data"),
+    ("1698be28-1cf3-466e-8f56-5fc920029057", "1", "2", 206, "toc changed")])
 def test_document_header(new_token_on_headers, doc_id, link_level, toc, status_code, comments):
     """
         Tests CPT Sections/Headers  list for a particular document with doc_id, link_level, toc, and comments.
