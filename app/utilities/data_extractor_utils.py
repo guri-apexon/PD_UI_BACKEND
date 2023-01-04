@@ -17,7 +17,6 @@ def get_redaction_entities(level_roi: IQVDocument = None) -> Tuple[int, list]:
     """
     redaction_entities = []
     if level_roi:
-        redaction_entities = []
         for entity in level_roi.NLP_Entities:
             for property in entity.Properties:
                 if property.key == ModuleConfig.GENERAL.REDACTION_SUBCATEGORY_KEY:
