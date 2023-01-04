@@ -10,3 +10,4 @@ fiy_*
 pd_ui_backend.egg-info
 pd_ui_backend.egg-info/*
 app/tests/.coveragerc/*
+uvicorn
