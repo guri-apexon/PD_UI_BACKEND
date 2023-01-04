@@ -228,7 +228,7 @@ class CPTExtractor:
         return display_df, search_df
 
 
-    def get_cpt_iqvdata(self) -> Tuple[Optional[dict], Optional[pd.DataFrame], Optional[int], Optional[int], Optional[int]]:
+    def get_cpt_iqvdata(self) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[int], Optional[int], Optional[int]]:
         """
         Input arguments:
         id: Unique ID of the document
