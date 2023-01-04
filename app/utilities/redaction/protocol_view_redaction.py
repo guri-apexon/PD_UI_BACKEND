@@ -19,6 +19,14 @@ db = SessionLocal()
 
 class ProtocolViewRedaction:
     def __init__(self, user_id: str, protocol: str):
+        """
+        Protocol view redaction with user id and protocal
+
+        **Parameters**
+
+        * user_id: user id requested for document to get reduct profile
+        * `protocol`: document protocol
+        """
         self.user_id = user_id
         self.protocol = protocol
 
@@ -37,6 +45,15 @@ class ProtocolViewRedaction:
                                               redact_profile_entities=self.entity_profile_genre)
 
     def get_section_to_be_redacted(self, profile_details):
+        """
+        Get section to be redacted
+        Input
+            profile_details: protocol redact profile
+        Output
+            redact_toc_flag: return toc flag 
+            redact_soa_flag: return soa flag
+            redact_summary_flag: return summary flag
+        """
         redact_toc_flag = False
         redact_soa_flag = False
         redact_summary_flag = False
