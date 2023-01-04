@@ -10,7 +10,7 @@ from etmfa_core.aidoc.IQVDocumentFunctions import IQVDocument
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
-def get_redaction_entities(level_roi: IQVDocument = None,text :str = "", text_redaction_entity :list = [], redact_profile_entities : list =[], redact_flg: bool = True) -> Tuple[int, list, str]:
+def get_redaction_entities(level_roi: IQVDocument = None) -> Tuple[int, list]:
     """
     Extracts only the redaction entities from the identified NLP entities and extracts redacted_text
     Returns: Length of redaction entities found and list of redaction entity properties and redacted text
@@ -24,17 +24,7 @@ def get_redaction_entities(level_roi: IQVDocument = None,text :str = "", text_re
                     redaction_entities.append({'standard_entity_name': entity.standard_entity_name, 'subcategory': property.value, 'text': entity.text, 'start_pos': entity.start,
                                             'text_len': len(entity.text), 'end_pos': entity.start+len(entity.text)-1, 'confidence': entity.confidence})
                              
-    redacted_text = text[:]
-    if redact_flg and text and text_redaction_entity:
-        for idx, entity in enumerate(text_redaction_entity):
-            try:
-                if entity.get('subcategory', '') in redact_profile_entities and len(
-                        config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", entity['text'])) != 0:
-                    entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity['text'])
-                    redacted_text = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, redacted_text)
-            except Exception as exc:
-                logger.warning(f"[entity# {idx}] subtext: {text}; font_info: {text_redaction_entity}; Exception message: {str(exc)}")
-    return len(redaction_entities), redaction_entities, redacted_text
+    return len(redaction_entities), redaction_entities
 
 def align_redaction_with_subtext(text: str, redaction_entities: list) -> Tuple[list, list]:
     """
@@ -63,6 +53,19 @@ def align_redaction_with_subtext(text: str, redaction_entities: list) -> Tuple[l
 
     return matched_entity_set, subtext_redaction_entities
 
+def redact_text(text :str = "", text_redaction_entity :list = [], redact_profile_entities : list =[], redact_flg: bool = True) -> str:
+    redacted_text = text[:]
+    if redact_flg and text and text_redaction_entity:
+        for idx, entity in enumerate(text_redaction_entity):
+            try:
+                if entity.get('subcategory', '') in redact_profile_entities and len(
+                        config.REGEX_SPECIAL_CHAR_REPLACE.sub(r"", entity['text'])) != 0:
+                    entity_adjusted_text = config.REGEX_SPECIAL_CHAR_REPLACE.sub(r".{1}", entity['text'])
+                    redacted_text = re.sub(entity_adjusted_text, config.REDACT_PARAGRAPH_STR, redacted_text)
+            except Exception as exc:
+                logger.warning(f"[entity# {idx}] subtext: {text}; font_info: {text_redaction_entity}; Exception message: {str(exc)}")
+
+    return redacted_text
 
 def get_matched_redact_entity_roi(roi: IQVDocument) -> Tuple[int, int, list]:
     """
@@ -71,7 +74,7 @@ def get_matched_redact_entity_roi(roi: IQVDocument) -> Tuple[int, int, list]:
     Ouput: Length of redaction entity, Length of matched redactin entity, list of redaction entity
     """
     roi_fulltext = roi.GetFullText()
-    len_redaction_entities, redaction_entities, _ = get_redaction_entities(level_roi=roi)
+    len_redaction_entities, redaction_entities = get_redaction_entities(level_roi=roi)
     roi_entity_set = set(range(0, len_redaction_entities))
     roi_matched_entity_set = set()
 

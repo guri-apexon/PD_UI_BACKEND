@@ -173,7 +173,7 @@ def ingest_doc_elastic(iqv_document, search_df):
         for kv in iqv_document.Properties:
             if kv.key in linguamatics_op_dict and linguamatics_op_dict[kv.key] == '':
                 linguamatics_op_dict[kv.key] = kv.value.strip()
-                _, redaction_entities, _ = get_redaction_entities(level_roi=kv)
+                _, redaction_entities = get_redaction_entities(level_roi=kv)
                 _, subtext_redaction_entities = align_redaction_with_subtext(kv.value, redaction_entities)
                 if subtext_redaction_entities:
                     summary_entities[kv.key] = subtext_redaction_entities

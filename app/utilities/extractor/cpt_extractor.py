@@ -46,8 +46,8 @@ class CPTExtractor:
         all_cpt_list = []
         tot_master_childbox_redaction_entity = 0
         tot_matching_master_childbox_redaction_entity = 0
-
         for master_roi in self.iqv_document.DocumentParagraphs:
+
             master_roi_dict = dict()
             for kv_obj in master_roi.Properties:
                 master_roi_dict[kv_obj.key] = kv_obj.value
@@ -70,7 +70,7 @@ class CPTExtractor:
                 master_dict['para_child_roi_text'] = ' '.join(level_roi.strTexts)
                 master_dict['para_child_font_details'] = {'IsBold': level_roi.fontInfo.Bold, 'font_size': level_roi.fontInfo.Size}
                 # Prep for subtext redaction
-                len_redaction_entities, redaction_entities, _ = utils.get_redaction_entities(level_roi=level_roi)
+                len_redaction_entities, redaction_entities = utils.get_redaction_entities(level_roi=level_roi)
                 tot_master_childbox_redaction_entity += len_redaction_entities
                 childbox_entity_set = set(range(0, len_redaction_entities))
                 subtext_matched_entity_set = set()
@@ -82,7 +82,7 @@ class CPTExtractor:
                     if len_redaction_entities:
                         matched_entity_set, subtext_redaction_entities = utils.align_redaction_with_subtext(text=iqv_subtext.strText, redaction_entities=redaction_entities)
                                                                                                             # redact_profile_entities= self.entity_profile_genre, redact_flg=True)
-                        _, _, redacted_text = utils.get_redaction_entities(text = redacted_text,
+                        _, _, redacted_text = utils.redact_text(text = redacted_text,
                                                           text_redaction_entity = subtext_redaction_entities,
                                                           redact_profile_entities=self.entity_profile_genre,
                                                           redact_flg=True
@@ -119,7 +119,7 @@ class CPTExtractor:
                 tot_matching_master_childbox_redaction_entity += len_matched_redaction_entities
 
                 if len(master_redaction_entities) and master_roi_fulltext != 'None':
-                    _, _, master_roi_fulltext = utils.get_redaction_entities(text=master_roi_fulltext,
+                    master_roi_fulltext = utils.redact_text(text=master_roi_fulltext,
                                                       text_redaction_entity=master_redaction_entities,
                                                       redact_profile_entities=self.entity_profile_genre,
                                                       redact_flg=True)
@@ -136,10 +136,9 @@ class CPTExtractor:
             if master_font_style and all_child_list:
                 len_redaction_entities, len_matched_redaction_entities, master_redaction_entities = utils.get_matched_redact_entity_roi(master_roi)
                 combined_dict = all_child_list[0]
-
                 master_roi_fulltext = master_roi.GetFullText()
                 if len(master_redaction_entities):
-                    _, _, master_roi_fulltext = utils.get_redaction_entities(text=master_roi_fulltext,
+                    master_roi_fulltext = utils.redact_text(text=master_roi_fulltext,
                                                       text_redaction_entity=master_redaction_entities,
                                                       redact_profile_entities=self.entity_profile_genre,
                                                       redact_flg=True)
