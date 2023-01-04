@@ -82,7 +82,7 @@ class CPTExtractor:
                     if len_redaction_entities:
                         matched_entity_set, subtext_redaction_entities = utils.align_redaction_with_subtext(text=iqv_subtext.strText, redaction_entities=redaction_entities)
                                                                                                             # redact_profile_entities= self.entity_profile_genre, redact_flg=True)
-                        _, _, redacted_text = utils.redact_text(text = redacted_text,
+                        redacted_text = utils.redact_text(text = redacted_text,
                                                           text_redaction_entity = subtext_redaction_entities,
                                                           redact_profile_entities=self.entity_profile_genre,
                                                           redact_flg=True
