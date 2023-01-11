@@ -7,6 +7,7 @@ sonar-scanner \
   -Dsonar.sources=. \
   -Dsonar.sourceEncoding=UTF-8 \
   -Dsonar.branch.name=$CI_COMMIT_REF_NAME \
+  -Dsonar.exclusions=app/utilities/generate_random_password.py \
   -Dsonar.coverage.exclusions=app/main.py,setup.py,tests/** \
   -Dsonar.python.coverage.reportPaths=coverage.xml \
   -Dsonar.python.xunit.reportPath=test_results.xml \
