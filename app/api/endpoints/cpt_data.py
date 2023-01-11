@@ -64,7 +64,7 @@ async def get_cpt_section_data(
     iqv_document = crud.get_document_object(aidoc_id,link_level,link_id)
     if iqv_document == None:
         logger.info(f"Docid {aidoc_id} does not exists")
-        return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,content={"message":"Docid does not exists"})
     protocol_view_redaction = ProtocolViewRedaction(userId, protocol)
     finalization_req_dict = dict()
     finalized_iqvxml = PrepareUpdateData(iqv_document, protocol_view_redaction.profile_details,

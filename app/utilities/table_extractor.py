@@ -14,8 +14,6 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 ## The below section is for reconstruction of table from the updated iqvxml after extraction service
 class SOAResponse:
     def __init__(self, iqv_document, profile_details: dict, entity_profile_genre: list):
-        if iqv_document is None:
-            return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
             
         self.tableTypeDict={'SOA':r'\b(?:Assessments|Assessment|Schedule)\b'}
         self.iqv_document = iqv_document
@@ -71,11 +69,7 @@ class SOAResponse:
             df=pd.DataFrame()
             poi=list(ModuleConfig.GENERAL.std_tags_dict.values())
             acceptroi=False
-            roi=[]
-            if roi:
-                roi=roi
-            elif toi:
-                toi=toi
+            if toi:
                 for para in self.iqv_document.DocumentTables:
                     for prop in para.Properties:
                         if prop.key== 'TableName' and self.findRgx(prop.value,self.tableTypeDict[toi])==1 :
@@ -218,7 +212,6 @@ class SOAResponse:
                     col_header=dict()
                     resulttable=pd.DataFrame()
                     resulttable=df[(df.TableIndex==tabseq)]
-                    #resulttable=resulttable.reset_index()
                     drop_rows,keep_header=self.header_finder(df=resulttable)
                     drop_rows.extend(self.drop_duplicate_header(df=resulttable))
                     resulttable=df[(df.TableIndex==tabseq) & (~(df.RowIndex.isin(drop_rows)))]

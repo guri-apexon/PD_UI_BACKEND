@@ -27,7 +27,7 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
         connection = psqlengine.raw_connection()
         iqv_doc_headers = GetIQVDocumentFromDB_headers(connection, aidoc_id)
         if iqv_doc_headers == None:
-            return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,content={"message":"Docid does not exists"})
     except (Exception, psycopg2.Error) as error:
         logger.exception(f"Failed to get connection to postgresql : {error}")
     finally:
