@@ -64,12 +64,11 @@ class SOAResponse:
 
     tableTypeDict={'SOA':r'\b(?:Assessments|Assessment|Schedule)\b'}
 
-    def getTOIfromProprties(self,roi=None,toi=None,table_indexes=[]):
+    def getTOIfromProprties(self,roi=[],toi=None,table_indexes=[]):
         try:
             df=pd.DataFrame()
             poi=list(ModuleConfig.GENERAL.std_tags_dict.values())
             acceptroi=False
-            roi = []
             if toi:
                 for para in self.iqv_document.DocumentTables:
                     for prop in para.Properties:
