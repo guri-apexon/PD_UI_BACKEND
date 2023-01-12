@@ -140,11 +140,10 @@ class PrepareUpdateData:
         except Exception as e:
             logger.warning(
                 "warning Finalization: Adding Tag to XML failed  with error : {} , The values are Key:{} value:{} id:{} ".format(
-                    e, key_data, db_data[key_data]))
+                    e, key_data, db_data[key_data], self.iqv_document.id))
 
     def normalized_soa_extraction(self, iqv_document):
         try:
-            iqv_document = self.iqv_document
             for kv in iqv_document.Properties:
                 if kv.key == 'NormalizedSOA_JSONFilename':
                     normalized_soa_path = kv.value
