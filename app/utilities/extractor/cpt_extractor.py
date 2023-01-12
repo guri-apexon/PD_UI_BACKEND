@@ -15,9 +15,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 class CPTExtractor:
     def __init__(self, iqv_document: IQVDocument, profile_details: dict, entity_profile_genre: list, response_type:str = "split", table_response_type:str = "html"):
-        if iqv_document is None:
-            return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"Docid does not exists"})
-
+        
         self.iqv_document = iqv_document
         self.response_type = response_type
         self.table_response_type = table_response_type
