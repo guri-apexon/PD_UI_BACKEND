@@ -69,6 +69,7 @@ class SOAResponse:
             df=pd.DataFrame()
             poi=list(ModuleConfig.GENERAL.std_tags_dict.values())
             acceptroi=False
+            roi = []
             if toi:
                 for para in self.iqv_document.DocumentTables:
                     for prop in para.Properties:
