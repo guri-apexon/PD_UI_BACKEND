@@ -47,7 +47,7 @@ async def get_cpt_section_data(
         userId: str = "",
         protocol: str = "",
         user: str = "",
-        # _: str = Depends(auth.validate_user_token)
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get CPT Section/Header data for particular document
@@ -76,18 +76,18 @@ async def get_cpt_section_data(
 @router.get("/get_section_data_configurable_parameter")
 async def get_cpt_section_data_with_configurable_parameter(
         db: Session = Depends(deps.get_db),
-        aidoc_id: str = "bd2fa003-13bb-45d7-87b1-ab533d300859",
+        aidoc_id: str = "",
         link_level: int = 1,
-        link_id: str = "5ae80e05-7273-11ed-82b5-005056ab6469",
-        user_id: str = "Dig2_Batch_Tester",
-        protocol: str = "emr2.962babb5-7aa7-41df-a509-55fe97fcf2bb",
+        link_id: str = "",
+        user_id: str = "",
+        protocol: str = "",
         clinical_terms: bool = None,
         time_points: bool = None,
         preferred_terms: bool = None,
         redaction_attributes: bool = None,
         references: bool = None,
         properties: bool = None,
-        # _: str = Depends(auth.validate_user_token)
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get CPT Section/Header data for particular document with Configurable
