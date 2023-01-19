@@ -19,3 +19,4 @@ from .pd_ldap_user_details import get_ldap_user_details
 from .pd_protocol_summary_entities import pd_protocol_summary_entities
 from .pd_document_links import get_document_links
 from .pd_document_object import get_document_object
+from .pd_document_config_terms import get_document_terms_data

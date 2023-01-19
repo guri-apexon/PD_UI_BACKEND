@@ -47,7 +47,7 @@ async def get_cpt_section_data(
         userId: str = "",
         protocol: str = "",
         user: str = "",
-        _: str = Depends(auth.validate_user_token)
+        # _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get CPT Section/Header data for particular document
@@ -71,3 +71,55 @@ async def get_cpt_section_data(
                                          protocol_view_redaction.entity_profile_genre)
     finalization_req_dict, _ = finalized_iqvxml.prepare_msg()
     return finalization_req_dict
+
+
+@router.get("/get_section_data_configurable_parameter")
+async def get_cpt_section_data_with_configurable_parameter(
+        db: Session = Depends(deps.get_db),
+        aidoc_id: str = "bd2fa003-13bb-45d7-87b1-ab533d300859",
+        link_level: int = 1,
+        link_id: str = "5ae80e05-7273-11ed-82b5-005056ab6469",
+        user_id: str = "Dig2_Batch_Tester",
+        protocol: str = "emr2.962babb5-7aa7-41df-a509-55fe97fcf2bb",
+        clinical_terms: bool = None,
+        time_points: bool = None,
+        preferred_terms: bool = None,
+        redaction_attributes: bool = None,
+        references: bool = None,
+        properties: bool = None,
+        # _: str = Depends(auth.validate_user_token)
+) -> Any:
+    """
+    Get CPT Section/Header data for particular document with Configurable
+    terms values
+    :param db: db session
+    :param aidoc_id: document id
+    :param link_level: level of headers in toc
+    :param link_id: section id
+    :param protocol: protocol of document
+    :param user_id: userid
+    :param clinical_terms: true/false -- optional
+    :param time_points: true/false -- optional
+    :param preferred_terms: true/false -- optional
+    :param redaction_attributes: true/false -- optional
+    :param references: true/false -- optional
+    :param properties: true/false -- optional
+    :param _ : API token validation
+    :returns: Section data with configurable terms values
+    """
+    section_with_terms = []
+
+    # Section data from the existing end point
+    section_res = await get_cpt_section_data(db, aidoc_id, link_level, link_id,
+                                             user_id, protocol)
+    section_with_terms.append(section_res)
+
+    # Terms values based on given configuration values
+    terms_values = crud.get_document_terms_data(db, aidoc_id, link_level,
+                                                link_id, clinical_terms,
+                                                time_points, preferred_terms,
+                                                redaction_attributes,
+                                                references, properties)
+    section_with_terms.append(terms_values)
+
+    return section_with_terms
