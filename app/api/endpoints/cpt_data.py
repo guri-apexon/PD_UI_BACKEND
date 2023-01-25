@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app import crud
 from app.utilities.extractor.prepare_cpt_section_data import PrepareUpdateData
+from app.utilities.section_enriched import \
+    update_section_data_with_enriched_data
 from app.api import deps
 from app.utilities.config import settings
 from app.api.endpoints import auth
@@ -38,9 +40,45 @@ async def get_cpt_headers(
     return headers_dict
 
 
+@router.get("/get_enriched_terms")
+async def get_enriched_data(
+        db: Session = Depends(deps.get_psqldb),
+        doc_id: str = "",
+        link_id: str = "",
+        _: str = Depends(auth.validate_user_token)
+) -> Any:
+    """
+    Get clinical terms values for the enriched text as per doc and section id
+    :param db: database session
+    :param doc_id: document id
+    :param link_id: link id of document as section id
+    :param _: To validate API token
+    :returns: To collect all the clinical terms values for the enriched text
+    from all over the section
+    """
+    nlp_entity_data = crud.nlp_entity_content.get(db=db, doc_id=doc_id,
+                                                  link_id=link_id)
+    clinical_data = []
+    for entity in nlp_entity_data:
+
+        clinical_values = {
+            'doc_id': entity.doc_id,
+            'link_id': entity.link_id,
+            'parent_id': entity.parent_id,
+            'text': entity.standard_entity_name
+        }
+        clinical_terms = {'preferred_term': "", 'ontology': entity.ontology,
+                          'synonyms': entity.entity_xref,
+                          'medical_term': "", 'classification': ""}
+        clinical_values.update(clinical_terms)
+        clinical_data.append(clinical_values)
+    return clinical_data
+
+
 @router.get("/get_section_data")
 async def get_cpt_section_data(
         db: Session = Depends(deps.get_db),
+        psdb: Session = Depends(deps.get_psqldb),
         aidoc_id: str = "",
         link_level: int = 1,
         link_id: str = "",
@@ -70,4 +108,11 @@ async def get_cpt_section_data(
     finalized_iqvxml = PrepareUpdateData(iqv_document, protocol_view_redaction.profile_details,
                                          protocol_view_redaction.entity_profile_genre)
     finalization_req_dict, _ = finalized_iqvxml.prepare_msg()
-    return finalization_req_dict
+
+    # Collect the enriched data based on doc and link ids.
+    enriched_data = await get_enriched_data(psdb, aidoc_id, link_id)
+
+    section_with_enriched = update_section_data_with_enriched_data(
+        section_data=finalization_req_dict, enriched_data=enriched_data)
+
+    return section_with_enriched
