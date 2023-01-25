@@ -1,0 +1,42 @@
+from sqlalchemy import Column,Index
+from .__base__ import SchemaBase
+from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER,BOOLEAN,BIGINT,JSONB,BYTEA
+
+class IqvnumberinggroupDb(SchemaBase):
+   __tablename__ = "iqvnumberinggroup_db"
+   id = Column(VARCHAR(128),primary_key=True,nullable=False)
+   doc_id = Column(TEXT)
+   link_id = Column(TEXT)
+   link_id_level2 = Column(TEXT)
+   link_id_level3 = Column(TEXT)
+   link_id_level4 = Column(TEXT)
+   link_id_level5 = Column(TEXT)
+   link_id_level6 = Column(TEXT)
+   link_id_subsection1 = Column(TEXT)
+   link_id_subsection2 = Column(TEXT)
+   link_id_subsection3 = Column(TEXT)
+   hierarchy = Column(VARCHAR(128),primary_key=True,nullable=False)
+   iqv_standard_term = Column(TEXT)
+   parent_id = Column(TEXT)
+   group_type = Column(TEXT)
+   paraIds_list = Column(TEXT)
+   paraStartIndex = Column(INTEGER,nullable=False)
+   paraEndIndex = Column(INTEGER,nullable=False)
+   countItems = Column(INTEGER,nullable=False)
+   numId = Column(INTEGER,nullable=False)
+   abstractNumId = Column(INTEGER,nullable=False)
+
+Index('iqvnumberinggroup_db_doc_id',IqvnumberinggroupDb.doc_id)
+Index('iqvnumberinggroup_db_doc_id_hierarchy',IqvnumberinggroupDb.doc_id,IqvnumberinggroupDb.hierarchy)
+Index('iqvnumberinggroup_db_iqv_standard_term',IqvnumberinggroupDb.iqv_standard_term)
+Index('iqvnumberinggroup_db_link_id',IqvnumberinggroupDb.link_id)
+Index('iqvnumberinggroup_db_link_id_level2',IqvnumberinggroupDb.link_id_level2)
+Index('iqvnumberinggroup_db_link_id_level3',IqvnumberinggroupDb.link_id_level3)
+Index('iqvnumberinggroup_db_link_id_level4',IqvnumberinggroupDb.link_id_level4)
+Index('iqvnumberinggroup_db_link_id_level5',IqvnumberinggroupDb.link_id_level5)
+Index('iqvnumberinggroup_db_link_id_level6',IqvnumberinggroupDb.link_id_level6)
+Index('iqvnumberinggroup_db_link_id_subsection1',IqvnumberinggroupDb.link_id_subsection1)
+Index('iqvnumberinggroup_db_link_id_subsection2',IqvnumberinggroupDb.link_id_subsection2)
+Index('iqvnumberinggroup_db_link_id_subsection3',IqvnumberinggroupDb.link_id_subsection3)
+Index('iqvnumberinggroup_db_parent_id',IqvnumberinggroupDb.parent_id,IqvnumberinggroupDb.group_type)
+Index('iqvnumberinggroup_db_parent_id_hierarchy',IqvnumberinggroupDb.parent_id,IqvnumberinggroupDb.hierarchy,IqvnumberinggroupDb.group_type)

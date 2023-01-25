@@ -1,0 +1,40 @@
+from sqlalchemy import Column,Index
+from .__base__ import SchemaBase
+from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER,BOOLEAN,BIGINT,JSONB,BYTEA
+
+class IqvtablecolumnheaderDb(SchemaBase):
+   __tablename__ = "iqvtablecolumnheader_db"
+   id = Column(VARCHAR(128),primary_key=True,nullable=False)
+   doc_id = Column(TEXT)
+   link_id = Column(TEXT)
+   link_id_level2 = Column(TEXT)
+   link_id_level3 = Column(TEXT)
+   link_id_level4 = Column(TEXT)
+   link_id_level5 = Column(TEXT)
+   link_id_level6 = Column(TEXT)
+   link_id_subsection1 = Column(TEXT)
+   link_id_subsection2 = Column(TEXT)
+   link_id_subsection3 = Column(TEXT)
+   hierarchy = Column(VARCHAR(128),primary_key=True,nullable=False)
+   iqv_standard_term = Column(TEXT)
+   parent_id = Column(TEXT)
+   group_type = Column(TEXT)
+   OriginalText = Column(TEXT)
+   roi_id = Column(TEXT)
+   rowIndex = Column(INTEGER,nullable=False)
+   rowRef = Column(TEXT)
+
+Index('iqvtablecolumnheader_db_doc_id',IqvtablecolumnheaderDb.doc_id)
+Index('iqvtablecolumnheader_db_doc_id_hierarchy',IqvtablecolumnheaderDb.doc_id,IqvtablecolumnheaderDb.hierarchy)
+Index('iqvtablecolumnheader_db_iqv_standard_term',IqvtablecolumnheaderDb.iqv_standard_term)
+Index('iqvtablecolumnheader_db_link_id',IqvtablecolumnheaderDb.link_id)
+Index('iqvtablecolumnheader_db_link_id_level2',IqvtablecolumnheaderDb.link_id_level2)
+Index('iqvtablecolumnheader_db_link_id_level3',IqvtablecolumnheaderDb.link_id_level3)
+Index('iqvtablecolumnheader_db_link_id_level4',IqvtablecolumnheaderDb.link_id_level4)
+Index('iqvtablecolumnheader_db_link_id_level5',IqvtablecolumnheaderDb.link_id_level5)
+Index('iqvtablecolumnheader_db_link_id_level6',IqvtablecolumnheaderDb.link_id_level6)
+Index('iqvtablecolumnheader_db_link_id_subsection1',IqvtablecolumnheaderDb.link_id_subsection1)
+Index('iqvtablecolumnheader_db_link_id_subsection2',IqvtablecolumnheaderDb.link_id_subsection2)
+Index('iqvtablecolumnheader_db_link_id_subsection3',IqvtablecolumnheaderDb.link_id_subsection3)
+Index('iqvtablecolumnheader_db_parent_id',IqvtablecolumnheaderDb.parent_id,IqvtablecolumnheaderDb.group_type)
+Index('iqvtablecolumnheader_db_parent_id_hierarchy',IqvtablecolumnheaderDb.parent_id,IqvtablecolumnheaderDb.hierarchy,IqvtablecolumnheaderDb.group_type)

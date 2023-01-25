@@ -1,10 +1,5 @@
 import logging
-import os
-
-from app import Constants
 from pydantic import BaseSettings
-
-logger = logging.getLogger(Constants.MICROSERVICE_NAME)
 
 
 class Settings(BaseSettings):
@@ -71,11 +66,6 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8'
 
 
-ENV_FILE = os.getenv(Constants.ENV_FILE_VAR_NAME)
-if ENV_FILE is None:
-    logger.warning(f"PD_UI_BACKEND_ENV_FILE env variable is not set. Searching the .env file in PATH location")
-    ENV_FILE = '.env'
-else:
-    logger.info(f"Using PD_UI_BACKEND_ENV_FILE env file [{ENV_FILE}]")
 
+ENV_FILE = '.env'
 settings = Settings(_env_file=ENV_FILE, _env_file_encoding='utf-8')

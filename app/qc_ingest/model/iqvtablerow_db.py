@@ -1,0 +1,42 @@
+from sqlalchemy import Column,Index
+from .__base__ import SchemaBase
+from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER,BOOLEAN,BIGINT,JSONB,BYTEA
+
+class IqvtablerowDb(SchemaBase):
+   __tablename__ = "iqvtablerow_db"
+   id = Column(VARCHAR(128),primary_key=True,nullable=False)
+   doc_id = Column(TEXT)
+   link_id = Column(TEXT)
+   link_id_level2 = Column(TEXT)
+   link_id_level3 = Column(TEXT)
+   link_id_level4 = Column(TEXT)
+   link_id_level5 = Column(TEXT)
+   link_id_level6 = Column(TEXT)
+   link_id_subsection1 = Column(TEXT)
+   link_id_subsection2 = Column(TEXT)
+   link_id_subsection3 = Column(TEXT)
+   hierarchy = Column(VARCHAR(128),primary_key=True,nullable=False)
+   iqv_standard_term = Column(TEXT)
+   parent_id = Column(TEXT)
+   group_type = Column(TEXT)
+   minY = Column(INTEGER,nullable=False)
+   maxY = Column(INTEGER,nullable=False)
+   tableIndex = Column(INTEGER,nullable=False)
+   tableRowIndex = Column(INTEGER,nullable=False)
+   tableRowRef = Column(TEXT)
+   header = Column(TEXT)
+
+Index('iqvtablerow_db_doc_id',IqvtablerowDb.doc_id)
+Index('iqvtablerow_db_doc_id_hierarchy',IqvtablerowDb.doc_id,IqvtablerowDb.hierarchy)
+Index('iqvtablerow_db_iqv_standard_term',IqvtablerowDb.iqv_standard_term)
+Index('iqvtablerow_db_link_id',IqvtablerowDb.link_id)
+Index('iqvtablerow_db_link_id_level2',IqvtablerowDb.link_id_level2)
+Index('iqvtablerow_db_link_id_level3',IqvtablerowDb.link_id_level3)
+Index('iqvtablerow_db_link_id_level4',IqvtablerowDb.link_id_level4)
+Index('iqvtablerow_db_link_id_level5',IqvtablerowDb.link_id_level5)
+Index('iqvtablerow_db_link_id_level6',IqvtablerowDb.link_id_level6)
+Index('iqvtablerow_db_link_id_subsection1',IqvtablerowDb.link_id_subsection1)
+Index('iqvtablerow_db_link_id_subsection2',IqvtablerowDb.link_id_subsection2)
+Index('iqvtablerow_db_link_id_subsection3',IqvtablerowDb.link_id_subsection3)
+Index('iqvtablerow_db_parent_id',IqvtablerowDb.parent_id,IqvtablerowDb.group_type)
+Index('iqvtablerow_db_parent_id_hierarchy',IqvtablerowDb.parent_id,IqvtablerowDb.hierarchy,IqvtablerowDb.group_type)

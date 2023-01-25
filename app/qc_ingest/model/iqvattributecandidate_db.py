@@ -1,0 +1,41 @@
+from sqlalchemy import Column,Index
+from .__base__ import SchemaBase
+from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER,BOOLEAN,BIGINT,JSONB,BYTEA
+
+class IqvattributecandidateDb(SchemaBase):
+   __tablename__ = "iqvattributecandidate_db"
+   id = Column(VARCHAR(128),primary_key=True,nullable=False)
+   doc_id = Column(TEXT)
+   link_id = Column(TEXT)
+   link_id_level2 = Column(TEXT)
+   link_id_level3 = Column(TEXT)
+   link_id_level4 = Column(TEXT)
+   link_id_level5 = Column(TEXT)
+   link_id_level6 = Column(TEXT)
+   link_id_subsection1 = Column(TEXT)
+   link_id_subsection2 = Column(TEXT)
+   link_id_subsection3 = Column(TEXT)
+   hierarchy = Column(VARCHAR(128),primary_key=True,nullable=False)
+   iqv_standard_term = Column(TEXT)
+   parent_id = Column(TEXT)
+   group_type = Column(TEXT)
+   AttributeKey = Column(TEXT)
+   AttributeValue = Column(TEXT)
+   roi_id = Column(TEXT)
+   RawProbabilitiyScore = Column(DOUBLE_PRECISION,nullable=False)
+   CandidateSelected = Column(INTEGER,nullable=False)
+
+Index('iqvattributecandidate_db_doc_id',IqvattributecandidateDb.doc_id)
+Index('iqvattributecandidate_db_doc_id_hierarchy',IqvattributecandidateDb.doc_id,IqvattributecandidateDb.hierarchy)
+Index('iqvattributecandidate_db_iqv_standard_term',IqvattributecandidateDb.iqv_standard_term)
+Index('iqvattributecandidate_db_link_id',IqvattributecandidateDb.link_id)
+Index('iqvattributecandidate_db_link_id_level2',IqvattributecandidateDb.link_id_level2)
+Index('iqvattributecandidate_db_link_id_level3',IqvattributecandidateDb.link_id_level3)
+Index('iqvattributecandidate_db_link_id_level4',IqvattributecandidateDb.link_id_level4)
+Index('iqvattributecandidate_db_link_id_level5',IqvattributecandidateDb.link_id_level5)
+Index('iqvattributecandidate_db_link_id_level6',IqvattributecandidateDb.link_id_level6)
+Index('iqvattributecandidate_db_link_id_subsection1',IqvattributecandidateDb.link_id_subsection1)
+Index('iqvattributecandidate_db_link_id_subsection2',IqvattributecandidateDb.link_id_subsection2)
+Index('iqvattributecandidate_db_link_id_subsection3',IqvattributecandidateDb.link_id_subsection3)
+Index('iqvattributecandidate_db_parent_id',IqvattributecandidateDb.parent_id,IqvattributecandidateDb.group_type)
+Index('iqvattributecandidate_db_parent_id_hierarchy',IqvattributecandidateDb.parent_id,IqvattributecandidateDb.hierarchy,IqvattributecandidateDb.group_type)

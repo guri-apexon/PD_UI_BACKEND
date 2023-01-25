@@ -1,0 +1,43 @@
+from sqlalchemy import Column,Index
+from .__base__ import SchemaBase
+from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER,BOOLEAN,BIGINT,JSONB,BYTEA
+
+class NlpSystemMappingDb(SchemaBase):
+   __tablename__ = "nlp_system_mapping_db"
+   id = Column(VARCHAR(128),primary_key=True,nullable=False)
+   doc_id = Column(TEXT)
+   link_id = Column(TEXT)
+   link_id_level2 = Column(TEXT)
+   link_id_level3 = Column(TEXT)
+   link_id_level4 = Column(TEXT)
+   link_id_level5 = Column(TEXT)
+   link_id_level6 = Column(TEXT)
+   link_id_subsection1 = Column(TEXT)
+   link_id_subsection2 = Column(TEXT)
+   link_id_subsection3 = Column(TEXT)
+   hierarchy = Column(VARCHAR(128),primary_key=True,nullable=False)
+   iqv_standard_term = Column(TEXT)
+   parent_id = Column(TEXT)
+   group_type = Column(TEXT)
+   QCFeedbackUIKey = Column(TEXT)
+   NLPSystem = Column(TEXT)
+   NLPSystemVersion = Column(TEXT)
+   FilenameKey = Column(TEXT)
+   EntityKey = Column(TEXT)
+   NLPSystemQueryName = Column(TEXT)
+   DataType = Column(TEXT)
+
+Index('nlp_system_mapping_db_doc_id',NlpSystemMappingDb.doc_id)
+Index('nlp_system_mapping_db_doc_id_hierarchy',NlpSystemMappingDb.doc_id,NlpSystemMappingDb.hierarchy)
+Index('nlp_system_mapping_db_iqv_standard_term',NlpSystemMappingDb.iqv_standard_term)
+Index('nlp_system_mapping_db_link_id',NlpSystemMappingDb.link_id)
+Index('nlp_system_mapping_db_link_id_level2',NlpSystemMappingDb.link_id_level2)
+Index('nlp_system_mapping_db_link_id_level3',NlpSystemMappingDb.link_id_level3)
+Index('nlp_system_mapping_db_link_id_level4',NlpSystemMappingDb.link_id_level4)
+Index('nlp_system_mapping_db_link_id_level5',NlpSystemMappingDb.link_id_level5)
+Index('nlp_system_mapping_db_link_id_level6',NlpSystemMappingDb.link_id_level6)
+Index('nlp_system_mapping_db_link_id_subsection1',NlpSystemMappingDb.link_id_subsection1)
+Index('nlp_system_mapping_db_link_id_subsection2',NlpSystemMappingDb.link_id_subsection2)
+Index('nlp_system_mapping_db_link_id_subsection3',NlpSystemMappingDb.link_id_subsection3)
+Index('nlp_system_mapping_db_parent_id',NlpSystemMappingDb.parent_id,NlpSystemMappingDb.group_type)
+Index('nlp_system_mapping_db_parent_id_hierarchy',NlpSystemMappingDb.parent_id,NlpSystemMappingDb.hierarchy,NlpSystemMappingDb.group_type)

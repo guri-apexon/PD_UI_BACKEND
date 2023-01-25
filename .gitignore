@@ -1,6 +1,9 @@
 .idea/
 *.db
 .env
+.venv
+env/
+venv/
 *.env
 __pycache__/
 .vscode/*
@@ -11,3 +14,4 @@ pd_ui_backend.egg-info
 pd_ui_backend.egg-info/*
 app/tests/.coveragerc/*
 uvicorn
+.etmfa_core-0.1-py2.py3-none-any.whl
