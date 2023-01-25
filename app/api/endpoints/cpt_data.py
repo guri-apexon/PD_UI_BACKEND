@@ -8,8 +8,8 @@ from app.utilities.section_enriched import \
 from app.api import deps
 from app.utilities.config import settings
 from app.api.endpoints import auth
-from app.utilities.redaction.protocol_view_redaction import ProtocolViewRedaction
-from app.db.session import psqlengine
+from app.utilities.redaction.protocol_view_redaction import \
+    ProtocolViewRedaction
 from fastapi.responses import JSONResponse
 from fastapi import status
 import logging
@@ -99,13 +99,14 @@ async def get_cpt_section_data(
               if document does not exist return json response with "docid does not exist"
     """
 
-    iqv_document = crud.get_document_object(aidoc_id,link_level,link_id)
-    if iqv_document == None:
+    iqv_document = crud.get_document_object(aidoc_id, link_level, link_id)
+    if iqv_document is None:
         logger.info(f"Docid {aidoc_id} does not exists")
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,content={"message":"This document is not available in our database"})
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={
+            "message": "This document is not available in our database"})
     protocol_view_redaction = ProtocolViewRedaction(userId, protocol)
-    finalization_req_dict = dict()
-    finalized_iqvxml = PrepareUpdateData(iqv_document, protocol_view_redaction.profile_details,
+    finalized_iqvxml = PrepareUpdateData(iqv_document,
+                                         protocol_view_redaction.profile_details,
                                          protocol_view_redaction.entity_profile_genre)
     finalization_req_dict, _ = finalized_iqvxml.prepare_msg()
 
