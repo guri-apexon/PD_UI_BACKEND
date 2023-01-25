@@ -8,6 +8,9 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 
 class NlpEntityCrud(NlpentityDb):
+    """
+    NLP Entity crud operation to get entity object with clinical terms.
+    """
 
     def get(self, db: Session, doc_id: str, link_id: str):
         try:
