@@ -39,8 +39,7 @@ class CRUDProtocolData(CRUDBase[PD_Protocol_Data, ProtocolDataCreate, ProtocolDa
         except Exception as ex:
             resource = None
             logger.exception("Exception in retrieval of data from table", ex)
-        finally:
-            return resource
+        return resource
 
     def create(self, db: Session, *, obj_in: ProtocolDataCreate) -> PD_Protocol_Data:
         db_obj = PD_Protocol_Data(id=obj_in.id,
