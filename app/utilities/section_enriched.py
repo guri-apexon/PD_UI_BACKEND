@@ -2,7 +2,6 @@ import logging
 from app.utilities.config import settings
 import pandas as pd
 
-
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
@@ -31,13 +30,11 @@ def update_section_data_with_enriched_data(section_data: dict,
 
             rows = enriched_df[
                 enriched_df['parent_id'].isin([para_id, childbox, subtext])]
-
+            # remove the duplicates records from the rows df
             rows.drop_duplicates(subset=['text'], inplace=True)
-
+            # Deleted df columns which is not needed any more
             rows.drop(['doc_id', 'link_id', 'parent_id'], axis=1, inplace=True)
-
             terms_values = rows.set_index('text').to_dict(orient='index')
-
             sub_section.update({'clinical_terms': terms_values})
 
     return section_data
