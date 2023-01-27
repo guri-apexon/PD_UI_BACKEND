@@ -60,17 +60,17 @@ async def get_enriched_data(
                                                   link_id=link_id)
     clinical_data = []
     for entity in nlp_entity_data:
-
         clinical_values = {
             'doc_id': entity.doc_id,
             'link_id': entity.link_id,
             'parent_id': entity.parent_id,
-            'text': entity.standard_entity_name
+            'text': entity.standard_entity_name,
+            'preferred_term': entity.iqv_standard_term,
+            'ontology': entity.ontology,
+            'synonyms': entity.entity_xref,
+            'medical_term': "",
+            'classification': entity.entity_class
         }
-        clinical_terms = {'preferred_term': "", 'ontology': entity.ontology,
-                          'synonyms': entity.entity_xref,
-                          'medical_term': "", 'classification': ""}
-        clinical_values.update(clinical_terms)
         clinical_data.append(clinical_values)
     return clinical_data
 
@@ -98,7 +98,6 @@ async def get_cpt_section_data(
     :returns: requested section/header data
               if document does not exist return json response with "docid does not exist"
     """
-
     iqv_document = crud.get_document_object(aidoc_id, link_level, link_id)
     if iqv_document is None:
         logger.info(f"Docid {aidoc_id} does not exists")
@@ -112,7 +111,6 @@ async def get_cpt_section_data(
 
     # Collect the enriched data based on doc and link ids.
     enriched_data = await get_enriched_data(psdb, aidoc_id, link_id)
-
     section_with_enriched = update_section_data_with_enriched_data(
         section_data=finalization_req_dict, enriched_data=enriched_data)
 

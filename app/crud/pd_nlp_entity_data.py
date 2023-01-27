@@ -1,6 +1,5 @@
 import logging
 from app.utilities.config import settings
-
 from app.models.pd_nlp_entity_db import NlpentityDb
 from sqlalchemy.orm import Session
 
@@ -11,7 +10,6 @@ class NlpEntityCrud(NlpentityDb):
     """
     NLP Entity crud operation to get entity object with clinical terms.
     """
-
     def get(self, db: Session, doc_id: str, link_id: str):
         try:
             all_term_data = db.query(NlpentityDb).filter(
