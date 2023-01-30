@@ -34,5 +34,5 @@ class PD_User_Protocols(Base):
 
     def as_dict(self):
         obj = {c.name: getattr(self, c.name) for c in self.__table__.columns}
-        obj[self.name] = self.value
+        # obj[self.name] = self.value
         return obj
