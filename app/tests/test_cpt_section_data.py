@@ -15,7 +15,9 @@ logger = logging.getLogger("unit-test")
     ("1698be28-1cf3-466e-8f56-5fc920029056", "1", "", "1036048",
      "FEED_TEST4", 404, "doc id changes"),
     ("21552918-f506-43d8-8879-4fe532631ba7", "", "8f8e70a7-cb76-4257-b595-80a2564a8aa2", "Dig2_Batch_Tester",
-     "BI.Obesity.91af1307-5fc5-40cd-9671-b82771a42b2f", 200, "doc id and link id present")
+     "BI.Obesity.91af1307-5fc5-40cd-9671-b82771a42b2f", 200, "doc id and link id present"),
+    ("4c7ea27b-8a6b-4bf0-a8ed-2c1e49bbdc8c", "1", "46bac1b7-9197-11ed-b507-005056ab6469", "Dig2_Batch_Tester",
+     "005", 200, "doc id and link id with enriched data")
 ])
 def test_document_object(new_token_on_headers, user_id, protocol, doc_id, status_code, link_level, link_id, comments):
     """
