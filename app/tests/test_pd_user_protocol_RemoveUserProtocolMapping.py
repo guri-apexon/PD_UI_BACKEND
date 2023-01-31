@@ -41,3 +41,8 @@ def test_soft_delete(userId, protocol, isActive, expected_response, new_token_on
             assert True
     else:
         assert False
+
+
+def test_user_protocol_model():
+    protocol_obj = PD_User_Protocols()
+    assert protocol_obj.as_dict().get('isActive') is True
