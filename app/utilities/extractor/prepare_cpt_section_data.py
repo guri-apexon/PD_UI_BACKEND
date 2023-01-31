@@ -125,23 +125,6 @@ class PrepareUpdateData:
 
         return display_df.to_dict(orient = 'records') if display_df is not None else dict()
 
-    def _add_tag(self, db_data):
-        try:
-            iqv_document = self.iqv_document
-            roi_obj = iqv_document
-
-            for key_data in db_data.keys():
-                kv_obj = IQVKeyValueSet()
-                kv_obj.key = key_data
-                kv_obj.value = str(db_data[key_data])
-                roi_obj.Properties.append(kv_obj)
-            return (iqv_document)
-
-        except Exception as e:
-            logger.warning(
-                "warning Finalization: Adding Tag to XML failed  with error : {} , The values are Key:{} value:{} id:{} ".format(
-                    e, key_data, db_data[key_data], self.iqv_document.id))
-
     def normalized_soa_extraction(self, iqv_document):
         try:
             for kv in iqv_document.Properties:
