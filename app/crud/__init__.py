@@ -20,3 +20,4 @@ from .pd_protocol_summary_entities import pd_protocol_summary_entities
 from .pd_document_links import get_document_links
 from .pd_document_object import get_document_object
 from .pd_document_config_terms import get_document_terms_data
+from .pd_nlp_entity_data import nlp_entity_content
