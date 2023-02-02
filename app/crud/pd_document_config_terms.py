@@ -36,7 +36,7 @@ def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
 
     if "time_points" in config_variables:        
         if new_link_id:
-            iqv_time_point_visit_records = db.query(IqvvisitrecordDb).filter(IqvvisitrecordDb.doc_id == aidoc_id, IqvvisitrecordDb.link_id == new_link_id).all()
+            iqv_time_point_visit_records = db.query(IqvvisitrecordDb).filter(IqvvisitrecordDb.doc_id == aidoc_id, IqvvisitrecordDb.table_roi_id == new_link_id).all()
         else:
             iqv_time_point_visit_records = db.query(IqvvisitrecordDb).filter(IqvvisitrecordDb.doc_id == aidoc_id).all()
         time_points_values = [{"id":iqvvisit_record.id,"time_point":iqvvisit_record.visit_timepoint,"table_roi_id":iqvvisit_record.table_roi_id} for iqvvisit_record in iqv_time_point_visit_records]
