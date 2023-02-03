@@ -8,3 +8,4 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 PSQL_URL = f"postgresql://{settings.PostgreSQL_USER}:{settings.PostgreSQL_PASSWORD}@{settings.PostgreSQL_HOST}:{settings.PostgreSQL_PORT}/{settings.PostgreSQL_DATABASE}"  
 psqlengine = create_engine(PSQL_URL)
+SessionPSQL = sessionmaker(autocommit=False, autoflush=False, bind=psqlengine)

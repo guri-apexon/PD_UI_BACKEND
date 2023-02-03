@@ -94,7 +94,6 @@ async def qc1_protocol_upload(*,
     """
     try:
         protocol_data_updation_status = ""
-        aidoc_id = aidoc_id
         protocol_file_path = save_request_file(aidoc_id, iqvdata_xls_file)['file_path']
         validate_qc_protocol_file(iqvdata_xls_file.content_type)
 
