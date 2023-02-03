@@ -78,4 +78,8 @@ class NlpEntityUpdate(BaseModel):
     ontology: str = ''
 
 
+class NlpEntityData(BaseModel):
+    data: NlpEntityUpdate
+
+
 
