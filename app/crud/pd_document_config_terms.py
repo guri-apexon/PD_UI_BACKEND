@@ -34,22 +34,20 @@ def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
     :returns: list of configurable terms values
     """
 
-    if link_id:
-        new_link_id = link_id
-    elif section_text:
+    if section_text:
         try:        
             get_link_id = db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.LinkText == section_text).one()
-            new_link_id = get_link_id.link_id
+            link_id = get_link_id.link_id
         except Exception as e:
-            new_link_id = ""    
-    else:
-        new_link_id = ""
+            logger.exception(f"Exception occured during getting link id {section_text}, {str(e)}")
+            link_id = ""    
+
 
     terms_values = {}
 
     if "time_points" in config_variables:        
-        if new_link_id:
-            iqv_time_point_visit_records = db.query(IqvvisitrecordDb).filter(IqvvisitrecordDb.doc_id == aidoc_id, IqvvisitrecordDb.table_roi_id == new_link_id).all()
+        if link_id:
+            iqv_time_point_visit_records = db.query(IqvvisitrecordDb).filter(IqvvisitrecordDb.doc_id == aidoc_id, IqvvisitrecordDb.table_roi_id == link_id).all()
         else:
             iqv_time_point_visit_records = db.query(IqvvisitrecordDb).filter(IqvvisitrecordDb.doc_id == aidoc_id).all()
         time_points_values = [{"id":iqvvisit_record.id,"time_point":iqvvisit_record.visit_timepoint,"table_roi_id":iqvvisit_record.table_roi_id} for iqvvisit_record in iqv_time_point_visit_records]
@@ -57,8 +55,8 @@ def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
         logger.info(f"time points results {time_points_values}")
     
     if "clinical_terms" in config_variables:
-        if new_link_id:
-            clinical_terms = db.query(NlpentityDb).filter(NlpentityDb.doc_id == aidoc_id, NlpentityDb.link_id == new_link_id).all()
+        if link_id:
+            clinical_terms = db.query(NlpentityDb).filter(NlpentityDb.doc_id == aidoc_id, NlpentityDb.link_id == link_id).all()
         else:
             clinical_terms = db.query(NlpentityDb).filter(NlpentityDb.doc_id == aidoc_id).all()
 
@@ -68,9 +66,9 @@ def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
         logger.info(f"clinical terms results {clinical_values}")
 
     if "preferred_terms" in config_variables:
-        if new_link_id:
-            all_term_data = db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.link_id == new_link_id).all()
-            all_term_data_from_tables = db.query(DocumenttablesDb).filter(DocumenttablesDb.doc_id == aidoc_id, DocumenttablesDb.link_id == new_link_id).all()
+        if link_id:
+            all_term_data = db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.link_id == link_id).all()
+            all_term_data_from_tables = db.query(DocumenttablesDb).filter(DocumenttablesDb.doc_id == aidoc_id, DocumenttablesDb.link_id == link_id).all()
         else:
             all_term_data = db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.doc_id == aidoc_id).all()
             all_term_data_from_tables = db.query(DocumenttablesDb).filter(DocumenttablesDb.doc_id == aidoc_id).all()
@@ -82,8 +80,8 @@ def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
         logger.info(f"preferred terms results {all_term_records}")
         
     if "references" in config_variables:
-        if new_link_id:
-            reference_links = db.query(IqvexternallinkDb).filter(IqvexternallinkDb.doc_id == aidoc_id, IqvexternallinkDb.link_id == new_link_id).all()
+        if link_id:
+            reference_links = db.query(IqvexternallinkDb).filter(IqvexternallinkDb.doc_id == aidoc_id, IqvexternallinkDb.link_id == link_id).all()
         else:
             reference_links = db.query(IqvexternallinkDb).filter(IqvexternallinkDb.doc_id == aidoc_id).all()
 
@@ -95,8 +93,8 @@ def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
         logger.info(f"references results {references_values}")
     
     if "properties" in config_variables:
-        if new_link_id:
-            property_data = db.query(IqvkeyvaluesetDb).filter(IqvkeyvaluesetDb.doc_id == aidoc_id, IqvkeyvaluesetDb.link_id == new_link_id).all()
+        if link_id:
+            property_data = db.query(IqvkeyvaluesetDb).filter(IqvkeyvaluesetDb.doc_id == aidoc_id, IqvkeyvaluesetDb.link_id == link_id).all()
         else:
             property_data = db.query(IqvkeyvaluesetDb).filter(IqvkeyvaluesetDb.doc_id == aidoc_id).all()
 
@@ -105,8 +103,8 @@ def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
         logger.info(f"properties results {preferred_values}")
 
     if "redaction_attributes" in config_variables:
-        if new_link_id:
-            redaction_values = db.query(IqvkeyvaluesetDb).filter(IqvkeyvaluesetDb.doc_id == aidoc_id, IqvkeyvaluesetDb.key == ModuleConfig.GENERAL.REDACTION_SUBCATEGORY_KEY, IqvkeyvaluesetDb.link_id == new_link_id).all()
+        if link_id:
+            redaction_values = db.query(IqvkeyvaluesetDb).filter(IqvkeyvaluesetDb.doc_id == aidoc_id, IqvkeyvaluesetDb.key == ModuleConfig.GENERAL.REDACTION_SUBCATEGORY_KEY, IqvkeyvaluesetDb.link_id == link_id).all()
         else:
             redaction_values = db.query(IqvkeyvaluesetDb).filter(IqvkeyvaluesetDb.doc_id == aidoc_id, IqvkeyvaluesetDb.key == ModuleConfig.GENERAL.REDACTION_SUBCATEGORY_KEY).all()
 
