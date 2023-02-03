@@ -19,6 +19,19 @@ def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
     """
     Collect terms values based on provided configuration values for the
     document section
+    terms values
+    :param db: db session
+    :param aidoc_id: document id
+    :param link_level: level of headers in toc
+    :param link_id: section id
+    :param config_variables is string separated by ,
+        :param clinical_terms -- optional
+        :param time_points -- optional
+        :param preferred_terms -- optional
+        :param redaction_attributes -- optional
+        :param references -- optional
+        :param properties -- optional
+    :returns: list of configurable terms values
     """
 
     if link_id:

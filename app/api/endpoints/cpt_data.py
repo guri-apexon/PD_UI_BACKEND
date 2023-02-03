@@ -85,7 +85,7 @@ async def get_cpt_section_data(
         userId: str = "",
         protocol: str = "",
         user: str = "",
-        # _: str = Depends(auth.validate_user_token)
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get CPT Section/Header data for particular document
@@ -142,20 +142,16 @@ async def get_cpt_section_data_with_configurable_parameter(
     :param _ : API token validation
     :returns: Section data with configurable terms values
     """
-    section_with_terms = []
 
     # Section data from the existing end point
     section_res = await get_cpt_section_data("",db, aidoc_id, link_level, link_id,
                                              user_id, protocol)
-    section_with_terms.append(section_res)
 
     # Terms values based on given configuration values
     terms_values = crud.get_document_terms_data(psdb, aidoc_id, link_level,
                                                 link_id, config_variables,section_text)
-    section_with_terms.append(terms_values)
 
     # enriched data from existing end point
     enriched_data = await get_enriched_data( psdb,aidoc_id,link_id)
-    section_with_terms.append(enriched_data)
 
-    return section_with_terms
+    return [section_res, terms_values, enriched_data]
