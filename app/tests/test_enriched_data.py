@@ -48,7 +48,7 @@ def collect_protocol_data():
 def test_create_new_entity(doc_id, link_id, enriched_text,
                            status_code, new_token_on_headers):
     """ To verify newly created entity with updated clinical terms """
-    create_entity = client.post("/api/cpt_data/enriched_data",
+    create_entity = client.post("/api/cpt_data/update_enriched_data",
                                 params={"doc_id": doc_id, "link_id": link_id},
                                 json={"data": {
                                     "standard_entity_name": enriched_text,

@@ -117,7 +117,7 @@ async def get_cpt_section_data(
     return section_with_enriched
 
 
-@router.post("/enriched_data")
+@router.post("/update_enriched_data")
 def create_enriched_data(
         *,
         db: Session = Depends(deps.get_psqldb),
