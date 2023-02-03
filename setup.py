@@ -44,7 +44,11 @@ setup(
     # Dependent packages (distributions)
     install_requires=requirements,
 
+<<<<<<< HEAD
 	python_requires=">=3.7.3",
+=======
+	python_requires=">=3.7",
+>>>>>>> 8b95e97247bfd69d4ee069e419096860e93f957b
 
 	entry_points={
         'console_scripts': [
