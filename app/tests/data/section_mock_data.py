@@ -57,5 +57,8 @@ configuration_api_data = [
     ("00d9456f-b5d3-4045-b76f-3bdecbe99775","","","1150903","005",
      "clinical_terms,time_points,preferred_terms,redaction_attributes,references","Protocol H9X-MC-GBGJ (a)",200,"all configration variables with section text"),
     ("00d9456f-b5d3-4045-b76f-3bdecbe99775","","a1b79393-a1b7-11ed-b15c-005056ab6469","1150903","005",
-     "clinical_terms,preferred_terms,redaction_attributes,references,properties","",200,"all configration variables with link id")
+     "clinical_terms,preferred_terms,redaction_attributes,references,properties,time_points","",200,"all configration variables with link id"),
+    ("00d9456f-b5d3-4045-b76f-3bdecbe99775","","a1b79393-a1b7-11ed-b15c-005056ab6469","1150903","005",
+     "clinical_terms,preferred_terms,redaction_attributes,references,properties,time_points","test",200,"all configration variables with link id")
+
 ]

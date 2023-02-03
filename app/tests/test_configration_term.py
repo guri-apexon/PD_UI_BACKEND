@@ -16,6 +16,6 @@ def test_configration_variables(new_token_on_headers, user_id, protocol, doc_id,
         Tests document Section/Header data for document with doc_id, protocol, user_id, link_level and link_id.
     """
     get_config_variables = client.get("/api/cpt_data/get_section_data_configurable_parameter/", params={
-                                      "aidoc_id": doc_id, "linklevel": link_level, "linlid": link_id, "userId": user_id, "protocol": protocol, "section_text": section_text, "config_variables": config_variables}, headers=new_token_on_headers)
+                                      "aidoc_id": doc_id, "linklevel": link_level, "link_id": link_id, "userId": user_id, "protocol": protocol, "section_text": section_text, "config_variables": config_variables}, headers=new_token_on_headers)
     assert get_config_variables.status_code == status_code
     
