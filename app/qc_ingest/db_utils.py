@@ -143,6 +143,77 @@ def db_add(val_list):
                         add_obj = session.add(data)
         session.commit()
 
+def db_add_image(val_list):
+    with Session() as session:
+        for data_dict in val_list:
+            for content_type, data in data_dict.items():
+                table_name = table_dict.get(content_type)
+                
+                for para_data in data:
+                    obj1 = session.query(table_name).filter(and_(table_name.doc_id == para_data.get('doc_id'), table_name.link_id == para_data.get('link_id'),
+                                                                table_name.link_id_level2 == para_data.get(
+                                                                    'link_id_level2'), table_name.link_id_level3 == para_data.get('link_id_level3'),
+                                                                table_name.link_id_level4 == para_data.get(
+                                                                    'link_id_level4'), table_name.link_id_level5 == para_data.get('link_id_level5'),
+                                                                table_name.link_id_level6 == para_data.get(
+                                                                    'link_id_level6'), table_name.link_id_subsection1 == para_data.get('link_id_subsection1'),
+                                                                table_name.link_id_subsection2 == para_data.get(
+                                                                    'link_id_subsection2'), table_name.link_id_subsection3 == para_data.get('link_id_subsection3'),
+                                                                table_name.parent_id == para_data.get('parent_id'), table_name.DocumentSequenceIndex > para_data.get('DocumentSequenceIndex')))
+                    for row in obj1:
+                        if row is not None:
+                            row.DocumentSequenceIndex = row.DocumentSequenceIndex + 1
+                            row.SequenceID = row.SequenceID + 1
+                    para_data = table_name(**para_data)
+                    add_obj = session.add(para_data)
+
+
+def db_update_image(val_list):
+    with Session() as session:
+        for data_dict in val_list:
+            for content_type, data in data_dict.items():
+                line_id = data['line_id']
+                chunks = [line_id[i:i+36] for i in range(0, len(line_id), 36)]
+                id = chunks[0]
+                table_name = table_dict.get(content_type)
+                obj = session.query(table_name).filter(
+                    table_name.id == id)
+                for row in obj:
+                    row.strText = data.get('content')
+        session.commit()
+
+def db_delete_image(val_list):
+    with Session() as session:
+        for data_dict in val_list:
+            for content_type, data in data_dict.items():
+                line_detail = None
+                line_id = data['line_id']
+                chunks = [line_id[i:i+36] for i in range(0, len(line_id), 36)]
+                id = chunks[0]
+                obj = session.query(table_name).filter(
+                        table_name.id == id)
+                for row in obj:
+                    line_detail = row.__dict__
+                table_name = table_dict.get(content_type)
+                del_obj = session.query(table_name).filter(
+                    table_name.id == id).delete()
+
+                obj1 = session.query(table_name).filter(and_(table_name.doc_id == line_detail.get('doc_id'), table_name.link_id == line_detail.get('link_id'),
+                                                                 table_name.link_id_level2 == line_detail.get(
+                                                                     'link_id_level2'), table_name.link_id_level3 == line_detail.get('link_id_level3'),
+                                                                 table_name.link_id_level4 == line_detail.get(
+                                                                     'link_id_level4'), table_name.link_id_level5 == line_detail.get('link_id_level5'),
+                                                                 table_name.link_id_level6 == line_detail.get(
+                                                                     'link_id_level6'), table_name.link_id_subsection1 == line_detail.get('link_id_subsection1'),
+                                                                 table_name.link_id_subsection2 == line_detail.get(
+                                                                     'link_id_subsection2'), table_name.link_id_subsection3 == line_detail.get('link_id_subsection3'),
+                                                                 table_name.parent_id == line_detail.get('parent_id'), table_name.DocumentSequenceIndex > line_detail.get('DocumentSequenceIndex')))
+                for row in obj1:
+                    if row is not None:
+                        row.DocumentSequenceIndex = row.DocumentSequenceIndex - 1
+                        row.SequenceID = row.SequenceID - 1
+        session.commit()
+
 
 def get_prev_line_detail(id, content_type):
     prev_line_details = None
