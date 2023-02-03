@@ -1,3 +1,5 @@
+from model import *
+
 class Document:
 
     id = ""
@@ -191,3 +193,20 @@ class DocumentLink:
     LinkLevel = 0
     LinkText = ""
     LinkPrefix = ""
+
+class TableType:
+
+    table_dict = {'text': DocumentparagraphsDb, 'tablecell': DocumenttablesDb, 'font_info': FontinfoDb, 'image': DocumentimagesDb,
+              'header': DocumentparagraphsDb,'link_db': IqvdocumentlinkDb, 'subtext': IqvsubtextDb}
+
+class Linklevel:
+
+    link_level_dict = {"1": "link_id",
+                   "2": "link_id_level2",
+                   "3": "link_id_level3",
+                   "4": "link_id_level4",
+                   "5": "link_id_level5",
+                   "6": "link_id_level6",
+                   "7": "link_id_subsection1",
+                   "8": "link_id_subsection2",
+                   "9": "link_id_subsection3"}
