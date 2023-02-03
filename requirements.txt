@@ -34,8 +34,5 @@ itsdangerous==1.1.0
 Werkzeug==0.16.1
 PyYAML==6.0
 psycopg2-binary==2.9.5
-<<<<<<< HEAD
 psycopg2==2.9.3
-=======
->>>>>>> 8b95e97247bfd69d4ee069e419096860e93f957b
 etmfa-core
