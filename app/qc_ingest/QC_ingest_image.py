@@ -7,13 +7,16 @@ table_dict = TableType.table_dict
 
 link_level_dict = Linklevel.link_level_dict
 
+
 def get_add_content_info(data: dict):
     """getting add info dict for image"""
     try:
         prev_line_id = data['prev_line_detail']['line_id']
-        chunks = [prev_line_id[i:i+36] for i in range(0, len(prev_line_id), 36)]
+        chunks = [prev_line_id[i:i+36]
+                  for i in range(0, len(prev_line_id), 36)]
         prev_para_id = chunks[0]
-        prev_line_details = get_prev_line_detail(prev_para_id, data.get('type'))
+        prev_line_details = get_prev_line_detail(
+            prev_para_id, data.get('type'))
         new_para_line = Document()
         new_childbox_line = Document()
         if prev_line_details is not None:
@@ -43,7 +46,8 @@ def get_add_content_info(data: dict):
     except Exception as exc:
         logger.exception(
             f"Exception received in get_add_content_info: {exc}")
-    
+
+
 def get_action_dict(payload: str):
     """getting action dict for image"""
     try:
@@ -54,27 +58,29 @@ def get_action_dict(payload: str):
                 new_para_line_dict, new_childbox_line_dict = get_add_content_info(
                     data)
                 (action_dict[action]).append(
-                        {data.get('type'): [new_para_line_dict, new_childbox_line_dict]})
+                    {data.get('type'): [new_para_line_dict, new_childbox_line_dict]})
             elif action == 'modify' or action == 'delete':
                 (action_dict[action]).append(
-                        {data.get('type'): data})
+                    {data.get('type'): data})
 
         return action_dict
     except Exception as exc:
         logger.exception(
             f"Exception received in get_action_dict: {exc}")
 
+
 def process(payload: list):
     """processing payload for image data"""
     try:
         action_dict = get_action_dict(payload)
         for key, val in action_dict.items():
-            if key == 'modify' and len(val)>0:
+            if key == 'modify' and len(val) > 0:
                 db_update_image(val)
             if key == 'delete' and len(val) > 0:
                 db_delete_image(val)
             if key == 'add' and len(val) > 0:
                 db_add_image(val)
+        return True
     except Exception as exc:
         logger.exception(
             f"Exception received in processing image data: {exc}")

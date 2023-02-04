@@ -8,11 +8,12 @@ table_dict = TableType.table_dict
 
 link_level_dict = Linklevel.link_level_dict
 
+
 def get_font_info_dict(font_info: dict, header_info_dict):
     """building fontinfo dict"""
     try:
         font_info_db = Fontinfo()
-        if len(font_info)>0:
+        if len(font_info) > 0:
             for key, val in font_info.items():
                 if hasattr(font_info_db, key):
                     setattr(font_info_db, key, val)
@@ -35,7 +36,7 @@ def get_font_info_dict(font_info: dict, header_info_dict):
 
 
 def get_info_dict(data: dict, id: str, parent_id: str):
-    """building info dict for paragraph, subtext and header for modify and delete""" 
+    """building info dict for paragraph, subtext and header for modify and delete"""
     try:
         new_info_dict = dict()
         new_info_dict['id'] = id
@@ -91,7 +92,8 @@ def get_content_info(data: dict):
 def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: dict, line_id: str):
     """building info dict for add"""
     try:
-        prev_line_details = get_prev_line_detail(prev_para_id, data.get('type'))
+        prev_line_details = get_prev_line_detail(
+            prev_para_id, data.get('type'))
         new_para_line = Document()
         new_childbox_line = Document()
         new_subtext_line = Subtext()
@@ -187,7 +189,8 @@ def build_header_info_dict(data: dict, prev_para_id: str):
             if content[0].isdigit():
                 content_list = content.split(' ')
                 new_line.LinkPrefix = content_list[0]
-                new_line.iqv_standard_term = "cpt_" +' '.join(content_list[1:])
+                new_line.iqv_standard_term = "cpt_" + \
+                    ' '.join(content_list[1:])
             else:
                 new_line.LinkPrefix = ""
                 new_line.iqv_standard_term = ' '.join(content_list)
@@ -204,6 +207,7 @@ def build_header_info_dict(data: dict, prev_para_id: str):
         logger.exception(
             f"Exception received in build_header_info_dict: {exc}")
 
+
 def get_add_content_info(data: dict, info_dict: dict):
     """getting add info dict for text"""
     try:
@@ -213,21 +217,24 @@ def get_add_content_info(data: dict, info_dict: dict):
         subtext_info_dict = None
         header_info_dict = None
         if data.get('type') == 'header':
-            link_level = link_level_dict[str(int(data['file_section_level'])-1)]
+            link_level = link_level_dict[str(
+                int(data['file_section_level'])-1)]
             prev_para_id = data['prev_line_detail'][link_level]
-            header_info_dict = build_header_info_dict(data, prev_para_id)  
+            header_info_dict = build_header_info_dict(data, prev_para_id)
         prev_line_id = data['prev_line_detail']['line_id']
-        chunks = [prev_line_id[i:i+36] for i in range(0, len(prev_line_id), 36)]
+        chunks = [prev_line_id[i:i+36]
+                  for i in range(0, len(prev_line_id), 36)]
         prev_para_id = chunks[0]
         line_id = data.get('line_id')
         prev_line_details, new_para_line_dict, new_childbox_line_dict, subtext_info_dict = build_info_dict(
             data, prev_para_id, header_info_dict, info_dict, prev_line_id)
-        font_info_dict = get_font_info_dict(data['font_info'], header_info_dict)
+        font_info_dict = get_font_info_dict(
+            data['font_info'], header_info_dict)
         info_dict[line_id] = {'new_para_line_dict': new_para_line_dict,
-                                        'new_childbox_line_dict': new_childbox_line_dict,
-                                        'subtext_info_dict': subtext_info_dict,
-                                        'header_info_dict': header_info_dict,
-                                        'font_info_dict': font_info_dict}
+                              'new_childbox_line_dict': new_childbox_line_dict,
+                              'subtext_info_dict': subtext_info_dict,
+                              'header_info_dict': header_info_dict,
+                              'font_info_dict': font_info_dict}
         return prev_line_details, new_para_line_dict, new_childbox_line_dict, font_info_dict, subtext_info_dict, header_info_dict
     except Exception as exc:
         logger.exception(
@@ -245,7 +252,7 @@ def get_action_dict(payload: str):
                 prev_line_details, new_para_line_dict, new_childbox_line_dict, font_info_dict, subtext_info_dict, header_info_dict = get_add_content_info(
                     data, info_dict)
                 (action_dict[action]).append(
-                        {'font_info': font_info_dict, data.get('type'): [prev_line_details, new_para_line_dict, new_childbox_line_dict], 'subtext': subtext_info_dict, 'link_db': header_info_dict})
+                    {'font_info': font_info_dict, data.get('type'): [prev_line_details, new_para_line_dict, new_childbox_line_dict], 'subtext': subtext_info_dict, 'link_db': header_info_dict})
             elif action == 'modify' or action == 'delete':
                 content_info_dict, font_info_dict, subtext_info_dict, header_info_dict = get_content_info(
                     data)
@@ -261,12 +268,13 @@ def get_action_dict(payload: str):
         logger.exception(
             f"Exception received in get_action_dict: {exc}")
 
+
 def process(payload: list):
     """processing payload for text data"""
     try:
         action_dict = get_action_dict(payload)
         for key, val in action_dict.items():
-            if key == 'modify' and len(val)>0:
+            if key == 'modify' and len(val) > 0:
                 db_update(val)
             if key == 'delete' and len(val) > 0:
                 db_delete(val)
@@ -276,3 +284,10 @@ def process(payload: list):
     except Exception as exc:
         logger.exception(
             f"Exception received in processing text data: {exc}")
+
+
+with open('QC_payload.txt', 'r') as f:
+    data1 = f.read()
+    payload = json.loads(data1)
+
+process(payload)
