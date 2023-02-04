@@ -64,7 +64,7 @@ def get_action_dict(payload: str):
         logger.exception(
             f"Exception received in get_action_dict: {exc}")
 
-def process(payload: dict):
+def process(payload: list):
     """processing payload for image data"""
     try:
         action_dict = get_action_dict(payload)
@@ -75,6 +75,7 @@ def process(payload: dict):
                 db_delete_image(val)
             if key == 'add' and len(val) > 0:
                 db_add_image(val)
+        return True
     except Exception as exc:
         logger.exception(
             f"Exception received in processing image data: {exc}")

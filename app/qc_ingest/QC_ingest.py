@@ -2,6 +2,7 @@ from .model import *
 import uuid
 from .document import *
 from .db_utils import *
+import json
 
 table_dict = TableType.table_dict
 
@@ -260,7 +261,7 @@ def get_action_dict(payload: str):
         logger.exception(
             f"Exception received in get_action_dict: {exc}")
 
-def process(payload: dict):
+def process(payload: list):
     """processing payload for text data"""
     try:
         action_dict = get_action_dict(payload)

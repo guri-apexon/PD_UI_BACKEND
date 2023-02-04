@@ -1,0 +1,74 @@
+[
+  {
+    "qc_change_type": "add",
+    "type": "header",
+    "file_section": "Study Rationale",
+    "file_section_num": "2.1",
+    "line_id": "22598298-9db4-4e5f-9384-bfe630ac2d90",
+    "link_id": "e066c0c8-8cf9-11ed-b3d7-005056ab6469",
+    "prev_line_detail": {
+      "line_id": "6f7c60fc-eca6-460f-8557-2e500efbf28f",
+      "link_id": "e066c0c8-8cf9-11ed-b3d7-005056ab6469",
+      "link_id_level2": "e066c0c9-8cf9-11ed-a849-005056ab6469",
+      "link_id_level3": "",
+      "link_id_level4": "",
+      "link_id_level5": "",
+      "link_id_level6": "",
+      "link_id_subsection1": "",
+      "link_id_subsection2": "",
+      "link_id_subsection3": ""
+    },
+    "content": "2.1.1 Meals and Dietary Restrictions",
+    "font_info": {},
+    "file_section_level": "3",
+    "aidocid": "fa386108-6df3-4188-b897-4f078d2b23f0"
+  },
+  {
+    "qc_change_type": "add",
+    "type": "text",
+    "file_section": "Study Rationale",
+    "file_section_num": "2.1",
+    "line_id": "22598298-9db4-4e5f-9384-bfe630ac2d91",
+    "link_id": "e066c0c8-8cf9-11ed-b3d7-005056ab6469",
+    "prev_line_detail": {
+      "line_id": "22598298-9db4-4e5f-9384-bfe630ac2d90",
+      "link_id": "e066c0c8-8cf9-11ed-b3d7-005056ab6469",
+      "link_id_level2": "",
+      "link_id_level3": "",
+      "link_id_level4": "",
+      "link_id_level5": "",
+      "link_id_level6": "",
+      "link_id_subsection1": "",
+      "link_id_subsection2": "",
+      "link_id_subsection3": ""
+    },
+    "content": "Subjects should avoid eating a large meal for at least 2 hours prior to all lung function assessments at the centre",
+    "font_info": {},
+    "file_section_level": "3",
+    "aidocid": "fa386108-6df3-4188-b897-4f078d2b23f0"
+  },
+  {
+    "qc_change_type": "add",
+    "type": "text",
+    "file_section": "Study Rationale",
+    "file_section_num": "2.1",
+    "line_id": "22598298-9db4-4e5f-9384-bfe630ac2d92",
+    "link_id": "e066c0c8-8cf9-11ed-b3d7-005056ab6469",
+    "prev_line_detail": {
+      "line_id": "22598298-9db4-4e5f-9384-bfe630ac2d91",
+      "link_id": "e066c0c8-8cf9-11ed-b3d7-005056ab6469",
+      "link_id_level2": "e066c0c9-8cf9-11ed-a849-005056ab6469",
+      "link_id_level3": "",
+      "link_id_level4": "",
+      "link_id_level5": "",
+      "link_id_level6": "",
+      "link_id_subsection1": "",
+      "link_id_subsection2": "",
+      "link_id_subsection3": ""
+    },
+    "content": "Subjects should not eat or drink one hour prior to having the FENO test",
+    "font_info": {},
+    "file_section_level": "3",
+    "aidocid": "fa386108-6df3-4188-b897-4f078d2b23f0"
+  }
+]
