@@ -1,7 +1,7 @@
-from .model import *
+from model import *
 import uuid
-from .document import *
-from .db_utils import *
+from document import *
+from db_utils import *
 
 table_dict = TableType.table_dict
 
@@ -75,7 +75,6 @@ def process(payload: list):
                 db_delete_image(val)
             if key == 'add' and len(val) > 0:
                 db_add_image(val)
-        return True
     except Exception as exc:
         logger.exception(
             f"Exception received in processing image data: {exc}")
