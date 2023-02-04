@@ -1,7 +1,7 @@
-from model import *
+from .model import *
 import uuid
-from document import *
-from db_utils import *
+from .document import *
+from .db_utils import *
 import json
 
 table_dict = TableType.table_dict

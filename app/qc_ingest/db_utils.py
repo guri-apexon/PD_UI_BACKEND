@@ -1,9 +1,9 @@
-from document import Document, Fontinfo, DocumentLink, Subtext, TableType, Linklevel
-from model import *
+from .document import Document, Fontinfo, DocumentLink, Subtext, TableType, Linklevel
+from .model import *
 import logging as logger
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
-from config import settings
+from .config import settings
 URL = settings.LOCAL_DB_URL
 engine = create_engine(URL, echo=True)
 Session = sessionmaker(bind=engine)
