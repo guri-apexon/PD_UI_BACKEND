@@ -286,8 +286,8 @@ def process(payload: list):
             f"Exception received in processing text data: {exc}")
 
 
-with open('QC_payload.txt', 'r') as f:
-    data1 = f.read()
-    payload = json.loads(data1)
+# with open('QC_payload.txt', 'r') as f:
+#     data1 = f.read()
+#     payload = json.loads(data1)
 
-process(payload)
+# process(payload)
