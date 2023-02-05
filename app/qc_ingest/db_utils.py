@@ -137,19 +137,6 @@ def db_add(val_list: list):
                                 para_data = table_name(**para_data)
                                 add_obj = session.add(para_data)
                         elif table_name == IqvsubtextDb:
-                            obj1 = session.query(table_name).filter(and_(table_name.doc_id == data.get('doc_id'), table_name.link_id == data.get('link_id'),
-                                                                         table_name.link_id_level2 == data.get(
-                                'link_id_level2'), table_name.link_id_level3 == data.get('link_id_level3'),
-                                table_name.link_id_level4 == data.get(
-                                'link_id_level4'), table_name.link_id_level5 == data.get('link_id_level5'),
-                                table_name.link_id_level6 == data.get(
-                                'link_id_level6'), table_name.link_id_subsection1 == data.get('link_id_subsection1'),
-                                table_name.link_id_subsection2 == data.get(
-                                'link_id_subsection2'), table_name.link_id_subsection3 == data.get('link_id_subsection3'),
-                                table_name.parent_id == data.get('parent_id'), table_name.DocumentSequenceIndex > data.get('DocumentSequenceIndex')))
-                            for row in obj1:
-                                if row is not None:
-                                    row.DocumentSequenceIndex = row.DocumentSequenceIndex + 1
                             data = table_name(**data)
                             add_obj = session.add(data)
 

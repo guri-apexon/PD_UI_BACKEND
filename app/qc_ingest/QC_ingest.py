@@ -2,7 +2,6 @@ from .model import *
 import uuid
 from .document import *
 from .db_utils import *
-import json
 
 table_dict = TableType.table_dict
 
@@ -89,7 +88,7 @@ def get_content_info(data: dict):
             f"Exception received in get_content_info: {exc}")
 
 
-def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: dict, line_id: str):
+def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: dict, line_id: str, subtext_id: str):
     """building info dict for add"""
     try:
         prev_line_details = get_prev_line_detail(
@@ -135,6 +134,15 @@ def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: 
                 new_childbox_line.bIsCheckbox = True
 
             new_childbox_line = new_childbox_line.__dict__
+            prev_subtext_line_details = None
+            if subtext_id is not None:
+                prev_subtext_line_details = get_prev_line_detail(
+                    prev_para_id, 'subtext')
+
+            if prev_subtext_line_details is not None:
+                for key, val in prev_subtext_line_details.items():
+                    if hasattr(new_subtext_line, key):
+                        setattr(new_subtext_line, key, val)
             _id = uuid.uuid4()
             _id = str(_id)
             new_subtext_line.id = _id
@@ -150,19 +158,20 @@ def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: 
             new_subtext_line.link_id_subsection3 = new_childbox_line['link_id_subsection3']
             new_subtext_line.strText = new_childbox_line['strText']
             new_subtext_line.parent_id = new_childbox_line['id']
-            new_subtext_line.group_type = 'IQVSubTextList'
-            new_subtext_line.hierarchy = "paragraph"
-            new_subtext_line.iqv_standard_term = ""
-            new_subtext_line.bNoTranslate = False
-            new_subtext_line.reservedTypeVal = 0
-            new_subtext_line.parent2LocalName = ""
-            new_subtext_line.Value = ""
-            new_subtext_line.OuterXml = ""
-            new_subtext_line.strTranslatedText = ""
-            new_subtext_line.runElementName = "t"
-            new_subtext_line.DocumentSequenceIndex = 0
-            new_subtext_line.sequence = -1
-            new_subtext_line.startCharIndex = 0
+            if subtext_id is None:
+                new_subtext_line.group_type = 'IQVSubTextList'
+                new_subtext_line.hierarchy = "paragraph"
+                new_subtext_line.iqv_standard_term = ""
+                new_subtext_line.bNoTranslate = False
+                new_subtext_line.reservedTypeVal = 0
+                new_subtext_line.parent2LocalName = ""
+                new_subtext_line.Value = ""
+                new_subtext_line.OuterXml = ""
+                new_subtext_line.strTranslatedText = ""
+                new_subtext_line.runElementName = "t"
+                new_subtext_line.DocumentSequenceIndex = 0
+                new_subtext_line.sequence = -1
+                new_subtext_line.startCharIndex = 0
 
             new_subtext_line = new_subtext_line.__dict__
         return prev_line_details, new_para_line, new_childbox_line, new_subtext_line
@@ -225,9 +234,12 @@ def get_add_content_info(data: dict, info_dict: dict):
         chunks = [prev_line_id[i:i+36]
                   for i in range(0, len(prev_line_id), 36)]
         prev_para_id = chunks[0]
+        subtext_id = None
+        if len(chunks) == 3:
+            subtext_id = chunks[2]
         line_id = data.get('line_id')
         prev_line_details, new_para_line_dict, new_childbox_line_dict, subtext_info_dict = build_info_dict(
-            data, prev_para_id, header_info_dict, info_dict, prev_line_id)
+            data, prev_para_id, header_info_dict, info_dict, prev_line_id, subtext_id)
         font_info_dict = get_font_info_dict(
             data['font_info'], header_info_dict)
         info_dict[line_id] = {'new_para_line_dict': new_para_line_dict,
@@ -284,10 +296,3 @@ def process(payload: list):
     except Exception as exc:
         logger.exception(
             f"Exception received in processing text data: {exc}")
-
-
-# with open('QC_payload.txt', 'r') as f:
-#     data1 = f.read()
-#     payload = json.loads(data1)
-
-# process(payload)
