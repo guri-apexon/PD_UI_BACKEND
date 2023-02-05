@@ -1,13 +1,17 @@
 from .document import Document, Fontinfo, DocumentLink, Subtext, TableType, Linklevel
 from .model import *
-import logging as logger
+import logging
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
-from .config import settings
+from app.utilities.config import settings
 URL = settings.LOCAL_DB_URL
 engine = create_engine(URL, echo=True)
 Session = sessionmaker(bind=engine)
 table_dict = TableType.table_dict
+from app.utilities.config import settings
+
+
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 link_level_dict = Linklevel.link_level_dict
 
@@ -27,6 +31,7 @@ def db_update(val_list: list):
                                 if hasattr(row, key):
                                     setattr(row, key, val)
             session.commit()
+            session.close_all()
     except Exception as exc:
         logger.exception(
             f"Exception received in updating paragraph data in DB: {exc}")
@@ -79,6 +84,7 @@ def db_delete(val_list: list):
                             del_obj = session.query(table_name).filter(
                                 table_name.id == data.get('id')).delete()
             session.commit()
+            session.close_all()
     except Exception as exc:
         logger.exception(
             f"Exception received in deleting paragraph data in DB: {exc}")
@@ -144,6 +150,7 @@ def db_add(val_list: list):
                             data = table_name(**data)
                             add_obj = session.add(data)
             session.commit()
+            session.close_all()
     except Exception as exc:
         logger.exception(
             f"Exception received in adding paragraph data in DB: {exc}")
@@ -176,6 +183,7 @@ def db_add_image(val_list: list):
                             para_data = table_name(**para_data)
                             add_obj = session.add(para_data)
             session.commit()
+            session.close_all()
     except Exception as exc:
         logger.exception(
             f"Exception received in adding Image data in DB: {exc}")
@@ -198,6 +206,7 @@ def db_update_image(val_list: list):
                         for row in obj:
                             row.strText = data.get('content')
             session.commit()
+            session.close_all()
     except Exception as exc:
         logger.exception(
             f"Exception received in updating Image data in DB: {exc}")
@@ -238,6 +247,7 @@ def db_delete_image(val_list: list):
                                     row.DocumentSequenceIndex = row.DocumentSequenceIndex - 1
                                     row.SequenceID = row.SequenceID - 1
             session.commit()
+            session.close_all()
     except Exception as exc:
         logger.exception(
             f"Exception received in deleting Image data in DB: {exc}")
@@ -252,7 +262,8 @@ def get_prev_line_detail(id: str, content_type: str):
             obj = session.query(table_name).filter(
                 table_name.id == id)
             for row in obj:
-                prev_line_details = row.__dict__
+                prev_line_details = row.__dict__ 
+            session.close_all()
         return prev_line_details
     except Exception as exc:
         logger.exception(

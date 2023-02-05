@@ -2,6 +2,11 @@ from .model import *
 import uuid
 from .document import *
 from .db_utils import *
+import logging
+from app.utilities.config import settings
+
+
+logger = logging.getLogger(settings.LOGGER_NAME)
 
 table_dict = TableType.table_dict
 
