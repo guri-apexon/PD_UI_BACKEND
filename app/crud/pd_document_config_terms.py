@@ -1,4 +1,3 @@
-import imp
 from app.utilities.config import settings
 from sqlalchemy.orm import Session
 import logging
@@ -13,7 +12,7 @@ from app.utilities.extractor_config import ModuleConfig
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
-def get_document_terms_data(db: Session, aidoc_id: str, link_level: int,
+def get_document_terms_data(db: Session, aidoc_id: str,
                             link_id: str, config_variables: str, section_text: str) -> list:
 
     """
