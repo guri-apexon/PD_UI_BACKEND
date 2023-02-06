@@ -4,7 +4,7 @@ import logging
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
 from app.utilities.config import settings
-URL = settings.LOCAL_DB_URL
+URL = settings.DEV_DB_URL
 engine = create_engine(URL, echo=True)
 Session = sessionmaker(bind=engine)
 table_dict = TableType.table_dict
