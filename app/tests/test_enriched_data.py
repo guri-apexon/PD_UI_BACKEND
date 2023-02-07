@@ -4,7 +4,7 @@ from app.db.session import SessionPSQL
 from app.main import app
 from fastapi.testclient import TestClient
 from fastapi import status
-from app.models.pd_nlp_entity_db import NlpentityDb
+from app.models.pd_nlp_entity_db import NlpEntityDb
 
 client = TestClient(app)
 db = SessionPSQL()
@@ -36,7 +36,7 @@ def test_document_data(new_token_on_headers, doc_id, status_code, link_id,
 
 
 def collect_protocol_data():
-    entity_obj = db.query(NlpentityDb).first()
+    entity_obj = db.query(NlpEntityDb).first()
     doc_id = entity_obj.doc_id
     link_id = entity_obj.link_id
     enriched_text = entity_obj.standard_entity_name
@@ -59,6 +59,6 @@ def test_create_new_entity(doc_id, link_id, enriched_text,
     if create_entity.status_code == status.HTTP_200_OK:
         response = json.loads(create_entity.text)
         ids = response.get('id')
-        _ = db.query(NlpentityDb).filter(NlpentityDb.id.in_(ids)).delete()
+        _ = db.query(NlpEntityDb).filter(NlpEntityDb.id.in_(ids)).delete()
         db.commit()
     assert create_entity.status_code == status.HTTP_200_OK

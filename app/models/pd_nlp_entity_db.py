@@ -3,7 +3,7 @@ from sqlalchemy import Column, Float, Integer, String, Boolean
 from app.db.base_class import Base
 
 
-class NlpentityDb(Base):
+class NlpEntityDb(Base):
 
     __tablename__ = "nlp_entity_db"
 
