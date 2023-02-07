@@ -13,7 +13,7 @@ ecdsa==0.18.0
 elasticsearch==7.10.1
 email-validator==1.1.2
 et-xmlfile==1.1.0
-# etmfa-core
+etmfa-core
 fastapi==0.61.2
 fastapi-sqlalchemy==0.2.1
 greenlet==2.0.1
