@@ -3,8 +3,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.utilities.extractor.prepare_cpt_section_data import PrepareUpdateData
-from app.utilities.section_enriched import \
-    update_section_data_with_enriched_data
 from app.api import deps
 from app.utilities.config import settings
 from app.api.endpoints import auth
@@ -109,13 +107,53 @@ async def get_cpt_section_data(
                                          protocol_view_redaction.profile_details,
                                          protocol_view_redaction.entity_profile_genre)
     finalization_req_dict, _ = finalized_iqvxml.prepare_msg()
+    return finalization_req_dict
 
-    # Collect the enriched data based on doc and link ids.
-    enriched_data = await get_enriched_data(psdb, aidoc_id, link_id)
-    section_with_enriched = update_section_data_with_enriched_data(
-        section_data=finalization_req_dict, enriched_data=enriched_data)
 
-    return section_with_enriched
+@router.get("/get_section_data_configurable_parameter")
+async def get_cpt_section_data_with_configurable_parameter(
+        db: Session = Depends(deps.get_db),
+        psdb: Session = Depends(deps.get_psqldb),
+        aidoc_id: str = "",
+        link_level: int = 1,
+        link_id: str = "",
+        section_text = "",
+        user_id: str = "",
+        protocol: str = "",
+        config_variables: str = "",
+        _: str = Depends(auth.validate_user_token)
+) -> Any:
+    """
+    Get CPT Section/Header data for particular document with Configurable
+    terms values
+    :param db: db session
+    :param aidoc_id: document id
+    :param link_level: level of headers in toc
+    :param link_id: section id
+    :param protocol: protocol of document
+    :param user_id: userid
+    :param clinical_terms: true/false -- optional
+    :param time_points: true/false -- optional
+    :param preferred_terms: true/false -- optional
+    :param redaction_attributes: true/false -- optional
+    :param references: true/false -- optional
+    :param properties: true/false -- optional
+    :param _ : API token validation
+    :returns: Section data with configurable terms values
+    """
+
+    # Section data from the existing end point
+    section_res = await get_cpt_section_data("",db, aidoc_id, link_level, link_id,
+                                             user_id, protocol)
+
+    # Terms values based on given configuration values
+    terms_values = crud.get_document_terms_data(psdb, aidoc_id,
+                                                link_id, config_variables,section_text)
+
+    # enriched data from existing end point
+    enriched_data = await get_enriched_data( psdb,aidoc_id,link_id)
+
+    return [section_res, terms_values, enriched_data]
 
 
 @router.post("/update_enriched_data")
