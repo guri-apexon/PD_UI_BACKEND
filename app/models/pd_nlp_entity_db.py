@@ -1,5 +1,4 @@
-from turtle import st
-from sqlalchemy import Column, Float, Integer, String, Boolean
+from sqlalchemy import Column, String
 from app.db.base_class import Base
 
 
