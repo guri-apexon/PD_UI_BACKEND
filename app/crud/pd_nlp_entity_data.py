@@ -1,7 +1,7 @@
 import logging
 import uuid
 from app.utilities.config import settings
-from app.models.pd_nlp_entity_db import NlpentityDb
+from app.models.pd_nlp_entity_db import NlpEntityDb
 from app.schemas.pd_nlp_entity_db import NlpEntityCreate, NlpEntityUpdate
 from app.crud.base import CRUDBase
 from sqlalchemy.orm import Session
@@ -10,15 +10,15 @@ from fastapi import HTTPException
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
-class NlpEntityCrud(CRUDBase[NlpentityDb, NlpEntityCreate, NlpEntityUpdate]):
+class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
     """
     NLP Entity crud operation to get entity object with clinical terms.
     """
     def get(self, db: Session, doc_id: str, link_id: str):
         try:
-            all_term_data = db.query(NlpentityDb).filter(
-                NlpentityDb.doc_id == doc_id).filter(
-                NlpentityDb.link_id == link_id).all()
+            all_term_data = db.query(NlpEntityDb).filter(
+                NlpEntityDb.doc_id == doc_id).filter(
+                NlpEntityDb.link_id == link_id).all()
         except Exception as ex:
             all_term_data = []
             logger.exception("Exception in retrieval of data from table", ex)
@@ -29,24 +29,24 @@ class NlpEntityCrud(CRUDBase[NlpentityDb, NlpEntityCreate, NlpEntityUpdate]):
         """ To fetch records based on doc, link and entity text """
         entity_rec = []
         try:
-            entity_rec = db.query(NlpentityDb).filter(
-                NlpentityDb.doc_id == doc_id).filter(
-                NlpentityDb.link_id == link_id).filter(
-                NlpentityDb.standard_entity_name == entity_text
+            entity_rec = db.query(NlpEntityDb).filter(
+                NlpEntityDb.doc_id == doc_id).filter(
+                NlpEntityDb.link_id == link_id).filter(
+                NlpEntityDb.standard_entity_name == entity_text
             ).all()
         except Exception as ex:
             logger.exception("Exception in retrieval of data from table", ex)
         return entity_rec
 
     @staticmethod
-    def insert_data(entity_obj: NlpentityDb, db: Session, data):
+    def insert_data(entity_obj: NlpEntityDb, db: Session, data):
         """ To create new records with updated clinical terms"""
         synonyms = data.entity_xref or entity_obj.entity_xref
         preferred_term = data.iqv_standard_term or entity_obj.iqv_standard_term
         classification = data.entity_class or entity_obj.entity_class
         ontology = data.ontology or entity_obj.ontology
 
-        new_entity = NlpentityDb(id=str(uuid.uuid1()),
+        new_entity = NlpEntityDb(id=str(uuid.uuid1()),
                                  doc_id=entity_obj.doc_id,
                                  link_id=entity_obj.link_id,
                                  link_id_level2=entity_obj.link_id_level2,
@@ -108,4 +108,4 @@ class NlpEntityCrud(CRUDBase[NlpentityDb, NlpEntityCreate, NlpEntityUpdate]):
             raise HTTPException(status_code=401, detail=f"Exception in Saving JSON data to DB {str(ex)}")
 
 
-nlp_entity_content = NlpEntityCrud(NlpentityDb)
+nlp_entity_content = NlpEntityCrud(NlpEntityDb)

@@ -2,7 +2,7 @@ from app.utilities.config import settings
 from sqlalchemy.orm import Session
 import logging
 from app.models.pd_iqvvisitrecord_db import IqvvisitrecordDb
-from app.models.pd_nlp_entity_db import NlpentityDb
+from app.models.pd_nlp_entity_db import NlpEntityDb
 from app.models.pd_iqvdocumentlink_db import IqvdocumentlinkDb
 from app.models.pd_iqvexternallink_db import IqvexternallinkDb
 from app.models.pd_iqvkeyvalueset_db import IqvkeyvaluesetDb
@@ -58,11 +58,11 @@ def get_document_terms_data(db: Session, aidoc_id: str,
 
     if "clinical_terms" in config_variables:
         if link_id:
-            clinical_terms = db.query(NlpentityDb).filter(
-                NlpentityDb.doc_id == aidoc_id, NlpentityDb.link_id == link_id).all()
+            clinical_terms = db.query(NlpEntityDb).filter(
+                NlpEntityDb.doc_id == aidoc_id, NlpEntityDb.link_id == link_id).all()
         else:
-            clinical_terms = db.query(NlpentityDb).filter(
-                NlpentityDb.doc_id == aidoc_id).all()
+            clinical_terms = db.query(NlpEntityDb).filter(
+                NlpEntityDb.doc_id == aidoc_id).all()
 
         clinical_values = [{"id": clinical_term.id, "ontology": clinical_term.ontology, "parent_id": clinical_term.parent_id,
                             "entity_key": clinical_term.entity_key, "text": clinical_term.text} for clinical_term in clinical_terms]

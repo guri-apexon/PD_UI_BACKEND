@@ -18,7 +18,6 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 @router.get("/")
 async def get_cpt_headers(
-        db: Session = Depends(deps.get_db),
         aidoc_id: str = "",
         link_level: int = 1,
         toc: int = 0,
@@ -30,6 +29,7 @@ async def get_cpt_headers(
     :param aidoc_id: document id
     :param link_level: level of headers in toc
     :param toc: is optional with value 0 or 1
+    :param _: To validate API token
     :returns: list of all section/headers 
               if toc will be 1 link_level is 6 it will returs multi dimentional list according to parent child relationship
     """
@@ -75,7 +75,6 @@ async def get_enriched_data(
 
 @router.get("/get_section_data")
 async def get_cpt_section_data(
-        db: Session = Depends(deps.get_db),
         psdb: Session = Depends(deps.get_psqldb),
         aidoc_id: str = "",
         link_level: int = 1,
@@ -87,12 +86,14 @@ async def get_cpt_section_data(
 ) -> Any:
     """
     Get CPT Section/Header data for particular document
-    
+    :param psdb: database instance
     :param aidoc_id: document id
     :param link_level: level of headers in toc
+    :param link_id: link id or section id
     :param protocol: protocol of document 
-    :param userid: userid 
+    :param userId: userid
     :param user: user optional
+    :param _: To validate API token
     :returns: requested section/header data
               if document does not exist return json response with "docid does not exist"
     """
