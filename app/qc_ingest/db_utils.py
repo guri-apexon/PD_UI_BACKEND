@@ -252,6 +252,69 @@ def db_delete_image(val_list: list):
         logger.exception(
             f"Exception received in deleting Image data in DB: {exc}")
 
+def db_update_table(val_list):
+    with Session() as session:
+        for data_dict in val_list:
+            roi_id_dict = data_dict['roi_id_dict']
+            content = data_dict['content']
+            for content_type, data in roi_id_dict.items():
+                for roi_id in data:
+                    table_name = table_dict.get(content_type)
+                    obj = session.query(table_name).filter(
+                        table_name.id == roi_id)
+                    for row in obj:
+                        row.strText = content
+        session.commit()
+        session.close_all()
+
+def db_delete_table(val_list):
+    with Session() as session:
+        for data_dict in val_list:
+            roi_id_dict = data_dict['roi_id_dict']
+            content = data_dict['content']
+            for content_type, data in roi_id_dict.items():
+                for roi_id in data:
+                    line_detail = None
+                    obj = session.query(table_name).filter(
+                            table_name.id == roi_id)
+                    for row in obj:
+                        line_detail = row.__dict__
+                    table_name = table_dict.get(content_type)
+                    del_obj = session.query(table_name).filter(
+                        table_name.id == roi_id).delete()
+                    for row in obj:
+                        row.strText = content
+                    if table_name != IqvsubtextDb:
+                        obj1 = session.query(table_name).filter(and_(table_name.doc_id == line_detail.get('doc_id'), table_name.link_id == line_detail.get('link_id'),
+                                                                        table_name.link_id_level2 == line_detail.get(
+                                                                            'link_id_level2'), table_name.link_id_level3 == line_detail.get('link_id_level3'),
+                                                                        table_name.link_id_level4 == line_detail.get(
+                                                                            'link_id_level4'), table_name.link_id_level5 == line_detail.get('link_id_level5'),
+                                                                        table_name.link_id_level6 == line_detail.get(
+                                                                            'link_id_level6'), table_name.link_id_subsection1 == line_detail.get('link_id_subsection1'),
+                                                                        table_name.link_id_subsection2 == line_detail.get(
+                                                                            'link_id_subsection2'), table_name.link_id_subsection3 == line_detail.get('link_id_subsection3'),
+                                                                        table_name.parent_id == line_detail.get('parent_id'), table_name.DocumentSequenceIndex > line_detail.get('DocumentSequenceIndex')))
+                        for row in obj1:
+                            if row is not None:
+                                row.DocumentSequenceIndex = row.DocumentSequenceIndex - 1
+                                row.SequenceID = row.SequenceID - 1
+        session.commit()
+        session.close_all()
+
+
+def get_ids_from_parent_id(parent_id, content_type):
+    roi_id = None
+    with Session() as session:
+        table_name = table_dict.get(content_type)
+        obj = session.query(table_name).filter(
+            table_name.parent_id == parent_id)
+        for row in obj:
+            if row is not None:
+                roi_id = row.id
+        session.close_all()
+    return roi_id
+
 
 def get_prev_line_detail(id: str, content_type: str):
     """getting previous line detail from DB"""
@@ -262,7 +325,8 @@ def get_prev_line_detail(id: str, content_type: str):
             obj = session.query(table_name).filter(
                 table_name.id == id)
             for row in obj:
-                prev_line_details = row.__dict__ 
+                if row is not None:
+                    prev_line_details = row.__dict__ 
             session.close_all()
         return prev_line_details
     except Exception as exc:

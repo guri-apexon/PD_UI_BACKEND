@@ -17,11 +17,12 @@ def get_add_content_info(data: dict):
     """getting add info dict for image"""
     try:
         prev_line_id = data['prev_line_detail']['line_id']
+        prev_line_data_type = data['prev_line_detail']['type']
         chunks = [prev_line_id[i:i+36]
                   for i in range(0, len(prev_line_id), 36)]
         prev_para_id = chunks[0]
         prev_line_details = get_prev_line_detail(
-            prev_para_id, data.get('type'))
+            prev_para_id, prev_line_data_type)
         new_para_line = Document()
         new_childbox_line = Document()
         if prev_line_details is not None:
@@ -31,6 +32,8 @@ def get_add_content_info(data: dict):
             _id = uuid.uuid4()
             _id = str(_id)
             new_para_line.id = _id
+            new_para_line.hierarchy = 'image'
+            new_para_line.group_type = 'DocumentImages'
             new_para_line.DocumentSequenceIndex = new_para_line.DocumentSequenceIndex + 1
             new_para_line.SequenceID = new_para_line.SequenceID + 1
 

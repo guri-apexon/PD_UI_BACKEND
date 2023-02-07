@@ -57,8 +57,7 @@ async def qc_ingest_table(
     payload for qc_ingest table
     """
     try:
-        result = True
-        # result = qc_ingest.QC_ingest_table.process(payload)
+        result = qc_ingest.QC_ingest_table.process(payload)
         if result is True:
             return "QC ingest Completed Successfully for table data"
         else:

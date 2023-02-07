@@ -93,11 +93,11 @@ def get_content_info(data: dict):
             f"Exception received in get_content_info: {exc}")
 
 
-def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: dict, line_id: str, subtext_id: str):
+def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: dict, line_id: str, subtext_id: str, prev_line_data_type: str):
     """building info dict for add"""
     try:
         prev_line_details = get_prev_line_detail(
-            prev_para_id, data.get('type'))
+            prev_para_id, prev_line_data_type)
         new_para_line = Document()
         new_childbox_line = Document()
         new_subtext_line = Subtext()
@@ -111,6 +111,8 @@ def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: 
             _id = uuid.uuid4()
             _id = str(_id)
             new_para_line.id = _id
+            new_para_line.hierarchy = 'paragraph'
+            new_para_line.group_type = 'DocumentParagraphs'
             new_para_line.DocumentSequenceIndex = new_para_line.DocumentSequenceIndex + 1
             new_para_line.SequenceID = new_para_line.SequenceID + 1
             if data.get('type') == 'header':
@@ -236,6 +238,7 @@ def get_add_content_info(data: dict, info_dict: dict):
             prev_para_id = data['prev_line_detail'][link_level]
             header_info_dict = build_header_info_dict(data, prev_para_id)
         prev_line_id = data['prev_line_detail']['line_id']
+        prev_line_data_type = data['prev_line_detail']['type']
         chunks = [prev_line_id[i:i+36]
                   for i in range(0, len(prev_line_id), 36)]
         prev_para_id = chunks[0]
@@ -244,7 +247,7 @@ def get_add_content_info(data: dict, info_dict: dict):
             subtext_id = chunks[2]
         line_id = data.get('line_id')
         prev_line_details, new_para_line_dict, new_childbox_line_dict, subtext_info_dict = build_info_dict(
-            data, prev_para_id, header_info_dict, info_dict, prev_line_id, subtext_id)
+            data, prev_para_id, header_info_dict, info_dict, prev_line_id, subtext_id, prev_line_data_type)
         font_info_dict = get_font_info_dict(
             data['font_info'], header_info_dict)
         info_dict[line_id] = {'new_para_line_dict': new_para_line_dict,
