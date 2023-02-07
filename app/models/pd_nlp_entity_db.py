@@ -28,7 +28,6 @@ class NlpEntityDb(Base):
     entity_class = Column(String, nullable=True)
     entity_index = Column(String, nullable=True)
     entity_xref = Column(String, nullable=True)
-    entity_key = Column(String, nullable=True)
     ontology = Column(String, nullable=True)
     ontology_version = Column(String, nullable=True)
     ontology_item_code = Column(String, nullable=True)

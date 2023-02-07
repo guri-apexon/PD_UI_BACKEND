@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.utilities.extractor.prepare_cpt_section_data import PrepareUpdateData
+from app.utilities.section_enriched import \
+    update_section_data_with_enriched_data
 from app.api import deps
 from app.utilities.config import settings
 from app.api.endpoints import auth
@@ -81,7 +83,6 @@ async def get_cpt_section_data(
         link_id: str = "",
         userId: str = "",
         protocol: str = "",
-        user: str = "",
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
@@ -107,12 +108,40 @@ async def get_cpt_section_data(
                                          protocol_view_redaction.profile_details,
                                          protocol_view_redaction.entity_profile_genre)
     finalization_req_dict, _ = finalized_iqvxml.prepare_msg()
-    return finalization_req_dict
+
+    # Collect the enriched data based on doc and link ids.
+    enriched_data = await get_enriched_data(psdb, aidoc_id, link_id)
+    section_with_enriched = update_section_data_with_enriched_data(
+        section_data=finalization_req_dict, enriched_data=enriched_data)
+
+    return section_with_enriched
+
+
+@router.post("/update_enriched_data")
+def create_enriched_data(
+        *,
+        db: Session = Depends(deps.get_psqldb),
+        doc_id: str = "",
+        link_id: str = "",
+        data: schemas.NlpEntityData,
+        _: str = Depends(auth.validate_user_token)
+) -> Any:
+    """
+    Create new entity records with updated clinical terms
+    :param db: database session
+    :param doc_id: document id
+    :param link_id: ink id of document as section id
+    :param data: clinical terms
+    :param _: To validate API token
+    :returns: response with newly create record
+    """
+    enriched_data = crud.nlp_entity_content.save_data_to_db(db, doc_id, link_id,
+                                                            data.data)
+    return enriched_data
 
 
 @router.get("/get_section_data_configurable_parameter")
 async def get_cpt_section_data_with_configurable_parameter(
-        db: Session = Depends(deps.get_db),
         psdb: Session = Depends(deps.get_psqldb),
         aidoc_id: str = "",
         link_level: int = 1,
@@ -143,7 +172,7 @@ async def get_cpt_section_data_with_configurable_parameter(
     """
 
     # Section data from the existing end point
-    section_res = await get_cpt_section_data("",db, aidoc_id, link_level, link_id,
+    section_res = await get_cpt_section_data(psdb, aidoc_id, link_level, link_id,
                                              user_id, protocol)
 
     # Terms values based on given configuration values
@@ -154,26 +183,3 @@ async def get_cpt_section_data_with_configurable_parameter(
     enriched_data = await get_enriched_data( psdb,aidoc_id,link_id)
 
     return [section_res, terms_values, enriched_data]
-
-
-@router.post("/update_enriched_data")
-def create_enriched_data(
-        *,
-        db: Session = Depends(deps.get_psqldb),
-        doc_id: str = "",
-        link_id: str = "",
-        data: schemas.NlpEntityData,
-        _: str = Depends(auth.validate_user_token)
-) -> Any:
-    """
-    Create new entity records with updated clinical terms
-    :param db: database session
-    :param doc_id: document id
-    :param link_id: ink id of document as section id
-    :param data: clinical terms
-    :param _: To validate API token
-    :returns: response with newly create record
-    """
-    enriched_data = crud.nlp_entity_content.save_data_to_db(db, doc_id, link_id,
-                                                            data.data)
-    return enriched_data
