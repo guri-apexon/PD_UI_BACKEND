@@ -1,3 +1,4 @@
+from email import message
 from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -13,6 +14,8 @@ from app.utilities.redaction.protocol_view_redaction import \
 from fastapi.responses import JSONResponse
 from fastapi import status
 import logging
+from fastapi import HTTPException, status
+
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -171,15 +174,21 @@ async def get_cpt_section_data_with_configurable_parameter(
     :returns: Section data with configurable terms values
     """
 
-    # Section data from the existing end point
-    section_res = await get_cpt_section_data(psdb, aidoc_id, link_level, link_id,
-                                             user_id, protocol)
+    try:
+        # Section data from the existing end point
+        section_res = await get_cpt_section_data(psdb, aidoc_id, link_level, link_id,
+                                                user_id, protocol)
 
-    # Terms values based on given configuration values
-    terms_values = crud.get_document_terms_data(psdb, aidoc_id,
-                                                link_id, config_variables,section_text)
+        # Terms values based on given configuration values
+        terms_values = crud.get_document_terms_data(psdb, aidoc_id,
+                                                    link_id, config_variables,section_text)
 
-    # enriched data from existing end point
-    enriched_data = await get_enriched_data( psdb,aidoc_id,link_id)
+        # enriched data from existing end point
+        enriched_data = await get_enriched_data( psdb,aidoc_id,link_id)
+        logger.info(f"config api result {section_res}, {terms_values}, {enriched_data}")
 
-    return [section_res, terms_values, enriched_data]
+        return [section_res, terms_values, enriched_data]
+    except Exception as e:
+        logger.exception(f"exception occured in config api for doc_id {aidoc_id} and link_id {link_id} and exception is {e}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Exception to fetch configration data {str(e)}")
