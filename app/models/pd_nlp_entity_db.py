@@ -1,9 +1,8 @@
-from turtle import st
-from sqlalchemy import Column, Float, Integer, String, Boolean
+from sqlalchemy import Column, String
 from app.db.base_class import Base
 
 
-class NlpentityDb(Base):
+class NlpEntityDb(Base):
 
     __tablename__ = "nlp_entity_db"
 
@@ -18,16 +17,24 @@ class NlpentityDb(Base):
     link_id_subsection1 = Column(String, nullable=True)
     link_id_subsection2 = Column(String, nullable=True)
     link_id_subsection3 = Column(String, nullable=True)
+    hierarchy = Column(primary_key=True)
     iqv_standard_term = Column(String, nullable=True)
     parent_id = Column(String, nullable=True)
+    group_type = Column(String, nullable=True)
+    process_source = Column(String, nullable=True)
     text = Column(String, nullable=True)
     user_id = Column(String, nullable=True)
+    entity_key = Column(String, nullable=True)
     entity_class = Column(String, nullable=True)
+    entity_index = Column(String, nullable=True)
     entity_xref = Column(String, nullable=True)
     ontology = Column(String, nullable=True)
     ontology_version = Column(String, nullable=True)
     ontology_item_code = Column(String, nullable=True)
     standard_entity_name = Column(String, nullable=True)
+    confidence = Column(String, nullable=True)
+    start = Column(String, nullable=True)
+    text_len = Column(String, nullable=True)
 
     
 
