@@ -1,10 +1,13 @@
+import json
 import pytest
-from app.db.session import SessionLocal
+from app.db.session import SessionPSQL
 from app.main import app
 from fastapi.testclient import TestClient
+from fastapi import status
+from app.models.pd_nlp_entity_db import NlpEntityDb
 
 client = TestClient(app)
-db = SessionLocal()
+db = SessionPSQL()
 
 
 @pytest.mark.parametrize("doc_id, link_id, status_code, comments",
@@ -30,3 +33,32 @@ def test_document_data(new_token_on_headers, doc_id, status_code, link_id,
                                    headers=new_token_on_headers)
 
     assert get_enriched_data.status_code == status_code
+
+
+def collect_protocol_data():
+    entity_obj = db.query(NlpEntityDb).first()
+    doc_id = entity_obj.doc_id
+    link_id = entity_obj.link_id
+    enriched_text = entity_obj.standard_entity_name
+    return doc_id, link_id, enriched_text, status.HTTP_200_OK
+
+
+@pytest.mark.parametrize("doc_id, link_id, enriched_text, status_code",
+                         [collect_protocol_data()])
+def test_create_new_entity(doc_id, link_id, enriched_text,
+                           status_code, new_token_on_headers):
+    """ To verify newly created entity with updated clinical terms """
+    create_entity = client.post("/api/cpt_data/update_enriched_data",
+                                params={"doc_id": doc_id, "link_id": link_id},
+                                json={"data": {
+                                    "standard_entity_name": enriched_text,
+                                    "iqv_standard_term": "", "entity_class": "",
+                                    "entity_xref": "test1, test2",
+                                    "ontology": ""}},
+                                headers=new_token_on_headers)
+    if create_entity.status_code == status.HTTP_200_OK:
+        response = json.loads(create_entity.text)
+        ids = response.get('id')
+        _ = db.query(NlpEntityDb).filter(NlpEntityDb.id.in_(ids)).delete()
+        db.commit()
+    assert create_entity.status_code == status.HTTP_200_OK
