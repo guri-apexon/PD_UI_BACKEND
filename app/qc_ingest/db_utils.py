@@ -100,7 +100,7 @@ def db_add(val_list: list):
                     if data is not None and len(data) > 0:
                         table_name = table_dict.get(content_type)
                         if table_name == IqvdocumentlinkDb:
-                            obj1 = session.query(IqvpageroiDb).filter(and_(table_name.doc_id == data.get(
+                            obj1 = session.query(table_name).filter(and_(table_name.doc_id == data.get(
                                 'doc_id'), table_name.DocumentSequenceIndex > data.get('DocumentSequenceIndex')))
                             for row in obj1:
                                 if row is not None:
