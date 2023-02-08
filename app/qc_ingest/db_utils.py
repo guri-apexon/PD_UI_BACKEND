@@ -67,16 +67,16 @@ def db_delete(val_list: list):
                             del_obj = session.query(table_name).filter(
                                 table_name.id == data.get('id')).delete()
                             if line_detail is not None:
-                                obj1 = session.query(IqvpageroiDb).filter(and_(table_name.doc_id == line_detail.get('doc_id'), table_name.link_id == line_detail.get('link_id'),
-                                                                            table_name.link_id_level2 == line_detail.get(
-                                    'link_id_level2'), table_name.link_id_level3 == line_detail.get('link_id_level3'),
-                                    table_name.link_id_level4 == line_detail.get(
-                                    'link_id_level4'), table_name.link_id_level5 == line_detail.get('link_id_level5'),
-                                    table_name.link_id_level6 == line_detail.get(
-                                    'link_id_level6'), table_name.link_id_subsection1 == line_detail.get('link_id_subsection1'),
-                                    table_name.link_id_subsection2 == line_detail.get(
-                                    'link_id_subsection2'), table_name.link_id_subsection3 == line_detail.get('link_id_subsection3'),
-                                    table_name.parent_id == line_detail.get('parent_id'), table_name.DocumentSequenceIndex > line_detail.get('DocumentSequenceIndex')))
+                                obj1 = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == line_detail.get('doc_id'), IqvpageroiDb.link_id == line_detail.get('link_id'),
+                                                                            IqvpageroiDb.link_id_level2 == line_detail.get(
+                                    'link_id_level2'), IqvpageroiDb.link_id_level3 == line_detail.get('link_id_level3'),
+                                    IqvpageroiDb.link_id_level4 == line_detail.get(
+                                    'link_id_level4'), IqvpageroiDb.link_id_level5 == line_detail.get('link_id_level5'),
+                                    IqvpageroiDb.link_id_level6 == line_detail.get(
+                                    'link_id_level6'), IqvpageroiDb.link_id_subsection1 == line_detail.get('link_id_subsection1'),
+                                    IqvpageroiDb.link_id_subsection2 == line_detail.get(
+                                    'link_id_subsection2'), IqvpageroiDb.link_id_subsection3 == line_detail.get('link_id_subsection3'),
+                                    IqvpageroiDb.parent_id == line_detail.get('parent_id'), IqvpageroiDb.DocumentSequenceIndex > line_detail.get('DocumentSequenceIndex')))
                                 for row in obj1:
                                     if row is not None:
                                         row.DocumentSequenceIndex = row.DocumentSequenceIndex - 1
@@ -109,40 +109,25 @@ def db_add(val_list: list):
                             add_obj = session.add(data)
 
                         elif table_name == DocumentparagraphsDb:
-                            if content_type == 'header':
-                                para_data = data[0]
-                                if para_data is not None:
-                                    obj1 = session.query(IqvpageroiDb).filter(and_(table_name.doc_id == para_data.get('doc_id'), table_name.link_id == para_data.get('link_id'),
-                                                                                table_name.link_id_level2 == para_data.get(
-                                        'link_id_level2'), table_name.link_id_level3 == para_data.get('link_id_level3'),
-                                        table_name.link_id_level4 == para_data.get(
-                                        'link_id_level4'), table_name.link_id_level5 == para_data.get('link_id_level5'),
-                                        table_name.link_id_level6 == para_data.get(
-                                        'link_id_level6'), table_name.link_id_subsection1 == para_data.get('link_id_subsection1'),
-                                        table_name.link_id_subsection2 == para_data.get(
-                                        'link_id_subsection2'), table_name.link_id_subsection3 == para_data.get('link_id_subsection3'),
-                                        table_name.parent_id == para_data.get('parent_id'), table_name.DocumentSequenceIndex > para_data.get('DocumentSequenceIndex')))
-                                    for row in obj1:
-                                        if row is not None:
-                                            row.DocumentSequenceIndex = row.DocumentSequenceIndex + 1
-                                            row.SequenceID = row.SequenceID + 1
+                            para_data = data[0]
+                            if para_data is not None:
+                                obj1 = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == para_data.get('doc_id'), IqvpageroiDb.link_id == para_data.get('link_id'),
+                                                                            IqvpageroiDb.link_id_level2 == para_data.get(
+                                    'link_id_level2'), IqvpageroiDb.link_id_level3 == para_data.get('link_id_level3'),
+                                    IqvpageroiDb.link_id_level4 == para_data.get(
+                                    'link_id_level4'), IqvpageroiDb.link_id_level5 == para_data.get('link_id_level5'),
+                                    IqvpageroiDb.link_id_level6 == para_data.get(
+                                    'link_id_level6'), IqvpageroiDb.link_id_subsection1 == para_data.get('link_id_subsection1'),
+                                    IqvpageroiDb.link_id_subsection2 == para_data.get(
+                                    'link_id_subsection2'), IqvpageroiDb.link_id_subsection3 == para_data.get('link_id_subsection3'),
+                                    IqvpageroiDb.parent_id == para_data.get('parent_id'), IqvpageroiDb.DocumentSequenceIndex > para_data.get('DocumentSequenceIndex')))
+                                for row in obj1:
+                                    if row is not None:
+                                        row.DocumentSequenceIndex = row.DocumentSequenceIndex + 1
+                                        row.SequenceID = row.SequenceID + 1
 
                             for para_data in data[1:]:
                                 if para_data is not None:
-                                    obj1 = session.query(IqvpageroiDb).filter(and_(table_name.doc_id == para_data.get('doc_id'), table_name.link_id == para_data.get('link_id'),
-                                                                                table_name.link_id_level2 == para_data.get(
-                                        'link_id_level2'), table_name.link_id_level3 == para_data.get('link_id_level3'),
-                                        table_name.link_id_level4 == para_data.get(
-                                        'link_id_level4'), table_name.link_id_level5 == para_data.get('link_id_level5'),
-                                        table_name.link_id_level6 == para_data.get(
-                                        'link_id_level6'), table_name.link_id_subsection1 == para_data.get('link_id_subsection1'),
-                                        table_name.link_id_subsection2 == para_data.get(
-                                        'link_id_subsection2'), table_name.link_id_subsection3 == para_data.get('link_id_subsection3'),
-                                        table_name.parent_id == para_data.get('parent_id'), table_name.DocumentSequenceIndex > para_data.get('DocumentSequenceIndex')))
-                                    for row in obj1:
-                                        if row is not None:
-                                            row.DocumentSequenceIndex = row.DocumentSequenceIndex + 1
-                                            row.SequenceID = row.SequenceID + 1
                                     para_data = table_name(**para_data)
                                     add_obj = session.add(para_data)
                         elif table_name == IqvsubtextDb:
@@ -169,16 +154,16 @@ def db_add_image(val_list: list):
                         table_name = table_dict.get(content_type)
 
                         for para_data in data:
-                            obj1 = session.query(IqvpageroiDb).filter(and_(table_name.doc_id == para_data.get('doc_id'), table_name.link_id == para_data.get('link_id'),
-                                                                         table_name.link_id_level2 == para_data.get(
-                                'link_id_level2'), table_name.link_id_level3 == para_data.get('link_id_level3'),
-                                table_name.link_id_level4 == para_data.get(
-                                'link_id_level4'), table_name.link_id_level5 == para_data.get('link_id_level5'),
-                                table_name.link_id_level6 == para_data.get(
-                                'link_id_level6'), table_name.link_id_subsection1 == para_data.get('link_id_subsection1'),
-                                table_name.link_id_subsection2 == para_data.get(
-                                'link_id_subsection2'), table_name.link_id_subsection3 == para_data.get('link_id_subsection3'),
-                                table_name.parent_id == para_data.get('parent_id'), table_name.DocumentSequenceIndex > para_data.get('DocumentSequenceIndex')))
+                            obj1 = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == para_data.get('doc_id'), IqvpageroiDb.link_id == para_data.get('link_id'),
+                                                                         IqvpageroiDb.link_id_level2 == para_data.get(
+                                'link_id_level2'), IqvpageroiDb.link_id_level3 == para_data.get('link_id_level3'),
+                                IqvpageroiDb.link_id_level4 == para_data.get(
+                                'link_id_level4'), IqvpageroiDb.link_id_level5 == para_data.get('link_id_level5'),
+                                IqvpageroiDb.link_id_level6 == para_data.get(
+                                'link_id_level6'), IqvpageroiDb.link_id_subsection1 == para_data.get('link_id_subsection1'),
+                                IqvpageroiDb.link_id_subsection2 == para_data.get(
+                                'link_id_subsection2'), IqvpageroiDb.link_id_subsection3 == para_data.get('link_id_subsection3'),
+                                IqvpageroiDb.parent_id == para_data.get('parent_id'), IqvpageroiDb.DocumentSequenceIndex > para_data.get('DocumentSequenceIndex')))
                             for row in obj1:
                                 if row is not None:
                                     row.DocumentSequenceIndex = row.DocumentSequenceIndex + 1
@@ -235,16 +220,16 @@ def db_delete_image(val_list: list):
                             del_obj = session.query(table_name).filter(
                                 table_name.id == id).delete()
                             if line_detail is not None:
-                                obj1 = session.query(IqvpageroiDb).filter(and_(table_name.doc_id == line_detail.get('doc_id'), table_name.link_id == line_detail.get('link_id'),
-                                                                            table_name.link_id_level2 == line_detail.get(
-                                    'link_id_level2'), table_name.link_id_level3 == line_detail.get('link_id_level3'),
-                                    table_name.link_id_level4 == line_detail.get(
-                                    'link_id_level4'), table_name.link_id_level5 == line_detail.get('link_id_level5'),
-                                    table_name.link_id_level6 == line_detail.get(
-                                    'link_id_level6'), table_name.link_id_subsection1 == line_detail.get('link_id_subsection1'),
-                                    table_name.link_id_subsection2 == line_detail.get(
-                                    'link_id_subsection2'), table_name.link_id_subsection3 == line_detail.get('link_id_subsection3'),
-                                    table_name.parent_id == line_detail.get('parent_id'), table_name.DocumentSequenceIndex > line_detail.get('DocumentSequenceIndex')))
+                                obj1 = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == line_detail.get('doc_id'), IqvpageroiDb.link_id == line_detail.get('link_id'),
+                                                                            IqvpageroiDb.link_id_level2 == line_detail.get(
+                                    'link_id_level2'), IqvpageroiDb.link_id_level3 == line_detail.get('link_id_level3'),
+                                    IqvpageroiDb.link_id_level4 == line_detail.get(
+                                    'link_id_level4'), IqvpageroiDb.link_id_level5 == line_detail.get('link_id_level5'),
+                                    IqvpageroiDb.link_id_level6 == line_detail.get(
+                                    'link_id_level6'), IqvpageroiDb.link_id_subsection1 == line_detail.get('link_id_subsection1'),
+                                    IqvpageroiDb.link_id_subsection2 == line_detail.get(
+                                    'link_id_subsection2'), IqvpageroiDb.link_id_subsection3 == line_detail.get('link_id_subsection3'),
+                                    IqvpageroiDb.parent_id == line_detail.get('parent_id'), IqvpageroiDb.DocumentSequenceIndex > line_detail.get('DocumentSequenceIndex')))
                                 for row in obj1:
                                     if row is not None:
                                         row.DocumentSequenceIndex = row.DocumentSequenceIndex - 1
@@ -288,16 +273,16 @@ def db_delete_table(val_list):
                     for row in obj:
                         row.strText = content
                     if table_name != IqvsubtextDb and line_detail is not None:
-                        obj1 = session.query(IqvpageroiDb).filter(and_(table_name.doc_id == line_detail.get('doc_id'), table_name.link_id == line_detail.get('link_id'),
-                                                                        table_name.link_id_level2 == line_detail.get(
-                                                                            'link_id_level2'), table_name.link_id_level3 == line_detail.get('link_id_level3'),
-                                                                        table_name.link_id_level4 == line_detail.get(
-                                                                            'link_id_level4'), table_name.link_id_level5 == line_detail.get('link_id_level5'),
-                                                                        table_name.link_id_level6 == line_detail.get(
-                                                                            'link_id_level6'), table_name.link_id_subsection1 == line_detail.get('link_id_subsection1'),
-                                                                        table_name.link_id_subsection2 == line_detail.get(
-                                                                            'link_id_subsection2'), table_name.link_id_subsection3 == line_detail.get('link_id_subsection3'),
-                                                                        table_name.parent_id == line_detail.get('parent_id'), table_name.DocumentSequenceIndex > line_detail.get('DocumentSequenceIndex')))
+                        obj1 = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == line_detail.get('doc_id'), IqvpageroiDb.link_id == line_detail.get('link_id'),
+                                                                        IqvpageroiDb.link_id_level2 == line_detail.get(
+                                                                            'link_id_level2'), IqvpageroiDb.link_id_level3 == line_detail.get('link_id_level3'),
+                                                                        IqvpageroiDb.link_id_level4 == line_detail.get(
+                                                                            'link_id_level4'), IqvpageroiDb.link_id_level5 == line_detail.get('link_id_level5'),
+                                                                        IqvpageroiDb.link_id_level6 == line_detail.get(
+                                                                            'link_id_level6'), IqvpageroiDb.link_id_subsection1 == line_detail.get('link_id_subsection1'),
+                                                                        IqvpageroiDb.link_id_subsection2 == line_detail.get(
+                                                                            'link_id_subsection2'), IqvpageroiDb.link_id_subsection3 == line_detail.get('link_id_subsection3'),
+                                                                        IqvpageroiDb.parent_id == line_detail.get('parent_id'), IqvpageroiDb.DocumentSequenceIndex > line_detail.get('DocumentSequenceIndex')))
                         for row in obj1:
                             if row is not None:
                                 row.DocumentSequenceIndex = row.DocumentSequenceIndex - 1

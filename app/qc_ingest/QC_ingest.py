@@ -144,7 +144,7 @@ def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: 
             prev_subtext_line_details = None
             if subtext_id is not None:
                 prev_subtext_line_details = get_prev_line_detail(
-                    prev_para_id, 'subtext')
+                    subtext_id, 'subtext')
 
             if prev_subtext_line_details is not None:
                 for key, val in prev_subtext_line_details.items():
