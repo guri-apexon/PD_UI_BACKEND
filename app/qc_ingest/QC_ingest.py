@@ -232,30 +232,33 @@ def get_add_content_info(data: dict, info_dict: dict):
         font_info_dict = None
         subtext_info_dict = None
         header_info_dict = None
+        prev_line_details = None
+        link_level = None
         if data.get('type') == 'header':
-            link_level = link_level_dict[str(
-                int(data['file_section_level'])-1)]
-            prev_para_id = data['prev_line_detail'][link_level]
-            header_info_dict = build_header_info_dict(data, prev_para_id)
-        prev_line_id = data['prev_line_detail']['line_id']
-        prev_line_data_type = data['prev_line_detail']['type']
-        chunks = [prev_line_id[i:i+36]
-                  for i in range(0, len(prev_line_id), 36)]
-        prev_para_id = chunks[0]
-        subtext_id = None
-        if len(chunks) == 3:
-            subtext_id = chunks[2]
-        line_id = data.get('line_id')
-        prev_line_details, new_para_line_dict, new_childbox_line_dict, subtext_info_dict = build_info_dict(
-            data, prev_para_id, header_info_dict, info_dict, prev_line_id, subtext_id, prev_line_data_type)
-        font_info_dict = get_font_info_dict(
-            data['font_info'], header_info_dict)
-        info_dict[line_id] = {'new_para_line_dict': new_para_line_dict,
-                              'new_childbox_line_dict': new_childbox_line_dict,
-                              'subtext_info_dict': subtext_info_dict,
-                              'header_info_dict': header_info_dict,
-                              'font_info_dict': font_info_dict}
-        return prev_line_details, new_para_line_dict, new_childbox_line_dict, font_info_dict, subtext_info_dict, header_info_dict
+            link_level = link_level_dict[data['prev_line_detail']['file_section_level']]
+            if link_level != "":
+                prev_para_id = data['prev_line_detail'][link_level]
+                header_info_dict = build_header_info_dict(data, prev_para_id)
+        if link_level != "":
+            prev_line_id = data['prev_line_detail']['line_id']
+            prev_line_data_type = data['prev_line_detail']['type']
+            chunks = [prev_line_id[i:i+36]
+                    for i in range(0, len(prev_line_id), 36)]
+            prev_para_id = chunks[0]
+            subtext_id = None
+            if len(chunks) == 3:
+                subtext_id = chunks[2]
+            line_id = data.get('line_id')
+            prev_line_details, new_para_line_dict, new_childbox_line_dict, subtext_info_dict = build_info_dict(
+                data, prev_para_id, header_info_dict, info_dict, prev_line_id, subtext_id, prev_line_data_type)
+            font_info_dict = get_font_info_dict(
+                data['font_info'], header_info_dict)
+            info_dict[line_id] = {'new_para_line_dict': new_para_line_dict,
+                                'new_childbox_line_dict': new_childbox_line_dict,
+                                'subtext_info_dict': subtext_info_dict,
+                                'header_info_dict': header_info_dict,
+                                'font_info_dict': font_info_dict}
+            return prev_line_details, new_para_line_dict, new_childbox_line_dict, font_info_dict, subtext_info_dict, header_info_dict
     except Exception as exc:
         logger.exception(
             f"Exception received in get_add_content_info: {exc}")
