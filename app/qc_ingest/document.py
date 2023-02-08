@@ -198,7 +198,7 @@ class DocumentLink:
 
 class TableType:
 
-    table_dict = {'text': DocumentparagraphsDb, 'tablecell': DocumenttablesDb, 'font_info': FontinfoDb, 'image': DocumentimagesDb,
+    table_dict = {'text': DocumentparagraphsDb, 'table': DocumenttablesDb, 'font_info': FontinfoDb, 'image': DocumentimagesDb,
                   'header': DocumentparagraphsDb, 'link_db': IqvdocumentlinkDb, 'subtext': IqvsubtextDb}
 
 

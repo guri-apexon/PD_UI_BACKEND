@@ -14,8 +14,6 @@ class Settings(BaseSettings):
     APPLICATION_PORT: int
     SQLALCHEMY_DATABASE_URI: str
     DEV_DB_URL : str
-    TEST_DB_URL : str
-    LOCAL_DB_URL : str
     PROTOCOL_FOLDER: str
 
     # PostgreSQL DB
