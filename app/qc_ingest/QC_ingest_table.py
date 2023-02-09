@@ -31,6 +31,7 @@ def get_roi_ids_dict(value):
             f"Exception received in get_roi_ids_dict: {exc}")
         raise Exception(f"Exception received in get_roi_ids_dict: {exc}")
 
+
 def get_action_dict(table_properties):
     """getting action dict for table"""
     try:
@@ -50,7 +51,8 @@ def get_action_dict(table_properties):
     except Exception as exc:
         logger.exception(
             f"Exception received in get_action_dict for table: {exc}")
-        raise Exception(f"Exception received in get_action_dict for table: {exc}")
+        raise Exception(
+            f"Exception received in get_action_dict for table: {exc}")
 
 
 def process_table(data: dict):

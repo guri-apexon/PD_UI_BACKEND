@@ -59,7 +59,7 @@ def get_add_content_info(data: dict):
 
 
 def get_action_dict(data: dict):
-    """getting action dict for image"""
+    """getting action dict for image """
     try:
         action_dict = {'add': [], 'modify': [], 'delete': []}
         action = data.get('qc_change_type')
