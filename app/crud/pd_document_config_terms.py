@@ -115,7 +115,7 @@ def get_document_terms_data(db: Session, aidoc_id: str,
         properties_values = [{"id": property.id, "key": property.key, "value": property.value,
                               "parent_id": property.parent_id} for property in property_data]
         terms_values.update({'properties': properties_values})
-        logger.info(f"properties results {preferred_values}")
+        logger.info(f"properties results {properties_values}")
 
     if "redaction_attributes" in config_variables:
         if link_id:
