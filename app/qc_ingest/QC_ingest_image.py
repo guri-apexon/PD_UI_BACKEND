@@ -54,7 +54,8 @@ def get_add_content_info(data: dict):
     except Exception as exc:
         logger.exception(
             f"Exception received in get_add_content_info for image: {exc}")
-        raise Exception(f"Exception received in get_add_content_info for image: {exc}")
+        raise Exception(
+            f"Exception received in get_add_content_info for image: {exc}")
 
 
 def get_action_dict(data: dict):
@@ -75,7 +76,8 @@ def get_action_dict(data: dict):
     except Exception as exc:
         logger.exception(
             f"Exception received in get_action_dict for image: {exc}")
-        raise Exception(f"Exception received in get_action_dict for image: {exc}")
+        raise Exception(
+            f"Exception received in get_action_dict for image: {exc}")
 
 
 def process_image(data: dict):

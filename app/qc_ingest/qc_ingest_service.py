@@ -1,6 +1,6 @@
-from .qc_ingest_text import process_text
-from .qc_ingest_image import process_image
-from .qc_ingest_table import process_table
+from app.qc_ingest.qc_ingest_text import process_text
+from app.qc_ingest.qc_ingest_image import process_image
+from app.qc_ingest.qc_ingest_table import process_table
 import logging
 from app.utilities.config import settings
 
