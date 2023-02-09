@@ -1,3 +1,4 @@
+from email import message
 from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -13,6 +14,8 @@ from app.utilities.redaction.protocol_view_redaction import \
 from fastapi.responses import JSONResponse
 from fastapi import status
 import logging
+from fastapi import HTTPException, status
+
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -83,7 +86,6 @@ async def get_cpt_section_data(
         link_id: str = "",
         userId: str = "",
         protocol: str = "",
-        user: str = "",
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
@@ -139,3 +141,54 @@ def create_enriched_data(
     enriched_data = crud.nlp_entity_content.save_data_to_db(db, doc_id, link_id,
                                                             data.data)
     return enriched_data
+
+
+@router.get("/get_section_data_configurable_parameter")
+async def get_cpt_section_data_with_configurable_parameter(
+        psdb: Session = Depends(deps.get_psqldb),
+        aidoc_id: str = "",
+        link_level: int = 1,
+        link_id: str = "",
+        section_text = "",
+        user_id: str = "",
+        protocol: str = "",
+        config_variables: str = "",
+        _: str = Depends(auth.validate_user_token)
+) -> Any:
+    """
+    Get CPT Section/Header data for particular document with Configurable
+    terms values
+    :param db: db session
+    :param aidoc_id: document id
+    :param link_level: level of headers in toc
+    :param link_id: section id
+    :param protocol: protocol of document
+    :param user_id: userid
+    :param clinical_terms: true/false -- optional
+    :param time_points: true/false -- optional
+    :param preferred_terms: true/false -- optional
+    :param redaction_attributes: true/false -- optional
+    :param references: true/false -- optional
+    :param properties: true/false -- optional
+    :param _ : API token validation
+    :returns: Section data with configurable terms values
+    """
+
+    try:
+        # Section data from the existing end point
+        section_res = await get_cpt_section_data(psdb, aidoc_id, link_level, link_id,
+                                                user_id, protocol)
+
+        # Terms values based on given configuration values
+        terms_values = crud.get_document_terms_data(psdb, aidoc_id,
+                                                    link_id, config_variables,section_text)
+
+        # enriched data from existing end point
+        enriched_data = await get_enriched_data( psdb,aidoc_id,link_id)
+        logger.info(f"config api result {section_res}, {terms_values}, {enriched_data}")
+
+        return [section_res, terms_values, enriched_data]
+    except Exception as e:
+        logger.exception(f"exception occured in config api for doc_id {aidoc_id} and link_id {link_id} and exception is {e}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Exception to fetch configration data {str(e)}")
