@@ -53,42 +53,43 @@ def get_add_content_info(data: dict):
         return new_para_line, new_childbox_line
     except Exception as exc:
         logger.exception(
-            f"Exception received in get_add_content_info: {exc}")
+            f"Exception received in get_add_content_info for image: {exc}")
+        raise Exception(f"Exception received in get_add_content_info for image: {exc}")
 
 
-def get_action_dict(payload: str):
+def get_action_dict(data: dict):
     """getting action dict for image"""
     try:
-        action_dict = {'modify': [], 'delete': [], 'add': []}
-        for data in payload:
-            action = data.get('qc_change_type')
-            if action == 'add':
-                new_para_line_dict, new_childbox_line_dict = get_add_content_info(
-                    data)
-                (action_dict[action]).append(
-                    {data.get('type'): [new_para_line_dict, new_childbox_line_dict]})
-            elif action == 'modify' or action == 'delete':
-                (action_dict[action]).append(
-                    {data.get('type'): data})
+        action_dict = {'add': [], 'modify': [], 'delete': []}
+        action = data.get('qc_change_type')
+        if action == 'add':
+            new_para_line_dict, new_childbox_line_dict = get_add_content_info(
+                data)
+            (action_dict[action]).append(
+                {data.get('type'): [new_para_line_dict, new_childbox_line_dict]})
+        elif action == 'modify' or action == 'delete':
+            (action_dict[action]).append(
+                {data.get('type'): data})
 
         return action_dict
     except Exception as exc:
         logger.exception(
-            f"Exception received in get_action_dict: {exc}")
+            f"Exception received in get_action_dict for image: {exc}")
+        raise Exception(f"Exception received in get_action_dict for image: {exc}")
 
 
-def process(payload: list):
-    """processing payload for image data"""
+def process_image(data: dict):
+    """processing image data"""
     try:
-        action_dict = get_action_dict(payload)
+        action_dict = get_action_dict(data)
         for key, val in action_dict.items():
+            if key == 'add' and len(val) > 0:
+                db_add_image(val)
             if key == 'modify' and len(val) > 0:
                 db_update_image(val)
             if key == 'delete' and len(val) > 0:
                 db_delete_image(val)
-            if key == 'add' and len(val) > 0:
-                db_add_image(val)
-        return True
     except Exception as exc:
         logger.exception(
             f"Exception received in processing image data: {exc}")
+        raise Exception(f"Exception received in processing image data: {exc}")
