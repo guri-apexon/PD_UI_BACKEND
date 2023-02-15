@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     API: str
     APPLICATION_PORT: int
     SQLALCHEMY_DATABASE_URI: str
+    DEV_DB_URL : str
     PROTOCOL_FOLDER: str
 
     # PostgreSQL DB
