@@ -53,7 +53,7 @@ def test_follow_protocol(new_token_on_headers, insert_flg, user_id, protocol, fo
     assert follow_record.userRole == expected_user_role
     assert follow_record.isActive is True
     assert follow_record.redactProfile == expected_redact_profile
-    assert follow_record.lastUpdated >= current_timestamp
+    assert str(follow_record.lastUpdated) >= str(current_timestamp)
 
     if insert_flg:
         assert follow_record.timeCreated == follow_record.lastUpdated
