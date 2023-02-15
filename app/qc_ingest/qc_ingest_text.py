@@ -29,7 +29,7 @@ def get_font_info_dict(font_info: dict, subtext_info_dict):
                 font_info_db.parent_id = subtext_info_dict['id']
                 font_info_db.hierarchy = 'paragraph'
                 font_info_db.iqv_standard_term = ''
-                font_info_db.group_type = 'fontinfo'
+                font_info_db.group_type = 'fontInfo'
                 font_info_db.link_id = subtext_info_dict['link_id']
                 font_info_db.link_id_level2 = subtext_info_dict['link_id_level2']
                 font_info_db.link_id_level3 = subtext_info_dict['link_id_level3']
