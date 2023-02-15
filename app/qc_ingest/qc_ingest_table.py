@@ -27,9 +27,9 @@ def get_roi_ids_dict(value):
         (roi_id_dict['subtext']).append(roi_id1)
         return roi_id_dict
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_roi_ids_dict: {exc}")
-        raise Exception(f"Exception received in get_roi_ids_dict: {exc}")
+        error_string = f"Exception received in get_roi_ids_dict: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def get_action_dict(table_properties):
@@ -49,10 +49,9 @@ def get_action_dict(table_properties):
 
         return action_dict
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_action_dict for table: {exc}")
-        raise Exception(
-            f"Exception received in get_action_dict for table: {exc}")
+        error_string = f"Exception received in get_action_dict for table: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def process_table(data: dict):
@@ -74,6 +73,6 @@ def process_table(data: dict):
                 if key == 'delete' and len(val) > 0:
                     db_delete_table(val)
     except Exception as exc:
-        logger.exception(
-            f"Exception received in processing table data: {exc}")
-        raise Exception(f"Exception received in processing table data: {exc}")
+        error_string = f"Exception received in processing table data: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)

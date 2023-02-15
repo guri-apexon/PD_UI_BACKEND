@@ -53,9 +53,13 @@ def db_update(val_list: list):
             session.commit()
             session.close_all()
     except Exception as exc:
-        logger.exception(
-            f"Exception received in updating paragraph data in DB: {exc}")
-        raise Exception(f"Exception received in updating paragraph data in DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in updating paragraph data in DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def db_delete(val_list: list):
@@ -95,9 +99,13 @@ def db_delete(val_list: list):
             session.commit()
             session.close_all()
     except Exception as exc:
-        logger.exception(
-            f"Exception received in deleting paragraph data in DB: {exc}")
-        raise Exception(f"Exception received in deleting paragraph data in DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in deleting paragraph data in DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def db_add(val_list: list):
@@ -136,9 +144,13 @@ def db_add(val_list: list):
             session.commit()
             session.close_all()
     except Exception as exc:
-        logger.exception(
-            f"Exception received in adding paragraph data in DB: {exc}")
-        raise Exception(f"Exception received in adding paragraph data in DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in adding paragraph data in DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def db_add_image(val_list: list):
@@ -149,16 +161,24 @@ def db_add_image(val_list: list):
                 for content_type, data in data_dict.items():
                     if data is not None and len(data) > 0:
                         table_name = table_dict.get(content_type)
-                        for para_data in data:
+                        para_data = data[0]
+                        if para_data is not None:
                             get_update_sequence_index(session, para_data, 'add')
-                            para_data = table_name(**para_data)
-                            add_obj = session.add(para_data)
+
+                        for para_data in data[1:]:
+                            if para_data is not None:
+                                para_data = table_name(**para_data)
+                                add_obj = session.add(para_data)
             session.commit()
             session.close_all()
     except Exception as exc:
-        logger.exception(
-            f"Exception received in adding Image data in DB: {exc}")
-        raise Exception(f"Exception received in adding Image data in DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in adding Image data in DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def db_update_image(val_list: list):
@@ -180,9 +200,13 @@ def db_update_image(val_list: list):
             session.commit()
             session.close_all()
     except Exception as exc:
-        logger.exception(
-            f"Exception received in updating Image data in DB: {exc}")
-        raise Exception(f"Exception received in updating Image data in DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in updating Image data in DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def db_delete_image(val_list: list):
@@ -209,9 +233,13 @@ def db_delete_image(val_list: list):
             session.commit()
             session.close_all()
     except Exception as exc:
-        logger.exception(
-            f"Exception received in deleting Image data in DB: {exc}")
-        raise Exception(f"Exception received in deleting Image data in DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in deleting Image data in DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def db_update_table(val_list):
@@ -231,9 +259,13 @@ def db_update_table(val_list):
             session.commit()
             session.close_all()
     except Exception as exc:
-        logger.exception(
-            f"Exception received in updating table data in DB: {exc}")
-        raise Exception(f"Exception received in updating table data in DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in updating table data in DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def db_delete_table(val_list):
@@ -258,9 +290,13 @@ def db_delete_table(val_list):
             session.commit()
             session.close_all()
     except Exception as exc:
-        logger.exception(
-            f"Exception received in deleting table data in DB: {exc}")
-        raise Exception(f"Exception received in deleting table data in DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in deleting table data in DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def get_ids_from_parent_id(parent_id, content_type):
@@ -277,9 +313,13 @@ def get_ids_from_parent_id(parent_id, content_type):
             session.close_all()
         return roi_id
     except Exception as exc:
-        logger.exception(
-            f"Exception received in getting ids using parent_id from DB: {exc}")
-        raise Exception(f"Exception received in getting ids using parent_id from DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in getting ids using parent_id from DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 
 
 
 def get_prev_line_detail(id: str, content_type: str):
@@ -296,6 +336,10 @@ def get_prev_line_detail(id: str, content_type: str):
             session.close_all()
         return prev_line_details
     except Exception as exc:
-        logger.exception(
-            f"Exception received in getting previous line detail from DB: {exc}")
-        raise Exception(f"Exception received in getting previous line detail from DB: {exc}")
+        session.rollback()
+        error_string = f"Exception received in getting previous line detail from DB: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
+    finally:
+        if session:
+           session.close_all() 

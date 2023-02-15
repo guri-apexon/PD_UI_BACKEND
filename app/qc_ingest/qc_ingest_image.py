@@ -50,12 +50,11 @@ def get_add_content_info(data: dict):
                 new_childbox_line.DocumentSequenceIndex = 0
                 new_childbox_line.SequenceID = 0
                 new_childbox_line.bIsCheckbox = True
-        return new_para_line, new_childbox_line
+        return prev_line_details, new_para_line, new_childbox_line.__dict__
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_add_content_info for image: {exc}")
-        raise Exception(
-            f"Exception received in get_add_content_info for image: {exc}")
+        error_string = f"Exception received in get_add_content_info for image: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def get_action_dict(data: dict):
@@ -64,20 +63,19 @@ def get_action_dict(data: dict):
         action_dict = {'add': [], 'modify': [], 'delete': []}
         action = data.get('qc_change_type')
         if action == 'add':
-            new_para_line_dict, new_childbox_line_dict = get_add_content_info(
+            prev_line_details, new_para_line_dict, new_childbox_line_dict = get_add_content_info(
                 data)
             (action_dict[action]).append(
-                {data.get('type'): [new_para_line_dict, new_childbox_line_dict]})
+                {data.get('type'): [prev_line_details, new_para_line_dict, new_childbox_line_dict]})
         elif action == 'modify' or action == 'delete':
             (action_dict[action]).append(
                 {data.get('type'): data})
 
         return action_dict
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_action_dict for image: {exc}")
-        raise Exception(
-            f"Exception received in get_action_dict for image: {exc}")
+        error_string = f"Exception received in get_action_dict for image: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def process_image(data: dict):
@@ -92,6 +90,6 @@ def process_image(data: dict):
             if key == 'delete' and len(val) > 0:
                 db_delete_image(val)
     except Exception as exc:
-        logger.exception(
-            f"Exception received in processing image data: {exc}")
-        raise Exception(f"Exception received in processing image data: {exc}")
+        error_string = f"Exception received in processing image data: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)

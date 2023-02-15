@@ -57,13 +57,13 @@ def get_font_info_dict(font_info: dict, subtext_info_dict):
                 font_info_db.Vanish = False
                 font_info_db.rFonts = ""
                 font_info_db.VertAlign = ""
+        return font_info_db.__dict__
 
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_font_info_dict: {exc}")
-        raise Exception(f"Exception received in get_font_info_dict: {exc}")
+        error_string = f"Exception received in get_font_info_dict: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
-    return font_info_db.__dict__
 
 
 def get_info_dict(data: dict, id: str, parent_id: str):
@@ -98,9 +98,9 @@ def get_info_dict(data: dict, id: str, parent_id: str):
         new_info_dict['link_id_subsection3'] = data['font_info']['link_id_subsection3']
         return new_info_dict
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_info_dict: {exc}")
-        raise Exception(f"Exception received in get_info_dict: {exc}")
+        error_string = f"Exception received in get_info_dict: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def get_content_info(data: dict):
@@ -123,9 +123,9 @@ def get_content_info(data: dict):
             header_info_dict = get_info_dict(data, id, data['aidocid'])
         return content_info_dict, font_info_dict, subtext_info_dict, header_info_dict
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_content_info: {exc}")
-        raise Exception(f"Exception received in get_content_info: {exc}")
+        error_string = f"Exception received in get_content_info: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: dict, line_id: str, subtext_id: str, prev_line_data_type: str):
@@ -218,9 +218,9 @@ def build_info_dict(data: dict, prev_para_id: str, header_info_dict, info_dict: 
             new_subtext_line = new_subtext_line.__dict__
         return prev_line_details, new_para_line, new_childbox_line, new_subtext_line
     except Exception as exc:
-        logger.exception(
-            f"Exception received in build_info_dict for text: {exc}")
-        raise Exception(f"Exception received in build_info_dict for text: {exc}")
+        error_string = f"Exception received in build_info_dict for text: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def build_header_info_dict(data: dict, prev_para_id: str):
@@ -256,9 +256,9 @@ def build_header_info_dict(data: dict, prev_para_id: str):
 
         return new_line
     except Exception as exc:
-        logger.exception(
-            f"Exception received in build_header_info_dict: {exc}")
-        raise Exception(f"Exception received in build_header_info_dict: {exc}")
+        error_string = f"Exception received in build_header_info_dict: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def get_add_content_info(data: dict, info_dict: dict):
@@ -297,9 +297,9 @@ def get_add_content_info(data: dict, info_dict: dict):
                                 'font_info_dict': font_info_dict}
             return prev_line_details, new_para_line_dict, new_childbox_line_dict, font_info_dict, subtext_info_dict, header_info_dict
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_add_content_info for text: {exc}")
-        raise Exception(f"Exception received in get_add_content_info for text: {exc}")
+        error_string = f"Exception received in get_add_content_info for text: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def get_action_dict(data: dict, info_dict: dict):
@@ -324,9 +324,9 @@ def get_action_dict(data: dict, info_dict: dict):
 
         return action_dict
     except Exception as exc:
-        logger.exception(
-            f"Exception received in get_action_dict for text: {exc}")
-        raise Exception(f"Exception received in get_action_dict for text: {exc}")
+        error_string = f"Exception received in get_action_dict for text: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)
 
 
 def process_text(data: dict, info_dict: dict):
@@ -341,6 +341,6 @@ def process_text(data: dict, info_dict: dict):
             if key == 'delete' and len(val) > 0:
                 db_delete(val)
     except Exception as exc:
-        logger.exception(
-            f"Exception received in processing text data: {exc}")
-        raise Exception(f"Exception received in processing text data: {exc}")
+        error_string = f"Exception received in processing text data: {exc}"
+        logger.exception(error_string)
+        raise Exception(error_string)

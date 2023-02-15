@@ -14,7 +14,7 @@ def process(payload: list):
         info_dict = dict()
         if payload is not None and len(payload) > 0:
             for data in payload:
-                if data.get('type') == "text" or data.get('type') == "header":
+                if data.get('type') in ["text", "header"]:
                     process_text(data, info_dict)
                 if data.get('type') == "image":
                     process_image(data)
