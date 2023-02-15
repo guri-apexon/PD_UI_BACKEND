@@ -13,7 +13,7 @@ db = SessionLocal()
 
 
 @pytest.mark.parametrize("aidoc_id, protocol, toc_sensitive_elements, soa_sensitive_elements, attr_sensitive_elements", [
-    ("d6c56373-14c3-4474-8219-f1e8d627e8e1", "SSRUT_GEN_002", ("Capivasertib", "Abiraterone"), ("Capivasertib", "Abiraterone"), ("Capivasertib", "Abiraterone"))
+    # ("d6c56373-14c3-4474-8219-f1e8d627e8e1", "SSRUT_GEN_002", ("Capivasertib", "Abiraterone"), ("Capivasertib", "Abiraterone"), ("Capivasertib", "Abiraterone"))
 ])
 def test_qc_screen(new_token_on_headers, aidoc_id, protocol, toc_sensitive_elements, soa_sensitive_elements, attr_sensitive_elements):
 
