@@ -1,13 +1,13 @@
 import json
 import pytest
-from app.db.session import SessionPSQL
+from app.db.session import SessionLocal
 from app.main import app
 from fastapi.testclient import TestClient
 from fastapi import status
 from app.models.pd_nlp_entity_db import NlpEntityDb
 
 client = TestClient(app)
-db = SessionPSQL()
+db = SessionLocal()
 
 
 @pytest.mark.parametrize("doc_id, link_id, status_code, comments",
