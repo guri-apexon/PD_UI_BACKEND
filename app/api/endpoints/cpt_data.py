@@ -153,7 +153,7 @@ async def get_cpt_section_data_with_configurable_parameter(
         user_id: str = "",
         protocol: str = "",
         config_variables: str = "",
-        # _: str = Depends(auth.validate_user_token)
+        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get CPT Section/Header data for particular document with Configurable
