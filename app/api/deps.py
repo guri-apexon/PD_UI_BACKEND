@@ -1,6 +1,6 @@
 from typing import Generator
 
-from app.db.session import SessionLocal, SessionPSQL
+from app.db.session import SessionLocal
 
 
 def get_db() -> Generator:
@@ -9,13 +9,3 @@ def get_db() -> Generator:
         yield db
     finally:
         db.close()
-
-
-# connection for postgresql
-def get_psqldb() -> Generator:
-    try:
-        psdb = SessionPSQL()
-        yield psdb
-    finally:
-        psdb.close()
-

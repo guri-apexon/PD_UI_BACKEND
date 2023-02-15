@@ -15,13 +15,6 @@ class Settings(BaseSettings):
     SQLALCHEMY_DATABASE_URI: str
     PROTOCOL_FOLDER: str
 
-    # PostgreSQL DB
-    PostgreSQL_DATABASE: str
-    PostgreSQL_USER: str
-    PostgreSQL_PASSWORD: str
-    PostgreSQL_HOST: str
-    PostgreSQL_PORT: str
-
     DFS_UPLOAD_FOLDER: str
     PROCESSING_DIR: str
     PROCESSING_USERPROTOCOL_BULK_DIR:str
