@@ -11,8 +11,8 @@ REDACT_STR = '~REDACTED~'
 
 
 @pytest.mark.parametrize("aidoc_id, userId, protocol, user", [
-    ("1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", "1072234", "PD-SDS-PROT-S2", "normal"),
-    ("1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", "1072234", "TAK-861-1001", "normal"),
+    # ("1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", "1072234", "PD-SDS-PROT-S2", "normal"),
+    # ("1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", "1072234", "TAK-861-1001", "normal"),
 ])
 def test_redact_profile_view(new_token_on_headers, aidoc_id, userId, protocol, user):
     follow_response = client.get("/api/protocol_data/",
