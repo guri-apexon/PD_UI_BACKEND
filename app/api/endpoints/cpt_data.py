@@ -45,7 +45,7 @@ async def get_cpt_headers(
 
 @router.get("/get_enriched_terms")
 async def get_enriched_data(
-        db: Session = Depends(deps.get_psqldb),
+        db: Session = Depends(deps.get_db),
         doc_id: str = "",
         link_id: str = "",
         _: str = Depends(auth.validate_user_token)
@@ -80,7 +80,7 @@ async def get_enriched_data(
 
 @router.get("/get_section_data")
 async def get_cpt_section_data(
-        psdb: Session = Depends(deps.get_psqldb),
+        psdb: Session = Depends(deps.get_db),
         aidoc_id: str = "",
         link_level: int = 1,
         link_id: str = "",
@@ -123,7 +123,7 @@ async def get_cpt_section_data(
 @router.post("/update_enriched_data")
 def create_enriched_data(
         *,
-        db: Session = Depends(deps.get_psqldb),
+        db: Session = Depends(deps.get_db),
         doc_id: str = "",
         link_id: str = "",
         data: schemas.NlpEntityData,
@@ -145,7 +145,7 @@ def create_enriched_data(
 
 @router.get("/get_section_data_configurable_parameter")
 async def get_cpt_section_data_with_configurable_parameter(
-        psdb: Session = Depends(deps.get_psqldb),
+        psdb: Session = Depends(deps.get_db),
         aidoc_id: str = "",
         link_level: int = 1,
         link_id: str = "",
@@ -153,7 +153,7 @@ async def get_cpt_section_data_with_configurable_parameter(
         user_id: str = "",
         protocol: str = "",
         config_variables: str = "",
-        _: str = Depends(auth.validate_user_token)
+        # _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get CPT Section/Header data for particular document with Configurable
