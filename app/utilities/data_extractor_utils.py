@@ -10,7 +10,7 @@ from etmfa_core.aidoc.IQVDocumentFunctions import IQVDocument
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
-def get_redaction_entities(level_roi: IQVDocument = None) -> Tuple[int, list]:
+def get_redaction_entities(level_roi = []) -> Tuple[int, list]:
     """
     Extracts only the redaction entities from the identified NLP entities and extracts redacted_text
     Returns: Length of redaction entities found and list of redaction entity properties and redacted text
