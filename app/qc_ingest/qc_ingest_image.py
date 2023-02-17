@@ -45,7 +45,7 @@ def get_add_content_info(data: dict):
                 _id = str(_id)
                 new_childbox_line.id = _id
                 new_childbox_line.parent_id = new_para_line['id']
-                new_childbox_line.group_type = 'ChildBoxes'
+                new_childbox_line.group_type = 'DocumentImages'
                 new_childbox_line.strText = data['content']
                 new_childbox_line.DocumentSequenceIndex = 0
                 new_childbox_line.SequenceID = 0

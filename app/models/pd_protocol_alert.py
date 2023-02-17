@@ -1,13 +1,13 @@
 import datetime
 
 from app.db.base_class import Base
-from sqlalchemy import Boolean, Column, Date, DateTime, String
+from sqlalchemy import Boolean, Column, Date, DateTime, String, Integer
 
 
 class ProtocolAlert(Base):
     __tablename__ = "pd_protocol_alert"
 
-    id = Column(String(100), primary_key=True)
+    id = Column(Integer, primary_key=True)
     aidocId = Column(String(100), primary_key=True)
     protocol = Column(String(500))
     protocolTitle = Column(String(1500))
