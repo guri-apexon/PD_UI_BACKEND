@@ -7,11 +7,10 @@ from etmfa_core.aidoc.io import IQVDocument
 from app.utilities import data_extractor_utils as utils
 from app.utilities.table_extractor import SOAResponse as soa
 from app.utilities.extractor_config import ModuleConfig
-from fastapi.responses import JSONResponse
-from fastapi import status
 from app.utilities.config import settings
 
 logger = logging.getLogger(settings.LOGGER_NAME)
+
 
 class CPTExtractor:
     def __init__(self, iqv_document: IQVDocument, profile_details: dict, entity_profile_genre: list, response_type:str = "split", table_response_type:str = "html"):
@@ -61,6 +60,9 @@ class CPTExtractor:
             master_dict['not_footnote_flg'] = False if self.footnote_tag in all_roi_tags else True
             interested_tag_dict = {key:value for key, value in master_roi_dict.items() if key in self.interested_tags}
             master_dict.update(interested_tag_dict)
+            # Prep for paragraph redaction
+            len_para_entities, para_entities = utils.get_redaction_entities(
+                level_roi=master_roi)
 
             all_child_list = []
             for child_idx, level_roi in enumerate(master_roi.ChildBoxes):
@@ -69,6 +71,9 @@ class CPTExtractor:
                 master_dict['para_child_font_details'] = {'IsBold': level_roi.fontInfo.Bold, 'font_size': level_roi.fontInfo.Size}
                 # Prep for subtext redaction
                 len_redaction_entities, redaction_entities = utils.get_redaction_entities(level_roi=level_roi)
+                # Added para level redaction entities with length
+                len_redaction_entities += len_para_entities
+                redaction_entities += para_entities
                 tot_master_childbox_redaction_entity += len_redaction_entities
                 childbox_entity_set = set(range(0, len_redaction_entities))
                 subtext_matched_entity_set = set()
