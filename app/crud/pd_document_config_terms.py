@@ -31,12 +31,15 @@ def get_document_terms_data(db: Session, aidoc_id: str,
         :param properties -- optional
     :returns: list of configurable terms values
     """
-
+    link_dict = {}
     if section_text:
         try:
             get_link_id = db.query(IqvdocumentlinkDb).filter(
                 IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.LinkText == section_text).one()
             link_id = get_link_id.link_id
+            link_dict.update({"link_id":get_link_id.link_id,"link_id_level2":get_link_id.link_id_level2,"link_id_level3":get_link_id.link_id_level3
+                                ,"link_id_level4":get_link_id.link_id_level4,"link_id_level5":get_link_id.link_id_level5,"link_id_level6":get_link_id.link_id_level6})
+            link_dict = {k:v for k,v in link_dict.items() if v}
         except Exception as e:
             logger.exception(
                 f"Exception occured during getting link id {section_text}, {str(e)}")
@@ -57,7 +60,10 @@ def get_document_terms_data(db: Session, aidoc_id: str,
         logger.info(f"time points results {time_points_values}")
 
     if "clinical_terms" in config_variables:
-        if link_id:
+        if link_dict:
+            clinical_terms = db.query(NlpEntityDb).filter(
+                NlpEntityDb.doc_id == aidoc_id).filter_by(**link_dict).all()
+        elif link_id:
             clinical_terms = db.query(NlpEntityDb).filter(
                 NlpEntityDb.doc_id == aidoc_id, NlpEntityDb.link_id == link_id).all()
         else:
@@ -70,7 +76,12 @@ def get_document_terms_data(db: Session, aidoc_id: str,
         logger.info(f"clinical terms results {clinical_values}")
 
     if "preferred_terms" in config_variables:
-        if link_id:
+        if link_dict:
+            all_term_data = db.query(IqvdocumentlinkDb).filter(
+                IqvdocumentlinkDb.doc_id == aidoc_id).filter_by(**link_dict).all()
+            all_term_data_from_tables = db.query(DocumenttablesDb).filter(
+                DocumenttablesDb.doc_id == aidoc_id).filter_by(**link_dict).all()
+        elif link_id:
             all_term_data = db.query(IqvdocumentlinkDb).filter(
                 IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.link_id == link_id).all()
             all_term_data_from_tables = db.query(DocumenttablesDb).filter(
@@ -90,7 +101,10 @@ def get_document_terms_data(db: Session, aidoc_id: str,
         logger.info(f"preferred terms results {all_term_records}")
 
     if "references" in config_variables:
-        if link_id:
+        if link_dict:
+            reference_links = db.query(IqvexternallinkDb).filter(
+                IqvexternallinkDb.doc_id == aidoc_id).filter_by(**link_dict).all()
+        elif link_id:
             reference_links = db.query(IqvexternallinkDb).filter(
                 IqvexternallinkDb.doc_id == aidoc_id, IqvexternallinkDb.link_id == link_id).all()
         else:
@@ -105,7 +119,10 @@ def get_document_terms_data(db: Session, aidoc_id: str,
         logger.info(f"references results {references_values}")
 
     if "properties" in config_variables:
-        if link_id:
+        if link_dict:
+            property_data = db.query(IqvkeyvaluesetDb).filter(
+                IqvkeyvaluesetDb.doc_id == aidoc_id).filter_by(**link_dict).all()
+        elif link_id:
             property_data = db.query(IqvkeyvaluesetDb).filter(
                 IqvkeyvaluesetDb.doc_id == aidoc_id, IqvkeyvaluesetDb.link_id == link_id).all()
         else:
@@ -118,7 +135,10 @@ def get_document_terms_data(db: Session, aidoc_id: str,
         logger.info(f"properties results {properties_values}")
 
     if "redaction_attributes" in config_variables:
-        if link_id:
+        if link_dict:
+            redaction_values = db.query(IqvkeyvaluesetDb).filter(IqvkeyvaluesetDb.doc_id == aidoc_id, IqvkeyvaluesetDb.key ==
+                                                                 ModuleConfig.GENERAL.REDACTION_SUBCATEGORY_KEY).filter_by(**link_dict).all()
+        elif link_id:
             redaction_values = db.query(IqvkeyvaluesetDb).filter(IqvkeyvaluesetDb.doc_id == aidoc_id, IqvkeyvaluesetDb.key ==
                                                                  ModuleConfig.GENERAL.REDACTION_SUBCATEGORY_KEY, IqvkeyvaluesetDb.link_id == link_id).all()
         else:
