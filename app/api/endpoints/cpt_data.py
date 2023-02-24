@@ -1,4 +1,3 @@
-from email import message
 from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -15,7 +14,6 @@ from fastapi.responses import JSONResponse
 from fastapi import status
 import logging
 from fastapi import HTTPException, status
-from app.models.pd_iqvdocumentlink_db import IqvdocumentlinkDb
 
 
 router = APIRouter()
@@ -177,22 +175,8 @@ async def get_cpt_section_data_with_configurable_parameter(
 
     try:
         # Section data from the existing end point
-        link_dict = {}
-        if section_text:
-            try:
-                get_link_id = psdb.query(IqvdocumentlinkDb).filter(
-                    IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.LinkText == section_text).one()
-                link_dict.update({"link_id":get_link_id.link_id,"link_id_level2":get_link_id.link_id_level2,"link_id_level3":get_link_id.link_id_level3
-                                    ,"link_id_level4":get_link_id.link_id_level4,"link_id_level5":get_link_id.link_id_level5,"link_id_level6":get_link_id.link_id_level6})
-                link_dict = {k:v for k,v in link_dict.items() if v}
-                link_level_identify = list(link_dict.keys())
-                if len(link_level_identify) > 1:
-                    link_level = int(link_level_identify[-1].strip("link_id_level"))
-                    link_id = link_dict[link_level_identify[-1]]
-
-            except Exception as e:
-                logger.exception(
-                    f"Exception occured during getting link id {section_text}, {str(e)}")
+        link_id, link_level, link_dict = crud.link_id_link_level_based_on_section_text(psdb, aidoc_id, section_text, link_id, link_level)
+       
 
         section_res = await get_cpt_section_data(psdb, aidoc_id, link_level, link_id,
                                                 user_id, protocol)
@@ -200,7 +184,7 @@ async def get_cpt_section_data_with_configurable_parameter(
 
         # Terms values based on given configuration values
         terms_values = crud.get_document_terms_data(psdb, aidoc_id,
-                                                    link_id, config_variables,section_text)
+                                                    link_id, config_variables, link_dict)
 
         # enriched data from existing end point
         enriched_data = await get_enriched_data( psdb,aidoc_id,link_id)
