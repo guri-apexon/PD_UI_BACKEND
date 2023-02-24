@@ -161,10 +161,9 @@ def link_id_link_level_based_on_section_text(psdb: Session, aidoc_id: str, secti
             link_level_identify = list(link_dict.keys())
             if len(link_level_identify) > 1:
                 link_level = int(link_level_identify[-1].strip("link_id_level"))
-                link_id = link_dict[link_level_identify[-1]]
             elif len(link_level_identify) == 1:
                 link_level = 1
-                link_id = link_dict[link_level_identify[-1]]
+            link_id = link_dict[link_level_identify[-1]]
             return link_id, link_level, link_dict
         except Exception as e:
             logger.exception(
