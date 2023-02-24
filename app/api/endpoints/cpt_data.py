@@ -1,4 +1,3 @@
-from email import message
 from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -176,12 +175,16 @@ async def get_cpt_section_data_with_configurable_parameter(
 
     try:
         # Section data from the existing end point
+        link_id, link_level, link_dict = crud.link_id_link_level_based_on_section_text(psdb, aidoc_id, section_text, link_id, link_level)
+       
+
         section_res = await get_cpt_section_data(psdb, aidoc_id, link_level, link_id,
                                                 user_id, protocol)
 
+
         # Terms values based on given configuration values
         terms_values = crud.get_document_terms_data(psdb, aidoc_id,
-                                                    link_id, config_variables,section_text)
+                                                    link_id, config_variables, link_dict)
 
         # enriched data from existing end point
         enriched_data = await get_enriched_data( psdb,aidoc_id,link_id)
