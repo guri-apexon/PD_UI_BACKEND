@@ -147,14 +147,14 @@ def link_id_link_level_based_on_section_text(psdb: Session, aidoc_id: str, secti
     :param aidoc_id: document id
     :param link_level: level of headers in toc
     :param link_id: section id    
-    :returns link_id and link_level based on section text 
+    :returns link_id and link_level based on section text contains 
         and link_dict is link_levels and link ids as key and values
     """
     link_dict = {}
     if section_text:
         try:
             get_link_id = psdb.query(IqvdocumentlinkDb).filter(
-                IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.LinkText == section_text).one()
+                IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.LinkText.contains(section_text)).first()
             link_dict.update({"link_id":get_link_id.link_id,"link_id_level2":get_link_id.link_id_level2,"link_id_level3":get_link_id.link_id_level3
                                 ,"link_id_level4":get_link_id.link_id_level4,"link_id_level5":get_link_id.link_id_level5,"link_id_level6":get_link_id.link_id_level6})
             link_dict = {k:v for k,v in link_dict.items() if v}
