@@ -16,6 +16,33 @@ router = APIRouter()
 logger = logging.getLogger(settings.PROJECT_NAME)
 
 
+@router.post("/user_protocol_access_log")
+def add_user_protocol_access_log(
+        *,
+        db: Session = Depends(deps.get_db),
+        user_protocol_access_in: schemas.UserProtocolAccessCreate,
+        _: str = Depends(auth.validate_user_token),
+) -> Any:
+    """
+    User Protocol access tracking into DB.
+    """
+    user_id = user_protocol_access_in.userId
+    protocol = user_protocol_access_in.protocol
+    follow = user_protocol_access_in.follow
+    user_role = user_protocol_access_in.userRole
+    access_reason = user_protocol_access_in.accessReason
+    if not all([user_id, protocol, user_role, access_reason]) or follow == "":
+        raise HTTPException(status_code=403,
+                            detail=f"Can't Add with null values userId:{user_id}, protocol:{protocol}, follow:{follow} & userRole:{user_role} & VIATicket:{access_reason}")
+
+    user_protocol = crud.pd_user_protocols.get_by_userid_protocol(db, user_id,
+                                                                  protocol)
+    existing_role = user_protocol.userRole if user_protocol else ""
+    access_log = crud.pd_user_protocols_access.add_data_to_db(db, existing_role,
+                                                              user_protocol_access_in)
+    return access_log
+
+
 @router.post("/", response_model=schemas.UserProtocol)
 def add_user_protocol_one_to_one(
         *,
@@ -30,6 +57,9 @@ def add_user_protocol_one_to_one(
         raise HTTPException(status_code=403, detail=f"Can't Add with null values userId:{user_protocol_in.userId},"
                                                     f" protocol:{user_protocol_in.protocol},"
                                                     f" follow:{user_protocol_in.follow} & userRole:{user_protocol_in.userRole}")
+    # Call the user access protocol log endpoint to capture access changes log
+    _ = add_user_protocol_access_log(db=db,
+                                     user_protocol_access_in=user_protocol_in)
     logger.info("add_user_protocol_one_to_one POST method called")
     user_protocol = crud.pd_user_protocols.add_protocol(db, obj_in=user_protocol_in)
     if not user_protocol:
@@ -67,6 +97,7 @@ def delete_user_protocol(
         db.rollback()
     return user_protocol
 
+
 @router.get("/is_primary_user")
 def is_user_primary(
         *,
@@ -88,13 +119,17 @@ def is_user_primary(
         else:
             return 0
 
+
 @router.post("/user_protocol_many")
-def add_user_protocol_many_to_many(*, user_protocol_xls_file: UploadFile = File(..., description="Upload User_Protocol Excel File(.xlsx)")
-                                   ,db: Session = Depends(deps.get_db),
+def add_user_protocol_many_to_many(*, user_protocol_xls_file: UploadFile = File(..., description="Upload User_Protocol Excel File(.xlsx)"),
+                                   user_updated: str,
+                                   access_reason: str,
+                                   db: Session = Depends(deps.get_db),
                               _: str = Depends(auth.validate_user_token)) -> Any:
     try:
         user_protocol_path = save_bulkmap_file(user_protocol_xls_file)
-        user_protocol_updation_status = crud.pd_user_protocols.excel_data_to_db(db, user_protocol_path)
+        user_protocol_updation_status = crud.pd_user_protocols.excel_data_to_db(
+            db, user_protocol_path, user_updated, access_reason)
         if user_protocol_updation_status==False:
             raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                                 detail="Invalid File Type Received, Please Provide Excel(.xlsx) file only")
@@ -105,6 +140,7 @@ def add_user_protocol_many_to_many(*, user_protocol_xls_file: UploadFile = File(
         logger.exception(f'pd-ui-backend: Exception occured in qc_protocol_upload {str(ex)}')
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                             detail="Invalid file received, please provide excel file(.xlsx format) or Excel file may not contain data " + str(ex))
+
 
 @router.put("/delete_userprotocol")
 def remove_user_protocol_mapping(*, db:Session= Depends(deps.get_db), user_protocol: schemas.UserProtocolSoftDelete, _: str = Depends(auth.validate_user_token)) -> Any:
@@ -119,6 +155,7 @@ def remove_user_protocol_mapping(*, db:Session= Depends(deps.get_db), user_proto
             raise HTTPException(status_code=403, detail="Check whether you have given all inputs correctly & false for isActive(Boolean type).")
     else:
         raise HTTPException(status_code=403, detail="Unable To Delete Please Provide All The Details Above And false for isActive(boolean type).")
+
 
 @router.get("/read_user_protocols_by_userId_or_protocol")
 def read_user_protocol(*,
