@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import psycopg2
 from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_headers
 from app.db.session import psqlengine
@@ -9,6 +8,7 @@ from app.utilities.config import settings
 import logging
 
 logger = logging.getLogger(settings.LOGGER_NAME)
+
 
 def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     """
@@ -37,7 +37,8 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     try:
         df = pd.DataFrame(
             [link.__dict__ for link in iqv_doc_headers.DocumentLinks])
-        df = df[(df['LinkType'] == 'toc') & (df['LinkLevel'] <= link_levels) & (df['LinkText'] != "blank_header")]
+        df = df[(df['LinkType'] == 'toc') & (df['LinkLevel'] <= link_levels) & (
+                    df['LinkText'] != "blank_header") & (df['LinkLevel'] > 0)]
         df = df.reset_index(drop=True)
         df['link_id'] = df.apply(lambda x: x['link_id'] if x['LinkLevel']
                                 == 1 else x['link_id_level{}'.format(x['LinkLevel'])], axis=1)
