@@ -14,7 +14,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 async def get_notifications(
     user_id: str,
     db: Session = Depends(deps.get_db),
-    # _ : str = Depends(auth.validate_user_token)
+    _ : str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get All notification
@@ -34,7 +34,7 @@ async def update_notification_read_record(
     protocol: str,
     action: str,
     db: Session = Depends(deps.get_db),
-    # _ : str = Depends(auth.validate_user_token)
+    _ : str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Update notification record in ProtocolAlert table 
