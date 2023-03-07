@@ -33,7 +33,7 @@ async def get_user_alert_setting(
 async def update_user_alert_setting(
         *,
         db: Session = Depends(deps.get_db),
-        obj_in: schemas.UserAlertSettingUpdate,
+        obj_in: schemas.UserAlertSettingData,
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """

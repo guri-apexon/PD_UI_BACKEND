@@ -21,3 +21,6 @@ class UserAlertSettingUpdate(BaseModel):
     userId: Optional[str] = None
     options: Optional[list] = None
 
+
+class UserAlertSettingData(BaseModel):
+    data:UserAlertSettingUpdate
