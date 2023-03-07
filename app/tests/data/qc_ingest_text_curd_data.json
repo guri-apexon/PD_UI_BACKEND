@@ -1,0 +1,29 @@
+[
+    
+    {
+        "type": "text",
+        "content": "this is for example test things:",
+        "qc_change_type": "add",
+        "line_id": "",
+        "prev_detail": {
+            "line_id": "6df5d15f-17d5-4ff2-be06-66fcc0c0ee4f"
+          },
+        "uuid":"mnf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
+        "section_locked": false
+    },
+
+    {
+        "type": "text",
+        "content": "Rationale:",
+        "qc_change_type": "modify",
+        "line_id": "mnf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
+        "section_locked": false
+    },
+    {
+        "type": "text",
+        "content": "Rationale:",
+        "qc_change_type": "delete",
+        "line_id": "mnf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
+        "section_locked": false
+        }
+]
