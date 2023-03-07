@@ -191,6 +191,7 @@ async def approve_qc(
 
         if qc_file_flg and dig_saved_filename and mgmt_svc_flg:
             logger.info(f'{aidoc_id}: qc_approve completed successfully')
+            crud.create_notification_record_and_send_email(db, metadata_resource)
             return True
         else:
             logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \

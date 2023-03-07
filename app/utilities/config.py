@@ -52,6 +52,12 @@ class Settings(BaseSettings):
     LDAP_USERNAME: str
     LDAP_PWD: str
 
+    # email credentials
+    EMAILS_ENABLED: bool
+    FROM_EMAIL: str
+    SMTP_HOST: str
+    SMTP_PORT: str
+
     # Legacy Protocol Configuration
     LEGACY_PROTOCOL_UPLOAD_DATE: str
 
