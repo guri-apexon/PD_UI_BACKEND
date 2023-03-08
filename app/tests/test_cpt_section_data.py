@@ -7,6 +7,7 @@ from app.utilities.section_enriched import \
     update_section_data_with_enriched_data
 from app.tests.data.section_mock_data import section_data, clinical_values, \
     enriched_data
+import json
 
 client = TestClient(app)
 db = SessionLocal()
@@ -29,6 +30,8 @@ def test_document_object(new_token_on_headers, user_id, protocol, doc_id, status
     """
     get_cpt_section_data = client.get("/api/cpt_data/get_section_data/", params={
                                       "aidoc_id": doc_id, "linklevel": link_level, "linlid": link_id, "userId": user_id, "protocol": protocol}, headers=new_token_on_headers)
+    
+    res=json.loads(get_cpt_section_data.text)
     assert get_cpt_section_data.status_code == status_code
 
 
