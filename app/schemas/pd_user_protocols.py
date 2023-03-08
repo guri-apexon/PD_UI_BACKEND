@@ -33,7 +33,13 @@ class UserFollowProtocol(BaseModel):
     userRole: Optional[str] = "secondary"
 
 
-class UserProtocolAdd(BaseModel):
+# Properties to receive extra data from endpoint
+class UserProtocolData(BaseModel):
+    accessReason: str
+    userUpdated: str
+
+
+class UserProtocolAdd(UserProtocolData):
     userId: str
     protocol: str
     projectId: Optional[str] = "pid"
