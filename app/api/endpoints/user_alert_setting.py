@@ -41,5 +41,5 @@ async def update_user_alert_setting(
     """
     logger.debug("To update user alert global setting options")
     user_alert_data = user_alert_setting.update_user_alert_setting(db,
-                                                                   obj_in=obj_in)
+                                                                   obj_in=obj_in.data)
     return user_alert_data
