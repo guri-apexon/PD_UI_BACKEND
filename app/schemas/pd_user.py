@@ -1,5 +1,4 @@
 from typing import Optional
-from datetime import datetime
 from pydantic import BaseModel, Field
 
 
@@ -27,6 +26,7 @@ class UserUpdate(UserBase):
     country: Optional[str] = None
     user_type: Optional[str] = None
 
+
 class UserCreate(UserBase):
     username: str = Field(...)
     first_name: str = Field(...)
@@ -34,6 +34,8 @@ class UserCreate(UserBase):
     email: str = Field(...)
     country: str = Field(...)
     user_type: str = Field(...)
+    reason_for_change: str = Field(...)
+
 
 class User(UserBaseInDBBase):
     pass

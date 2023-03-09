@@ -14,7 +14,8 @@ def adding_new_user(*, db: Session = Depends(deps.get_db), new_user: schemas.Use
                     _: str = Depends(auth.validate_user_token)) -> Any:
     # The Minimum Values Are Set For Every Column Name Kindly Checkout Schemas of pd_user
     if new_user.username == "" or new_user.first_name == "" or new_user.last_name == "" or \
-            new_user.email == "" or new_user.country == "" or new_user.user_type == "":
+            new_user.email == "" or new_user.country == "" or new_user.user_type == "" or \
+            new_user.reason_for_change == "":
         raise HTTPException(status_code=422,
                             detail="Unable To Add New User In The DB Please Provide All The Details Above.")
 

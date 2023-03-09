@@ -51,7 +51,8 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
                             email=obj_in.email,
                             username=obj_in.username,
                             login_id=login_id,
-                            user_type=obj_in.user_type)
+                            user_type=obj_in.user_type,
+                            reason_for_change=obj_in.reason_for_change)
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)
