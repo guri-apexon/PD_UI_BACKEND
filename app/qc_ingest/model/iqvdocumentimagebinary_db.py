@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Index
+from sqlalchemy import Column
 from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props
 from . import DocumentparagraphsDb
 import uuid
@@ -55,18 +55,18 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data.hierarchy = 'image'
       para_data.group_type = 'DocumentParagraphs'
       para_data.id = _id
-      para_data.parent_id = _id
       para_data.DocumentSequenceIndex = 0 if is_top_elm else prev_data.DocumentSequenceIndex+1
       para_data.SequenceID = 0 if is_top_elm else prev_data.SequenceID+1
       doc_id = prev_data.doc_id
-      update_roi_index(session, DocumentparagraphsDb.__tablename__,
-                       doc_id, prev_data.SequenceID, CurdOp.CREATE)
+      para_data.parent_id = doc_id
+      update_roi_index(session, doc_id, prev_data.SequenceID, CurdOp.CREATE)
 
       binary_obj = IqvdocumentimagebinaryDb()
       update_existing_props(binary_obj, prev_dict)
       binary_obj.id = str(uuid.uuid4())
       binary_obj.img = base64.b64decode(data['content'])
       binary_obj.para_id = para_data.id
+      binary_obj.childbox_id = para_data.id
       session.add(para_data)
       session.add(binary_obj)
       return data
@@ -98,29 +98,6 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       sequence_id = obj.SequenceID
       doc_id = obj.doc_id
       session.delete(obj)
-      update_roi_index(session, DocumentparagraphsDb.__tablename__, doc_id,
-                       sequence_id, CurdOp.DELETE)
+      update_roi_index(session, doc_id, sequence_id, CurdOp.DELETE)
       session.query(IqvdocumentimagebinaryDb).filter(
           IqvdocumentimagebinaryDb.para_id == data['id']).delete()
-
-
-Index('iqvdocumentimagebinary_db_doc_id', IqvdocumentimagebinaryDb.doc_id)
-Index('iqvdocumentimagebinary_db_link_id', IqvdocumentimagebinaryDb.link_id)
-Index('iqvdocumentimagebinary_db_link_id_level2',
-      IqvdocumentimagebinaryDb.link_id_level2)
-Index('iqvdocumentimagebinary_db_link_id_level3',
-      IqvdocumentimagebinaryDb.link_id_level3)
-Index('iqvdocumentimagebinary_db_link_id_level4',
-      IqvdocumentimagebinaryDb.link_id_level4)
-Index('iqvdocumentimagebinary_db_link_id_level5',
-      IqvdocumentimagebinaryDb.link_id_level5)
-Index('iqvdocumentimagebinary_db_link_id_level6',
-      IqvdocumentimagebinaryDb.link_id_level6)
-Index('iqvdocumentimagebinary_db_link_id_subsection1',
-      IqvdocumentimagebinaryDb.link_id_subsection1)
-Index('iqvdocumentimagebinary_db_link_id_subsection2',
-      IqvdocumentimagebinaryDb.link_id_subsection2)
-Index('iqvdocumentimagebinary_db_link_id_subsection3',
-      IqvdocumentimagebinaryDb.link_id_subsection3)
-Index('iqvdocumentimagebinary_db_para_id',
-      IqvdocumentimagebinaryDb.para_id, IqvdocumentimagebinaryDb.childbox_id)
