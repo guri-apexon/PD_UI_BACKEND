@@ -32,16 +32,19 @@ class DocumentpartslistDb(SchemaBase):
         """
         cid,is_top_elm=None,False
         #if at top next element props are taken
+       
         if data['prev_id']:
             cid=data['prev_id']
         else:
-            cid=data['id']
+            cid=data.get('id','')
             is_top_elm=True
-
+        if not cid and data['is_link']:
+            return data
+        
         prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()
         if not prev_data:
             _id=data['prev_id']
-            raise Exception(f'{_id} is missing from paragraph db')
+            raise Exception(f'{_id} is missing from partlist db')
         prev_dict=schema_to_dict(prev_data)
         para_data = DocumentpartslistDb(**prev_dict)
         _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
@@ -50,17 +53,13 @@ class DocumentpartslistDb(SchemaBase):
         para_data.hierarchy = 'document'
         para_data.group_type = 'DocumentPartsList'
         para_data.id = _id
-        para_data.parent_id = _id
         para_data.sequence_id=0 if is_top_elm else prev_data.sequence_id+1
         doc_id=prev_data.doc_id
+        para_data.parent_id = doc_id
         update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,prev_data.sequence_id, CurdOp.CREATE)  
         session.add(para_data)
         return data
     
-    @staticmethod
-    def get(id, hierachy):
-        pass
-
     @staticmethod
     def update(session,data):
         """
@@ -68,7 +67,7 @@ class DocumentpartslistDb(SchemaBase):
         obj = session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == data['id']).first()
         if not obj:
             _id=data['id']
-            raise Exception(f'{_id} is missing from paragraph ')      
+            raise Exception(f'{_id} is missing from partlist db ')      
         update_existing_props(obj,data)
         session.add(obj)
 
@@ -78,24 +77,9 @@ class DocumentpartslistDb(SchemaBase):
             DocumentpartslistDb.id == data['id']).first()
         if not obj:
             _id=data['id']
-            raise Exception(f'{_id} is missing from paragraph db')
+            raise Exception(f'{_id} is missing from partlist db')
         sequence_id = obj.sequence_id
         doc_id=obj.doc_id
         session.delete(obj)
         update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,
                         sequence_id, CurdOp.DELETE)
-
-Index('documentpartslist_db_doc_id',DocumentpartslistDb.doc_id)
-Index('documentpartslist_db_doc_id_hierarchy',DocumentpartslistDb.doc_id,DocumentpartslistDb.hierarchy)
-Index('documentpartslist_db_iqv_standard_term',DocumentpartslistDb.iqv_standard_term)
-Index('documentpartslist_db_link_id',DocumentpartslistDb.link_id)
-Index('documentpartslist_db_link_id_level2',DocumentpartslistDb.link_id_level2)
-Index('documentpartslist_db_link_id_level3',DocumentpartslistDb.link_id_level3)
-Index('documentpartslist_db_link_id_level4',DocumentpartslistDb.link_id_level4)
-Index('documentpartslist_db_link_id_level5',DocumentpartslistDb.link_id_level5)
-Index('documentpartslist_db_link_id_level6',DocumentpartslistDb.link_id_level6)
-Index('documentpartslist_db_link_id_subsection1',DocumentpartslistDb.link_id_subsection1)
-Index('documentpartslist_db_link_id_subsection2',DocumentpartslistDb.link_id_subsection2)
-Index('documentpartslist_db_link_id_subsection3',DocumentpartslistDb.link_id_subsection3)
-Index('documentpartslist_db_parent_id',DocumentpartslistDb.parent_id,DocumentpartslistDb.group_type)
-Index('documentpartslist_db_parent_id_hierarchy',DocumentpartslistDb.parent_id,DocumentpartslistDb.hierarchy,DocumentpartslistDb.group_type)

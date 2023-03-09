@@ -2,6 +2,7 @@ from sqlalchemy import Column, Index
 from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN, BIGINT, JSONB, BYTEA
 import uuid
+from .iqvpage_roi_db import IqvpageroiDb
 
 
 class DocumentparagraphsDb(SchemaBase):
@@ -105,6 +106,7 @@ class DocumentparagraphsDb(SchemaBase):
    GT_TextMatch = Column(TEXT)
    GT_ScoreMatch = Column(DOUBLE_PRECISION, nullable=False)
    GT_ImageFilename = Column(TEXT)
+   references = Column(TEXT)
 
    @staticmethod
    def create(session, data):
@@ -118,8 +120,10 @@ class DocumentparagraphsDb(SchemaBase):
       if data['prev_id']:
          cid = data['prev_id']
       else:
-         cid = data['id']
+         cid = data.get('id',None)
          is_top_elm = True
+      if not cid and data['is_link']:
+            return data
       prev_data = session.query(DocumentparagraphsDb).filter(
           DocumentparagraphsDb.id == cid).first()
       if not prev_data:
@@ -132,14 +136,13 @@ class DocumentparagraphsDb(SchemaBase):
       para_data.hierarchy = 'paragraph'
       para_data.group_type = 'DocumentParagraphs'
       para_data.id = _id
-      para_data.parent_id = _id
       para_data.DocumentSequenceIndex = 0 if is_top_elm else prev_data.DocumentSequenceIndex+1
       para_data.SequenceID = 0 if is_top_elm else prev_data.SequenceID+1
-      if data.get('content',None):
-         para_data.Value=data['content']
+      if data.get('content', None):
+         para_data.Value = data['content']
       doc_id = prev_data.doc_id
-      update_roi_index(session, DocumentparagraphsDb.__tablename__,
-                       doc_id, prev_data.SequenceID, CurdOp.CREATE)
+      para_data.parent_id = doc_id
+      update_roi_index(session, doc_id, prev_data.SequenceID, CurdOp.CREATE)
       session.add(para_data)
       return data
 #
@@ -154,13 +157,10 @@ class DocumentparagraphsDb(SchemaBase):
          _id = data['id']
          raise Exception(f'{_id} is missing from paragraph ')
       update_existing_props(obj, data)
-      if data.get('content',None):
-         obj.Value=data['content']
+      if data.get('content', None):
+             obj.Value = data['content']
       session.add(obj)
 
-   @staticmethod
-   def get(id, hierachy):
-      pass
 
    @staticmethod
    def delete(session, data):
@@ -172,5 +172,4 @@ class DocumentparagraphsDb(SchemaBase):
       sequence_id = obj.SequenceID
       doc_id = obj.doc_id
       session.delete(obj)
-      update_roi_index(session, DocumentparagraphsDb.__tablename__, doc_id,
-                       sequence_id, CurdOp.DELETE)
+      update_roi_index(session, doc_id, sequence_id, CurdOp.DELETE)

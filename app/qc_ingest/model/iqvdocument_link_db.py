@@ -5,6 +5,16 @@ from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, upd
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER
 import uuid
 
+LINKS_INFO = ["link_id",
+              "link_id_level2",
+              "link_id_level3",
+              "link_id_level4",
+              "link_id_level5",
+              "link_id_level6",
+              "link_id_subsection1",
+              "link_id_subsection2",
+              "link_id_subsection3"]
+
 class IqvdocumentlinkDb(SchemaBase):
     __tablename__ = "iqvdocumentlink_db"
     id = Column(VARCHAR(128), primary_key=True, nullable=False)
@@ -30,6 +40,36 @@ class IqvdocumentlinkDb(SchemaBase):
     LinkPrefix = Column(TEXT)
 
     @staticmethod
+    def get_link_id(session,data):
+        link_query='SELECT * FROM iqvdocumentlink_db'+' WHERE '
+        link_list,link_level=[],0
+        for link_key in LINKS_INFO:
+            if data.get(link_key,None):
+                lk_str=f' "{link_key}" = \'{data[link_key]}\' '
+                if 'subsection' not in link_key:
+                    link_level+=1
+                link_list.append(lk_str) 
+        link_str=" AND ".join(link_list)
+        link_query+=link_str + ' AND '+f'"LinkLevel" = \'{link_level}\''
+        link_obj_list= session.execute(link_query)
+        link_obj,count=None,0
+        for obj in link_obj_list:
+            link_obj=obj
+            count+=1
+        if count!=1:
+            raise Exception("Cant find unique link record with requested payload ")
+        return IqvdocumentlinkDb(**link_obj)
+    
+    @staticmethod
+    def is_top_link(data):
+        top_elm=True
+        for link_key in LINKS_INFO:
+            if data.get(link_key,None):
+                top_elm=False
+                break
+        return top_elm
+    
+    @staticmethod
     def create(session, data):
         """
         update document paragraph and childbox.
@@ -37,89 +77,61 @@ class IqvdocumentlinkDb(SchemaBase):
 
         """
         cid, is_top_elm = None, False
-        # if at top next element props are taken
-        if data['prev_link_record_uid']:
-            cid = data['prev_link_record_uid']
+        is_top_elm=IqvdocumentlinkDb.is_top_link(data['prev_detail']) if data.get('prev_detail',None) else True
+        if not is_top_elm:
+            prev_data = IqvdocumentlinkDb.get_link_id(session,data['prev_detail'])
+            if not prev_data:
+                raise Exception(f'cant find related link object ')
         else:
-            cid = data['link_record_uid']
-            is_top_elm = True
-        if not cid:
-            raise Exception("Missing previous or current Id ")
-        prev_data = session.query(IqvdocumentlinkDb).filter(
-            IqvdocumentlinkDb.id == cid).first()
-        if not prev_data:
-            _id = data['prev_id']
-            raise Exception(f'{_id} is missing from paragraph db')
+            prev_data=IqvdocumentlinkDb(id='',hierarchy='document',group_type='DocumentLinks',DocumentSequenceIndex=-1)
         prev_dict = schema_to_dict(prev_data)
         para_data = IqvdocumentlinkDb(**prev_dict)
-        _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
+        _id = data['uuid'] if data['uuid'] else str(uuid.uuid4())
         data['uuid'] = _id
-        para_data.link_id = str(uuid.uuid4())
+        link_str=LINKS_INFO[para_data.LinkLevel-1]
+        setattr(para_data,link_str,_id)
         update_existing_props(para_data, data)
         para_data.hierarchy = 'document'
         para_data.group_type = 'DocumentLinks'
         para_data.LinkType = 'toc'
         para_data.LinkPrefix = data.get('link_prefix', '')
         para_data.LinkText = data.get('link_text', '')
-        para_data.LinkLevel = data.get('link_level', '')
+        para_data.LinkLevel = data.get('link_level', prev_data.LinkLevel)
         para_data.id = _id
-        para_data.parent_id = _id
-
         para_data.DocumentSequenceIndex = 0 if is_top_elm else prev_data.DocumentSequenceIndex+1
         doc_id = prev_data.doc_id
+        para_data.parent_id=doc_id
         update_link_index(session, IqvdocumentlinkDb.__tablename__,
                           doc_id, prev_data.DocumentSequenceIndex, CurdOp.CREATE)
         session.add(para_data)
-        data['link_id'] = para_data.link_id
+        data['is_link']=True
+        if not data['content']:
+            data['content']=para_data.LinkPrefix+' '+para_data.LinkText
         return data
 
     @staticmethod
     def update(session, data):
         """
         """
-        obj = session.query(IqvdocumentlinkDb).filter(
-            IqvdocumentlinkDb.id == data['id']).first()
+        obj=IqvdocumentlinkDb.get_link_id(session,data)
         if not obj:
-            _id = data['id']
-            raise Exception(f'{_id} is missing from paragraph ')
-        update_existing_props(obj, data)
-        obj.LinkPrefix = data.get('link_prefix', '')
-        obj.LinkText = data.get('link_text', '')
-        obj.LinkLevel = data.get('link_level', '')
-        session.add(obj)
+            raise Exception(f'unable to find link object ')
+
+        link_text= data['link_text'] if data.get('link_text',None) else obj.LinkText
+        link_prefix= data['link_prefix'] if data.get('link_prefix',None) else obj.LinkPrefix
+        sql = f'UPDATE {IqvdocumentlinkDb.__tablename__} SET "LinkText" = \'{link_text}\' , \
+                    "LinkPrefix" = \'{link_prefix}\' WHERE  "id" = \'{obj.id}\' '
+        session.execute(sql)
 
     @staticmethod
     def delete(session, data):
-        obj = session.query(IqvdocumentlinkDb).filter(
-            IqvdocumentlinkDb.id == data['id']).first()
+        obj=IqvdocumentlinkDb.get_link_id(session,data)
         if not obj:
-            _id = data['id']
-            raise Exception(f'{_id} is missing from paragraph db')
+            raise Exception(f'unable to find link object ')
         sequence_id = obj.DocumentSequenceIndex
         doc_id = obj.doc_id
         update_link_index(session, IqvdocumentlinkDb.__tablename__, doc_id,
                           sequence_id, CurdOp.DELETE)
-        session.delete(obj)
+        sql_query = f'DELETE FROM {IqvdocumentlinkDb.__tablename__} WHERE "id"=\'{obj.id}\''
+        session.execute(sql_query)
 
-
-Index('iqvdocumentlink_db_doc_id', IqvdocumentlinkDb.doc_id)
-Index('iqvdocumentlink_db_doc_id_hierarchy',
-      IqvdocumentlinkDb.doc_id, IqvdocumentlinkDb.hierarchy)
-Index('iqvdocumentlink_db_iqv_standard_term',
-      IqvdocumentlinkDb.iqv_standard_term)
-Index('iqvdocumentlink_db_link_id', IqvdocumentlinkDb.link_id)
-Index('iqvdocumentlink_db_link_id_level2', IqvdocumentlinkDb.link_id_level2)
-Index('iqvdocumentlink_db_link_id_level3', IqvdocumentlinkDb.link_id_level3)
-Index('iqvdocumentlink_db_link_id_level4', IqvdocumentlinkDb.link_id_level4)
-Index('iqvdocumentlink_db_link_id_level5', IqvdocumentlinkDb.link_id_level5)
-Index('iqvdocumentlink_db_link_id_level6', IqvdocumentlinkDb.link_id_level6)
-Index('iqvdocumentlink_db_link_id_subsection1',
-      IqvdocumentlinkDb.link_id_subsection1)
-Index('iqvdocumentlink_db_link_id_subsection2',
-      IqvdocumentlinkDb.link_id_subsection2)
-Index('iqvdocumentlink_db_link_id_subsection3',
-      IqvdocumentlinkDb.link_id_subsection3)
-Index('iqvdocumentlink_db_parent_id',
-      IqvdocumentlinkDb.parent_id, IqvdocumentlinkDb.group_type)
-Index('iqvdocumentlink_db_parent_id_hierarchy', IqvdocumentlinkDb.parent_id,
-      IqvdocumentlinkDb.hierarchy, IqvdocumentlinkDb.group_type)
