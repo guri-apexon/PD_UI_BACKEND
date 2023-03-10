@@ -113,6 +113,8 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             user_protocol.follow = obj_in.follow
             user_protocol.projectId = obj_in.projectId
             user_protocol.redactProfile = redact_profile
+            user_protocol.reason_for_change = obj_in.accessReason
+            user_protocol.userUpdated = obj_in.userUpdated
             db.add(user_protocol)
             db.commit()
         except Exception as ex:
@@ -144,7 +146,9 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                        projectId=obj_in.projectId,
                                        timeCreated=datetime.utcnow(),
                                        lastUpdated=datetime.utcnow(),
-                                       redactProfile=redact_profile
+                                       redactProfile=redact_profile,
+                                       reason_for_change=obj_in.accessReason,
+                                       userUpdated=obj_in.userUpdated
                                        )
             db.add(db_obj)
             db.commit()
@@ -230,15 +234,8 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                         response.append(
                             f"Can't Add with null values userId:{j.userId}, protocol:{j.protocol}, follow:{j.follow} & userRole:{j.userRole} & VIATicket:{access_reason}")
                     else:
-                        user_protocol = pd_user_protocols.get_by_userid_protocol(
-                            db, j.userId, j.protocol)
                         j['accessReason'] = access_reason
                         j['userUpdated'] = user_updated
-                        existing_role = user_protocol.userRole if user_protocol else ""
-                        # To capture user access change log
-                        _ = crud.pd_user_protocols_access.add_data_to_db(db,
-                                                                         existing_role,
-                                                                         j)
                         bulk_result = pd_user_protocols.add_protocol(db, obj_in=j)
                         response.append(f"Successfully Added the userId: {j.userId}, protocol: {j.protocol}")
                 except Exception as ex:

@@ -16,33 +16,6 @@ router = APIRouter()
 logger = logging.getLogger(settings.PROJECT_NAME)
 
 
-@router.post("/user_protocol_access_log")
-def add_user_protocol_access_log(
-        *,
-        db: Session = Depends(deps.get_db),
-        user_protocol_access_in: schemas.UserProtocolAccessCreate,
-        _: str = Depends(auth.validate_user_token),
-) -> Any:
-    """
-    User Protocol access tracking into DB.
-    """
-    user_id = user_protocol_access_in.userId
-    protocol = user_protocol_access_in.protocol
-    follow = user_protocol_access_in.follow
-    user_role = user_protocol_access_in.userRole
-    access_reason = user_protocol_access_in.accessReason
-    if not all([user_id, protocol, user_role, access_reason]) or follow == "":
-        raise HTTPException(status_code=403,
-                            detail=f"Can't Add with null values userId:{user_id}, protocol:{protocol}, follow:{follow} & userRole:{user_role} & VIATicket:{access_reason}")
-
-    user_protocol = crud.pd_user_protocols.get_by_userid_protocol(db, user_id,
-                                                                  protocol)
-    existing_role = user_protocol.userRole if user_protocol else ""
-    access_log = crud.pd_user_protocols_access.add_data_to_db(db, existing_role,
-                                                              user_protocol_access_in)
-    return access_log
-
-
 @router.post("/", response_model=schemas.UserProtocol)
 def add_user_protocol_one_to_one(
         *,
@@ -53,13 +26,10 @@ def add_user_protocol_one_to_one(
     """
     Add User Protocol One To One.
     """
-    if user_protocol_in.userId == "" or user_protocol_in.protocol == "" or user_protocol_in.follow == "" or user_protocol_in.userRole == "":
+    if user_protocol_in.userId == "" or user_protocol_in.protocol == "" or user_protocol_in.follow == "" or user_protocol_in.userRole == "" or user_protocol_in.accessReason == "":
         raise HTTPException(status_code=403, detail=f"Can't Add with null values userId:{user_protocol_in.userId},"
                                                     f" protocol:{user_protocol_in.protocol},"
-                                                    f" follow:{user_protocol_in.follow} & userRole:{user_protocol_in.userRole}")
-    # Call the user access protocol log endpoint to capture access changes log
-    _ = add_user_protocol_access_log(db=db,
-                                     user_protocol_access_in=user_protocol_in)
+                                                    f" follow:{user_protocol_in.follow}, & userRole:{user_protocol_in.userRole} & accessReason:{user_protocol_in.accessReason}")
     logger.info("add_user_protocol_one_to_one POST method called")
     user_protocol = crud.pd_user_protocols.add_protocol(db, obj_in=user_protocol_in)
     if not user_protocol:

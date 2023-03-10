@@ -3,7 +3,6 @@ from datetime import datetime
 import pytest
 from app import config
 from app.crud.pd_user_protocols import pd_user_protocols
-from app.models.pd_user_protocols_access import PDUserAccessChangeLog
 from app.db.session import SessionLocal
 from app.main import app
 from fastapi.testclient import TestClient
@@ -60,9 +59,9 @@ def test_follow_protocol(new_token_on_headers, insert_flg, user_id, protocol, fo
 
 
 @pytest.mark.parametrize("user_id, protocol, follow_flg, user_role, project_id, via_ticket, updated_by, expected_json, status_code", [
-    ("1012424", "SSR_1002-043", True, "primary", "pid", "ticket101", "admin", {'userId': '1012424', 'protocol': 'SSR_1002-043', 'userRole': 'primary', 'userCreated': None, 'userUpdated': None}, 200),
+    ("1012424", "SSR_1002-043", True, "primary", "pid", "ticket101", "admin", {'userId': '1012424', 'protocol': 'SSR_1002-043', 'userRole': 'primary', 'userCreated': None, 'userUpdated': 'admin'}, 200),
     ("1012424", "SSR_1002-043", True, "primary", "pid", "ticket101", "admin", {'detail': "Mapping for userId: 1012424, protocol: SSR_1002-043 is already available & mapped"}, 403),
-    ("", "SSR_1002-043", True, "primary", "pid", "ticket101", "admin", {'detail': "Can't Add with null values userId:, protocol:SSR_1002-043, follow:True & userRole:primary"}, 403)
+    ("", "SSR_1002-043", True, "primary", "pid", "ticket101", "admin", {'detail': "Can't Add with null values userId:, protocol:SSR_1002-043, follow:True, & userRole:primary & accessReason:ticket101"}, 403)
 ])
 def test_user_protocol_exists(new_token_on_headers, user_id, protocol, follow_flg, user_role, project_id, via_ticket, updated_by, expected_json, status_code):
     sample_query_json = {
@@ -105,30 +104,3 @@ def test_user_protocol_delete(new_token_on_headers, user_id, protocol, status_co
             db.refresh(user_protocol)
 
     assert response.status_code == status_code
-
-
-@pytest.mark.parametrize("user_id, protocol, follow_flg, user_role, project_id, via_ticket, updated_by, expected_json, status_code", [
-    ("1012424", "SSR_1002-043", True, "primary", "pid", "ticket101", "admin", {'userId': '1012424', 'protocol': 'SSR_1002-043', 'userRole': 'primary'}, 200),
-    ("", "SSR_1002-043", True, "primary", "pid", "", "", {'detail': f"Can't Add with null values userId:, protocol:SSR_1002-043, follow:True & userRole:primary & VIATicket:"}, 403)
-])
-def test_user_protocol_access_log(new_token_on_headers, user_id, protocol, follow_flg, user_role, project_id, via_ticket, updated_by, expected_json, status_code):
-    query_json = {"userId": user_id, "protocol": protocol,
-                  "projectId": project_id, "follow": follow_flg,
-                  "userRole": user_role, "userUpdated": updated_by,
-                  "accessReason": via_ticket}
-
-    response = client.post("/api/user_protocol/user_protocol_access_log",
-                           json=query_json, headers=new_token_on_headers)
-    assert response.status_code == status_code
-    response_json = response.json()
-    if status_code == 403:
-        assert response_json == expected_json
-    if status_code == 200:
-        created_id = response_json.get('id')
-        keys = expected_json.keys()
-        response_json = dict(zip(keys, [response_json[k] for k in keys]))
-        assert response_json == expected_json
-        # Cleanup the id, created during test
-        _ = db.query(PDUserAccessChangeLog).filter(
-            PDUserAccessChangeLog.id == created_id).delete()
-        db.commit()
