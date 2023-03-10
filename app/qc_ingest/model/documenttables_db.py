@@ -46,7 +46,8 @@ class ParseTable():
          rows_data[str(idx)] = row_data
          idx = idx + 1
       num_rows=len(rows_data)
-      return num_rows,num_cols,rows_data
+      shorted_rows_data = {k: v for k, v in sorted(rows_data.items(), key=lambda x: x)}
+      return num_rows,num_cols,shorted_rows_data
       
 
 class TableOp:

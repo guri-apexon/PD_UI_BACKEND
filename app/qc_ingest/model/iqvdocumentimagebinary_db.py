@@ -52,8 +52,9 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data = DocumentparagraphsDb(**prev_dict)
       _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
       update_existing_props(para_data, data)
-      para_data.hierarchy = 'image'
+      para_data.hierarchy = 'paragraph'
       para_data.group_type = 'DocumentParagraphs'
+      para_data.m_ROI_TYPEVal=100 #image
       para_data.id = _id
       para_data.DocumentSequenceIndex = 0 if is_top_elm else prev_data.DocumentSequenceIndex+1
       para_data.SequenceID = 0 if is_top_elm else prev_data.SequenceID+1
@@ -64,7 +65,12 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       binary_obj = IqvdocumentimagebinaryDb()
       update_existing_props(binary_obj, prev_dict)
       binary_obj.id = str(uuid.uuid4())
-      binary_obj.img = base64.b64decode(data['content'])
+      content=data['content']
+      idx=content.find(',')
+      org_content=content[idx+1:]
+      img_format=content[content.find('/')+1:content.find(';')]
+      binary_obj.img = base64.b64decode(org_content)
+      binary_obj.image_format=img_format
       binary_obj.para_id = para_data.id
       binary_obj.childbox_id = para_data.id
       session.add(para_data)
@@ -81,12 +87,14 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       if not obj:
          _id = data['id']
          raise Exception(f'{_id} is missing from paragraph and imagebinary db')
-      obj.img = base64.b64decode(data['content'])
+      content=data['content']
+      idx=content.find(',')
+      org_content=content[idx+1:]
+      img_format=content[content.find('/')+1:content.find(';')]
+      obj.img = base64.b64decode(org_content)
+      obj.image_format=img_format
       session.add(obj)
 
-   @staticmethod
-   def get(id, hierachy):
-      pass
 
    @staticmethod
    def delete(session, data):
