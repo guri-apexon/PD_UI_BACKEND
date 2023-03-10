@@ -1,6 +1,6 @@
 from typing import Optional
 import psycopg2
-from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id
+from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id,GetIQVDocumentFromDB_with_imagebinaries
 from app.db.session import psqlengine
 from app.utilities.config import settings
 import logging
@@ -19,9 +19,16 @@ def get_document_object(aidoc_id: str, link_level: int, link_id: int) -> Optiona
 
     try:
         connection = psqlengine.raw_connection()
-        iqv_document = GetIQVDocumentFromDB_with_doc_id(
-                connection, aidoc_id, link_level=link_level, link_id=link_id)
-        return iqv_document
+        headers_only = False
+        include_images = True
+        iqv_document,imagebinaries = GetIQVDocumentFromDB_with_imagebinaries(
+            connection,
+            aidoc_id,
+            headers_only,
+            link_level,
+            link_id,
+            include_images=include_images)
+        return iqv_document, imagebinaries
     except (Exception, psycopg2.Error) as error:
         logger.exception(f"Failed to get connection to postgresql : {error}, {aidoc_id}")
         return None
