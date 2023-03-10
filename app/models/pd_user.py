@@ -15,3 +15,4 @@ class User(Base):
     user_type = Column(String, nullable=True)
     login_id = Column(Integer, ForeignKey("login.id"))
     lastUpdated = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=True)
+    reason_for_change = Column(String, nullable=True)
