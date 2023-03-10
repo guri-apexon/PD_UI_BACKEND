@@ -52,8 +52,9 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data = DocumentparagraphsDb(**prev_dict)
       _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
       update_existing_props(para_data, data)
-      para_data.hierarchy = 'image'
+      para_data.hierarchy = 'paragraph'
       para_data.group_type = 'DocumentParagraphs'
+      para_data.m_ROI_TYPEVal=100 #image
       para_data.id = _id
       para_data.DocumentSequenceIndex = 0 if is_top_elm else prev_data.DocumentSequenceIndex+1
       para_data.SequenceID = 0 if is_top_elm else prev_data.SequenceID+1

@@ -2,8 +2,10 @@
 
 from sqlalchemy import Column, Index
 from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props
-from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER
+from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP
+from datetime import datetime
 import uuid
+
 
 LINKS_INFO = ["link_id",
               "link_id_level2",
@@ -38,6 +40,7 @@ class IqvdocumentlinkDb(SchemaBase):
     LinkLevel = Column(INTEGER, nullable=False)
     LinkText = Column(TEXT)
     LinkPrefix = Column(TEXT)
+
 
     @staticmethod
     def get_link_id(session,data):
@@ -119,8 +122,10 @@ class IqvdocumentlinkDb(SchemaBase):
 
         link_text= data['link_text'] if data.get('link_text',None) else obj.LinkText
         link_prefix= data['link_prefix'] if data.get('link_prefix',None) else obj.LinkPrefix
+        
         sql = f'UPDATE {IqvdocumentlinkDb.__tablename__} SET "LinkText" = \'{link_text}\' , \
-                    "LinkPrefix" = \'{link_prefix}\' WHERE  "id" = \'{obj.id}\' '
+                    "LinkPrefix" = \'{link_prefix}\'  \
+                      WHERE  "id" = \'{obj.id}\' '
         session.execute(sql)
 
     @staticmethod
