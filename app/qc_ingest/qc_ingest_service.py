@@ -6,6 +6,7 @@ from .model.documentparagraphs_db import DocumentparagraphsDb
 from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
+from .model.documenttables_db import DocumenttablesDb
 from app.db.session import SessionLocal
 
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -20,7 +21,8 @@ class RelationalMapper():
     RelationMap = {
         "header": {
             "name": IqvdocumentlinkDb,
-            "children": [DocumentpartslistDb, DocumentparagraphsDb]
+            "children":[]
+            #"children": [DocumentpartslistDb, DocumentparagraphsDb]
         },
         "text": {
             "name": DocumentpartslistDb,
@@ -29,6 +31,11 @@ class RelationalMapper():
         "image": {
             "name": DocumentpartslistDb,
             "children": [IqvdocumentimagebinaryDb]
+        },
+        "table":{
+            "name": DocumenttablesDb,
+            "children":[]
+
         }
 
     }
@@ -67,13 +74,10 @@ def get_content_info(data: dict, action_type):
     try:
         line_id, prev_link_id, prev_line_id = None, None, None
         if action_type == 'add':
-            prev_details = data['prev_detail']
+            prev_details = data.get('prev_detail',{})
             prev_line_id = prev_details.get('line_id', '')[0:36]
-            prev_link_id = prev_details.get('link_record_uid', '')
         data['prev_id'] = prev_line_id
-        data['prev_link_record_uid'] = prev_link_id
-        data['id'] = data.get('line_id', '')
-        data['link_record_uid'] = data.get('link_record_uid', '')
+        data['id'] = data.get('line_id', '')[0:36]
         return data
     except Exception as e:
         raise Exception("Invalid input parameters : "+str(e))
@@ -96,7 +100,7 @@ def process(payload: list):
     """
 
     if not payload:
-        return True
+        return False
     mapper = RelationalMapper()
     with SessionLocal() as session:
         for data in payload:   

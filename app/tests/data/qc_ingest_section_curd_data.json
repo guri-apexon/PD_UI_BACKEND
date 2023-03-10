@@ -1,18 +1,27 @@
 [
+
     {
         "type": "header",
         "qc_change_type": "add",
-        "link_prefix": "0.1",
+        "link_prefix": "1.1",
         "link_text": "Title Test",
-        "link_level": "1",
+        "link_level": "2",
         "line_id": "",
-        "link_record_uid":"",
-        "content":"This is section information . These are only for test purpose .Not a part of protocol ",
-        "uuid": "34000496-bx4r-1pef-8aab-10505xab64ft",
+        "content":"",
+        "uuid": "34000490-bx4r-1pef-8aab-10505xab64ft",
         "prev_detail": {
-            "link_record_uid": "000004f6-b947-11ed-8aab-005056ab6469",
-            "line_id":"432475ad-c7c6-4385-a7d3-007951a9e8fe"
+            "line_id":"",
+            "link_id": "000004fb-b947-11ed-bfa1-005056ab6469",
+            "link_id_level2": "000004fc-b947-11ed-9191-005056ab6469",
+            "link_id_level3": "",
+            "link_id_level4": "",
+            "link_id_level5": "",
+            "link_id_level6": "",
+            "link_id_subsection1": "",
+            "link_id_subsection2": "",
+            "link_id_subsection3": ""
         },
+
         "section_locked": false
     },
     {
@@ -20,17 +29,17 @@
         "qc_change_type": "modify",
         "link_prefix": "1.1",
         "link_text": " Mod Title Test",
-        "content":"update: This is updated section information  . These are only for test purpose .Not a part of protocol ",
-        "link_level": "1",
-        "link_record_uid":"34000496-bx4r-1pef-8aab-10505xab64ft",
-        "line_id": "34000496-bx4r-1pef-8aab-10505xab64ft",
+        "content":"",
+        "link_id": "000004fb-b947-11ed-bfa1-005056ab6469",
+        "link_id_level2": "34000490-bx4r-1pef-8aab-10505xab64ft",
         "section_locked": false
     },
     {
         "type": "header",
         "qc_change_type": "delete",
-        "link_record_uid":"34000496-bx4r-1pef-8aab-10505xab64ft",
-        "line_id": "34000496-bx4r-1pef-8aab-10505xab64ft",
+        "link_id": "000004fb-b947-11ed-bfa1-005056ab6469",
+        "link_id_level2": "34000490-bx4r-1pef-8aab-10505xab64ft",
         "section_locked": false
     }
+ 
 ]

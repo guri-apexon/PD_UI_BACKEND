@@ -5,10 +5,12 @@
         "content": "this is for example test things:",
         "qc_change_type": "add",
         "line_id": "",
+        "link_id":"",
+        "uuid":"mpf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
         "prev_detail": {
-            "line_id": "6df5d15f-17d5-4ff2-be06-66fcc0c0ee4f"
+            "line_id": "8a3e1b2b-a769-40ce-a014-835420abdf99"
           },
-        "uuid":"mnf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
+
         "section_locked": false
     },
 
@@ -16,14 +18,15 @@
         "type": "text",
         "content": "Rationale:",
         "qc_change_type": "modify",
-        "line_id": "mnf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
+        "link_id":"",
+        "line_id": "mpf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
         "section_locked": false
     },
     {
         "type": "text",
         "content": "Rationale:",
         "qc_change_type": "delete",
-        "line_id": "mnf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
+        "line_id": "mpf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
         "section_locked": false
         }
 ]
