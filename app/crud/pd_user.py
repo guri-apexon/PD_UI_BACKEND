@@ -35,6 +35,7 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
             user.country = obj_in.country if obj_in.country else user.country
             user.user_type = obj_in.user_type if obj_in.user_type else user.user_type
             user.lastUpdated = datetime.utcnow()
+            user.reason_for_change = obj_in.reason_for_change if obj_in.reason_for_change else user.reason_for_change
             db.add(user)
             db.commit()
             return True
@@ -51,7 +52,8 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
                             email=obj_in.email,
                             username=obj_in.username,
                             login_id=login_id,
-                            user_type=obj_in.user_type)
+                            user_type=obj_in.user_type,
+                            reason_for_change=obj_in.reason_for_change)
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)

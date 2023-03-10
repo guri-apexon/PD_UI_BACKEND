@@ -18,6 +18,7 @@ class PD_User_Protocols(Base):
     lastUpdated = Column(DateTime(timezone=True), default=datetime.utcnow)
     userCreated = Column(String, nullable=True)
     userUpdated = Column(String, nullable=True)
+    reason_for_change = Column(String, nullable=True)
 
     def __init__(self, **kwargs):
         self.isActive = kwargs.get("isActive", True)
@@ -31,6 +32,8 @@ class PD_User_Protocols(Base):
         self.lastUpdated = kwargs.get("lastUpdated", datetime.utcnow())
         self.userCreated = kwargs.get("userCreated", None)
         self.userUpdated = kwargs.get("userUpdated", None)
+        self.reason_for_change = kwargs.get("reason_for_change", None)
+
 
     def as_dict(self):
         obj = {c.name: getattr(self, c.name) for c in self.__table__.columns}
