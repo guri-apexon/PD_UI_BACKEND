@@ -92,14 +92,14 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
                 toc_headers.append(header)
             childlevel_headers = []
             for header in toc_headers:
-                if len(header) != 12:
+                if len(header) != 13:
                     parent_header = (header["childlevel"])
                     sorted_parent_header = sorted(parent_header, key = lambda x:x['sec_id'])
                     for parent_header_item in sorted_parent_header:
-                        if len(parent_header_item) != 12:
+                        if len(parent_header_item) != 13:
                             sorted_parent_header_child = sorted((parent_header_item["childlevel"]), key = lambda x:x['sec_id'])
                             for sorted_parent_header_item in sorted_parent_header_child:
-                                if len(sorted_parent_header_item) != 12:
+                                if len(sorted_parent_header_item) != 13:
                                     sorted_parent_header_child_1 = sorted((sorted_parent_header_item["childlevel"]), key = lambda x:x['sec_id'])
                                     sorted_parent_header_item['childlevel'] = sorted_parent_header_child_1
                             parent_header_item['childlevel'] = sorted_parent_header_child
