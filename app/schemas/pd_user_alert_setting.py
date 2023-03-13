@@ -19,7 +19,7 @@ class UserAlertSettingCreate(UserAlertSettingBase):
 
 class UserAlertSettingUpdate(BaseModel):
     userId: Optional[str] = None
-    options: Optional[list] = None
+    options: Optional[dict] = None
 
 
 class UserAlertSettingData(BaseModel):

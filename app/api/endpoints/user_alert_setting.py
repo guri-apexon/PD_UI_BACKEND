@@ -25,7 +25,8 @@ async def get_user_alert_setting(
     Collect user alerts setting options, config by user
     """
     logger.debug("To get user alert global setting options")
-    user_alert_options = user_alert_setting.get_by_user_id(db, user_id=user_id)
+    user_alert_options = user_alert_setting.get_user_options(db,
+                                                             user_id=user_id)
     return user_alert_options if user_alert_options else False
 
 
