@@ -1,13 +1,9 @@
-
-
 from sqlalchemy import Column,and_
 from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP
-from datetime import datetime
 import uuid
 from .documentparagraphs_db import DocumentparagraphsDb
 import logging
-
 
 LINKS_INFO = ["link_id",
               "link_id_level2",
@@ -64,8 +60,7 @@ class IqvdocumentlinkDb(SchemaBase):
         if count!=1:
             logging.error("Cant find unique link record with requested payload ")
         return IqvdocumentlinkDb(**link_obj)
-    
-    @staticmethod
+       
     def get_line_id_for_top_link(session,link_id):
         """"""
         obj_list=session.query(DocumentparagraphsDb.id,DocumentparagraphsDb.SequenceID).filter(and_(DocumentparagraphsDb.link_id == link_id,
@@ -115,7 +110,7 @@ class IqvdocumentlinkDb(SchemaBase):
         """
         curr_dict=IqvdocumentlinkDb.get_curr_segment_info(session,data)
         para_data = IqvdocumentlinkDb(**curr_dict)
-        _id = data['uuid'] if data['uuid'] else str(uuid.uuid4())
+        _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
         data['uuid'] = _id
         #if link level not mentioned add at same level of 
         link_level= data['link_level'] if data.get("link_level",None) else para_data.LinkLevel
@@ -136,7 +131,6 @@ class IqvdocumentlinkDb(SchemaBase):
                           doc_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         session.add(para_data)
         data['is_link']=True
-        
         if not data['content']:
             data['content']=para_data.LinkPrefix+' '+para_data.LinkText
         return data
