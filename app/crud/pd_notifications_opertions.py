@@ -20,13 +20,12 @@ def get_notifications_from_db(db:Session  ,user_id:str) -> list:
     filtering for notifications created since 45 days old
     """
 
-    from_days_no = 45
-    get_45_days_before_date = datetime.datetime.utcnow() - datetime.timedelta(days=from_days_no)
+    start_period_timestamp = datetime.datetime.utcnow() - datetime.timedelta(days=settings.NOTIFICATION_ALERT_FROM_DAYS)
     unique_protocols_user_opted = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == user_id).distinct(PD_User_Protocols.protocol).all()
     protocol_list = [item.protocol for item in unique_protocols_user_opted]
     notification_query = db.query(ProtocolAlert).filter(
         ProtocolAlert.protocol.in_(protocol_list),
-        ProtocolAlert.timeUpdated >= get_45_days_before_date,
+        ProtocolAlert.timeUpdated >= start_period_timestamp,
         ProtocolAlert.isActive == True)
     notification_list = [{"id": record.id, "protocol": record.protocol,
                           "protocolTitle": record.protocolTitle,

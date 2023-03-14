@@ -52,7 +52,7 @@ def qc_complete_mail(db, doc_id):
                                         PD_User_Protocols.userId))).all()
         for row in row_data:
             to_mail = row.email
-            username = " ".join(row.email.strip("@iqvia.com").split("."))
+            username = " ".join(row.email.split("@")[0].split("."))
             doc_link = f"http://{doc_id}" # need to change URL according to UI
             protocol_number = row.protocol
             indication = ""

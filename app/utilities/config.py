@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     SMTP_HOST: str
     SMTP_PORT: str
 
+    # notification from days
+    NOTIFICATION_ALERT_FROM_DAYS: int
+
     # Legacy Protocol Configuration
     LEGACY_PROTOCOL_UPLOAD_DATE: str
 
