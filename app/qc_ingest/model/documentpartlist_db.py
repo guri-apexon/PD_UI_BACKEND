@@ -1,5 +1,5 @@
 from sqlalchemy import Column,Index
-from .__base__ import SchemaBase,schema_to_dict,update_partlist_index,CurdOp,update_existing_props
+from .__base__ import SchemaBase,schema_to_dict,update_partlist_index,CurdOp,update_existing_props,MissingParamException
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER
 import uuid
 
@@ -30,21 +30,19 @@ class DocumentpartslistDb(SchemaBase):
 
         return : updated data that may be used in next stage update
         """
-        cid,is_top_elm=None,False
-        #if at top next element props are taken
-       
+        cid,is_next_elm=None,False
+
         if data['prev_id']:
             cid=data['prev_id']
         else:
-            cid=data.get('id','')
-            is_top_elm=True
+            cid=data.get('next_id','')
+            is_next_elm=True
         if not cid and data['is_link']:
             return data
         
         prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()
         if not prev_data:
-            _id=data['prev_id']
-            raise Exception(f'{_id} is missing from partlist db')
+            raise MissingParamException(f'{cid} in document partlist db ')
         prev_dict=schema_to_dict(prev_data)
         para_data = DocumentpartslistDb(**prev_dict)
         _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
@@ -53,10 +51,10 @@ class DocumentpartslistDb(SchemaBase):
         para_data.hierarchy = 'document'
         para_data.group_type = 'DocumentPartsList'
         para_data.id = _id
-        para_data.sequence_id=0 if is_top_elm else prev_data.sequence_id+1
+        para_data.sequence_id=prev_data.sequence_id-1 if is_next_elm else prev_data.sequence_id+1
         doc_id=prev_data.doc_id
         para_data.parent_id = doc_id
-        update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,prev_data.sequence_id, CurdOp.CREATE)  
+        update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,para_data.sequence_id, CurdOp.CREATE)  
         session.add(para_data)
         return data
     
@@ -67,7 +65,7 @@ class DocumentpartslistDb(SchemaBase):
         obj = session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == data['id']).first()
         if not obj:
             _id=data['id']
-            raise Exception(f'{_id} is missing from partlist db ')      
+            raise MissingParamException(f'{_id} in document partlist db ')     
         update_existing_props(obj,data)
         session.add(obj)
 
@@ -77,7 +75,7 @@ class DocumentpartslistDb(SchemaBase):
             DocumentpartslistDb.id == data['id']).first()
         if not obj:
             _id=data['id']
-            raise Exception(f'{_id} is missing from partlist db')
+            raise MissingParamException(f'{_id} in document partlist db ')
         sequence_id = obj.sequence_id
         doc_id=obj.doc_id
         session.delete(obj)

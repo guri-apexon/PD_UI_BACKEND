@@ -35,19 +35,18 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       data : prev data
 
       """
-      cid, is_top_elm = None, False
+      cid, is_next_elm = None, False
       # if at top next element props are taken
       if data['prev_id']:
          cid = data['prev_id']
       else:
-         cid = data['id']
-         is_top_elm = True
+         cid = data['next_id']
+         is_next_elm = True
 
       prev_data = session.query(DocumentparagraphsDb).filter(
           DocumentparagraphsDb.id == cid).first()
       if not prev_data:
-         _id = data['prev_id']
-         raise Exception(f'{_id} is missing from paragraph db')
+         raise Exception(f'{cid} is missing from paragraph db')
       prev_dict = schema_to_dict(prev_data)
       para_data = DocumentparagraphsDb(**prev_dict)
       _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
@@ -56,11 +55,11 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data.group_type = 'DocumentParagraphs'
       para_data.m_ROI_TYPEVal=100 #image
       para_data.id = _id
-      para_data.DocumentSequenceIndex = 0 if is_top_elm else prev_data.DocumentSequenceIndex+1
-      para_data.SequenceID = 0 if is_top_elm else prev_data.SequenceID+1
+      para_data.DocumentSequenceIndex = prev_data.DocumentSequenceIndex-1 if is_next_elm else prev_data.DocumentSequenceIndex+1
+      para_data.SequenceID = prev_data.SequenceID-1 if is_next_elm else prev_data.SequenceID+1
       doc_id = prev_data.doc_id
       para_data.parent_id = doc_id
-      update_roi_index(session, doc_id, prev_data.SequenceID, CurdOp.CREATE)
+      update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
 
       binary_obj = IqvdocumentimagebinaryDb()
       update_existing_props(binary_obj, prev_dict)
@@ -69,7 +68,9 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       idx=content.find(',')
       org_content=content[idx+1:]
       img_format=content[content.find('/')+1:content.find(';')]
-      binary_obj.img = base64.b64decode(org_content)
+      pad = len(org_content)%4
+      org_content +=("="*pad)
+      binary_obj.img = base64.b64decode(org_content.strip())
       binary_obj.image_format=img_format
       binary_obj.para_id = para_data.id
       binary_obj.childbox_id = para_data.id

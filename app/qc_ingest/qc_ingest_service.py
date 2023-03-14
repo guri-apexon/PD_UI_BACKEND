@@ -1,7 +1,6 @@
 
 import logging
 from app.utilities.config import settings
-from ..db.session import SessionLocal
 from .model.documentparagraphs_db import DocumentparagraphsDb
 from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
@@ -21,8 +20,7 @@ class RelationalMapper():
     RelationMap = {
         "header": {
             "name": IqvdocumentlinkDb,
-            "children":[]
-            #"children": [DocumentpartslistDb, DocumentparagraphsDb]
+            "children": [DocumentpartslistDb, DocumentparagraphsDb]
         },
         "text": {
             "name": DocumentpartslistDb,
@@ -72,11 +70,14 @@ def get_content_info(data: dict, action_type):
     use prev_line id for add ,delete update curr line id used
     """
     try:
-        line_id, prev_link_id, prev_line_id = None, None, None
+        line_id, prev_link_id, prev_line_id,next_line_id = None, None, None,None
         if action_type == 'add':
             prev_details = data.get('prev_detail',{})
             prev_line_id = prev_details.get('line_id', '')[0:36]
+            next_details=data.get('next_detail',{})
+            next_line_id=next_details.get('line_id','')[0:36]
         data['prev_id'] = prev_line_id
+        data['next_id']=next_line_id
         data['id'] = data.get('line_id', '')[0:36]
         return data
     except Exception as e:
@@ -92,6 +93,7 @@ def process_data(session, mapper, data: dict):
         mapper.update(session, action_data)
     elif action_name == 'delete' and action_data:
         mapper.delete(session, action_data)
+    return data
 
 
 def process(payload: list):
@@ -100,10 +102,14 @@ def process(payload: list):
     """
 
     if not payload:
-        return False
+        return []
     mapper = RelationalMapper()
+    uid_list=[]
     with SessionLocal() as session:
-        for data in payload:   
+        for data in payload:  
             process_data(session, mapper, data)
+            uid_list.append({'uuid':data.get('uuid',''),
+                             'op_type':data.get('op_type',''),
+                             'qc_change_type':data.get('qc_change_type','')})
         session.commit()
-    return True
+    return uid_list
