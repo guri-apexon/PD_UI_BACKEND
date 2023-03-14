@@ -1,5 +1,5 @@
 from sqlalchemy import Column
-from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props
+from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props,MissingParamException
 from . import DocumentparagraphsDb
 import uuid
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER, BYTEA
@@ -46,7 +46,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       prev_data = session.query(DocumentparagraphsDb).filter(
           DocumentparagraphsDb.id == cid).first()
       if not prev_data:
-         raise Exception(f'{cid} is missing from paragraph db')
+         raise MissingParamException(f'{cid} is missing from paragraph db')
       prev_dict = schema_to_dict(prev_data)
       para_data = DocumentparagraphsDb(**prev_dict)
       _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
@@ -87,7 +87,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
           IqvdocumentimagebinaryDb.para_id == data['id']).first()
       if not obj:
          _id = data['id']
-         raise Exception(f'{_id} is missing from paragraph and imagebinary db')
+         raise MissingParamException(f'{_id} is missing from paragraph and imagebinary db')
       content=data['content']
       idx=content.find(',')
       org_content=content[idx+1:]
@@ -103,7 +103,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
           DocumentparagraphsDb.id == data['id']).first()
       if not obj:
          _id = data['id']
-         raise Exception(f'{_id} is missing from paragraph db')
+         raise MissingParamException(f'{_id} is missing from paragraph db')
       sequence_id = obj.SequenceID
       doc_id = obj.doc_id
       session.delete(obj)
