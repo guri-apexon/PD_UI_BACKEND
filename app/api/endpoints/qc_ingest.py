@@ -22,7 +22,7 @@ async def qc_ingest(
     """
     try:
         result = qc_ingest_service.process(payload)
-        return {"success": True,"message":"QC ingest Completed Successfully"}
+        return {"success": True,"message":"QC ingest Completed Successfully","info":result}
     except Exception as ex:
         raise HTTPException(status_code=500,
             detail=f"Exception occurred while qc ingest running: {str(ex)}")

@@ -104,4 +104,4 @@ class IqvpageroiDb(SchemaBase):
    GT_TextMatch = Column(TEXT)
    GT_ScoreMatch = Column(DOUBLE_PRECISION,nullable=False)
    GT_ImageFilename = Column(TEXT)
-   references=Column(TEXT)
+   #references=Column(TEXT)

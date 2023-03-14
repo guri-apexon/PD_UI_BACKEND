@@ -1,0 +1,13 @@
+[
+    {
+        "type": "table",
+        "qc_change_type": "delete",
+        "op_type": "delete_table",
+        "table_roi_id":"",
+        "section_locked": false,
+        "line_id": "204e1b2b-a769-40ce-a014-835420abdf99",
+        "prev_detail": {
+            "line_id": ""
+        }
+    }
+]

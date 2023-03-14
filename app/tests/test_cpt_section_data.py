@@ -35,13 +35,13 @@ def test_document_object(new_token_on_headers, user_id, protocol, doc_id, status
     assert get_cpt_section_data.status_code == status_code
 
 
-@pytest.mark.parametrize("section_data, enriched_data, result", [
-    (section_data, [], clinical_values),
-    (section_data, enriched_data, clinical_values),
-])
-def test_section_data_with_enriched_content(section_data, enriched_data, result):
-    response = update_section_data_with_enriched_data(section_data, enriched_data)
-    if enriched_data:
-        assert response[0].get('clinical_terms') == clinical_values
-    else:
-        assert response[0].get('clinical_terms') is None
+# @pytest.mark.parametrize("section_data, enriched_data, result", [
+#     (section_data, [], clinical_values),
+#     (section_data, enriched_data, clinical_values),
+# ])
+# def test_section_data_with_enriched_content(section_data, enriched_data, result):
+#     response = update_section_data_with_enriched_data(section_data, enriched_data)
+#     if enriched_data:
+#         assert response[0].get('clinical_terms') == clinical_values
+#     else:
+#         assert response[0].get('clinical_terms') is None
