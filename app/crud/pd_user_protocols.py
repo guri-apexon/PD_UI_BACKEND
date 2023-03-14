@@ -5,6 +5,7 @@ import pandas as pd
 
 from app import config
 from app.crud.base import CRUDBase
+from app import crud
 from app.utilities.config import settings
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.schemas.pd_user_protocols import (UserFollowProtocol, UserProtocolAdd,
@@ -112,6 +113,8 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             user_protocol.follow = obj_in.follow
             user_protocol.projectId = obj_in.projectId
             user_protocol.redactProfile = redact_profile
+            user_protocol.reason_for_change = obj_in.accessReason
+            user_protocol.userUpdated = obj_in.userUpdated
             db.add(user_protocol)
             db.commit()
         except Exception as ex:
@@ -143,7 +146,9 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
                                        projectId=obj_in.projectId,
                                        timeCreated=datetime.utcnow(),
                                        lastUpdated=datetime.utcnow(),
-                                       redactProfile=redact_profile
+                                       redactProfile=redact_profile,
+                                       reason_for_change=obj_in.accessReason,
+                                       userUpdated=obj_in.userUpdated
                                        )
             db.add(db_obj)
             db.commit()
@@ -213,7 +218,8 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             return ex
 
    #Below func is for Bulk Upload Loading .xlsx file's data into db
-    def excel_data_to_db(self, db:Session, bulk_upload_file_path:str):
+    def excel_data_to_db(self, db: Session, bulk_upload_file_path: str,
+                         user_updated: str, access_reason: str):
         try:
             uploaded_user_protocol_split = os.path.splitext(bulk_upload_file_path)
             if uploaded_user_protocol_split[1] != ".xlsx":
@@ -224,9 +230,12 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             response = []
             for i, j in excel_data_df.iterrows():
                 try:
-                    if j.userId == "" or j.protocol == "" or j.follow == "" or j.userRole == "":
-                        response.append(f"Can't Add with null values userId:{j.userId}, protocol:{j.protocol}, follow:{j.follow} & userRole:{j.userRole}")
+                    if j.userId == "" or j.protocol == "" or j.follow == "" or j.userRole == "" or access_reason == "":
+                        response.append(
+                            f"Can't Add with null values userId:{j.userId}, protocol:{j.protocol}, follow:{j.follow} & userRole:{j.userRole} & VIATicket:{access_reason}")
                     else:
+                        j['accessReason'] = access_reason
+                        j['userUpdated'] = user_updated
                         bulk_result = pd_user_protocols.add_protocol(db, obj_in=j)
                         response.append(f"Successfully Added the userId: {j.userId}, protocol: {j.protocol}")
                 except Exception as ex:

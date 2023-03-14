@@ -3,6 +3,7 @@ from app.utilities.extractor_config import ModuleConfig, QcStatus
 from app.utilities.data_extractor_utils import get_redaction_entities, align_redaction_with_subtext
 from datetime import datetime
 from app.utilities.config import settings
+from app.utilities.elastic_utilities import ingest_elastic
 
 # Sets logger
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -70,7 +71,7 @@ ling_es_mapping = {
 intake_field_list_priority = ["SponsorName", "Indication"]
 
 
-def ingest_doc_elastic(iqv_document, search_df):
+def ingest_doc_elastic(iqv_document, search_df, save_doc_elastic = False):
     """
         searching document id in elastic 
         iqv_document: requested document
@@ -191,4 +192,9 @@ def ingest_doc_elastic(iqv_document, search_df):
     except Exception as exc:
         logger.exception(f"Exception received in ingest_doc_elastic, intake field extraction:{exc}")
 
-    return es_sec_dict, summary_entities
+    es_save_doc_res = False
+    if save_doc_elastic:
+        if es_sec_dict:
+            es_save_doc_res = ingest_elastic(es_sec_dict)
+
+    return es_sec_dict, summary_entities, es_save_doc_res

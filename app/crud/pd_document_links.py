@@ -24,6 +24,7 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     if abs(toc) > 1:
         return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"TOC required 0 or 1"})
     try:
+        connection = None
         connection = psqlengine.raw_connection()
         iqv_doc_headers = GetIQVDocumentFromDB_headers(connection, aidoc_id)
         if iqv_doc_headers == None:
@@ -43,9 +44,10 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
         df['link_id'] = df.apply(lambda x: x['link_id'] if x['LinkLevel']
                                 == 1 else x['link_id_level{}'.format(x['LinkLevel'])], axis=1)
         df = df[['doc_id', 'group_type', 'link_id', 'LinkLevel',
-                'LinkPage', 'LinkPrefix', 'LinkText', 'LinkType']]
+                'LinkPage', 'LinkPrefix', 'LinkText', 'LinkType', 'parent_id']]
         df = df.rename(columns={'LinkText': 'source_file_section',
-                                'LinkPage': 'page', 'LinkPrefix': 'sec_id'})
+                                'LinkPage': 'page', 'LinkPrefix': 'sec_id',
+                                'parent_id': 'line_id'})
         df['page'] = df['page'] + 1
         # sorting by page number and sec_id
         df = df.sort_values(by=['page','sec_id']).reset_index(drop=True) 
@@ -91,14 +93,14 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
                 toc_headers.append(header)
             childlevel_headers = []
             for header in toc_headers:
-                if len(header) != 12:
+                if len(header) != 13:
                     parent_header = (header["childlevel"])
                     sorted_parent_header = sorted(parent_header, key = lambda x:x['sec_id'])
                     for parent_header_item in sorted_parent_header:
-                        if len(parent_header_item) != 12:
+                        if len(parent_header_item) != 13:
                             sorted_parent_header_child = sorted((parent_header_item["childlevel"]), key = lambda x:x['sec_id'])
                             for sorted_parent_header_item in sorted_parent_header_child:
-                                if len(sorted_parent_header_item) != 12:
+                                if len(sorted_parent_header_item) != 13:
                                     sorted_parent_header_child_1 = sorted((sorted_parent_header_item["childlevel"]), key = lambda x:x['sec_id'])
                                     sorted_parent_header_item['childlevel'] = sorted_parent_header_child_1
                             parent_header_item['childlevel'] = sorted_parent_header_child

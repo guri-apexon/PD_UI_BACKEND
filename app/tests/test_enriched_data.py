@@ -36,7 +36,28 @@ def test_document_data(new_token_on_headers, doc_id, status_code, link_id,
 
 
 def collect_protocol_data():
-    entity_obj = db.query(NlpEntityDb).first()
+    enriched_text = 'test_enriched_text'
+    rec_id = '2560a040-bc71-11ed-TEST_ID'
+    entity_obj = db.query(NlpEntityDb).filter(NlpEntityDb.id == rec_id).first()
+    if not entity_obj:
+        entity_obj = NlpEntityDb(id=rec_id,
+                                 doc_id='4c7ea27b-8a6b-4bf0-a8ed-test',
+                                 link_id='46bac1b7-9197-11ed-b507-test',
+                                 hierarchy='document',
+                                 iqv_standard_term='preferred1',
+                                 parent_id='parent_id_test', group_type='',
+                                 entity_class='class1', entity_xref='test1',
+                                 ontology='MEDra',
+                                 standard_entity_name=enriched_text,
+                                 confidence=100, start=0, text_len=18)
+
+        try:
+            db.add(entity_obj)
+            db.commit()
+            db.refresh(entity_obj)
+        except Exception as ex:
+            db.rollback()
+
     doc_id = entity_obj.doc_id
     link_id = entity_obj.link_id
     enriched_text = entity_obj.standard_entity_name
