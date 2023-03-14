@@ -71,3 +71,39 @@ def get_elastic_doc_by_id(aidocid):
 
     es.close()
     return res
+
+
+def ingest_elastic(es_sec_dict):
+    try:
+        host = settings.ELASTIC_HOST
+        port = settings.ELASTIC_PORT
+        index = settings.ELASTIC_INDEX
+
+        es = Elasticsearch([{'host': host, 'port': port}])
+        es.index(index=index, body=es_sec_dict, id=es_sec_dict['AiDocId'])
+        logger.info(f"Document was successfully saved in Elastic Search:{es_sec_dict['AiDocId']}")
+        res = True
+
+    except Exception as exc:
+        logger.exception(f"Exception received in ingest_elastic, ingestion could not occur:{exc}")
+        res = False
+    finally:
+        es.close()
+
+    return res
+
+def delete_elastic_doc_by_id(aidoc_id):
+    try:
+        host = settings.ELASTIC_HOST
+        port = settings.ELASTIC_PORT
+        index = settings.ELASTIC_INDEX
+
+        es = Elasticsearch([{'host': host, 'port': port}])
+        res = es.delete(index=index, id=aidoc_id)
+
+    except Exception as exc:
+        logger.exception(f"Exception received in ingest_elastic, ingestion could not occur:{exc}")
+        res = False
+
+    es.close()
+    return res

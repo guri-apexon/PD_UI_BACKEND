@@ -24,6 +24,7 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
     if abs(toc) > 1:
         return JSONResponse(status_code=status.HTTP_206_PARTIAL_CONTENT,content={"message":"TOC required 0 or 1"})
     try:
+        connection = None
         connection = psqlengine.raw_connection()
         iqv_doc_headers = GetIQVDocumentFromDB_headers(connection, aidoc_id)
         if iqv_doc_headers == None:
