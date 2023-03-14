@@ -36,8 +36,9 @@ class CRUDUserAlertSetting(CRUDBase[UserAlertSetting, UserAlertSettingCreate, Us
     def get_user_options(self, db: Session, user_id: str):
         """ To get user alert global setting """
         user_obj = self.get_by_user_id(db=db, user_id=user_id)
-        user_options = self.prepare_response(user_obj)
-        return user_options
+        if not user_obj:
+            return None
+        return self.prepare_response(user_obj)
 
     def update_user_alert_setting(self, db: Session, obj_in: UserAlertSetting):
         """
