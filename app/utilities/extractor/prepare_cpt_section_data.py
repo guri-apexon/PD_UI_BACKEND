@@ -14,7 +14,12 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 
 class PrepareUpdateData:
-    def __init__(self, iqv_document: IQVDocument,imagebinaries:dict, profile_details: dict, entity_profile_genre: list):
+    def __init__(self,
+                 iqv_document: IQVDocument,
+                 imagebinaries:dict,
+                 profile_details: dict,
+                 entity_profile_genre: list,
+                 save_doc_elastic: bool = False):
         """
         Preparing section/header data with document id , user profile detials and protocol view redaction entities
 
@@ -29,6 +34,7 @@ class PrepareUpdateData:
         self.empty_json = ModuleConfig.GENERAL.empty_json
         self.profile_details = profile_details
         self.entity_profile_genre = entity_profile_genre
+        self.save_doc_elastic = save_doc_elastic
 
     def prepare_msg(self) -> Tuple[dict, IQVDocument]:
         """
@@ -51,9 +57,13 @@ class PrepareUpdateData:
 
         # Elastic search ingestion
         try:
-            cpt_iqvdata = cpt_extractor.CPTExtractor(iqv_document, self.imagebinaries, self.profile_details, self.entity_profile_genre)
+            cpt_iqvdata = cpt_extractor.CPTExtractor(iqv_document,
+                                                     self.imagebinaries,
+                                                     self.profile_details,
+                                                     self.entity_profile_genre)
+
             display_df, search_df, _, _, _ = cpt_iqvdata.get_cpt_iqvdata()
-            db_data, summary_entities = ei.ingest_doc_elastic(iqv_document, search_df)
+            db_data, summary_entities, _ = ei.ingest_doc_elastic(iqv_document, search_df, self.save_doc_elastic)
             logger.info("Elastic search ingestion step completed")
             db_data["summary_entities"] = json.dumps(summary_entities)
             db_data['ProtocolName'] = db_data.get("protocol_name", "")

@@ -1,54 +1,51 @@
 from sqlalchemy import Column, Index, and_
-from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, CurdOp
+from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, CurdOp, MissingParamException
 from .iqvpage_roi_db import IqvpageroiDb
 from .documentparagraphs_db import DocumentparagraphsDb
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN
 import uuid
 import json
+from collections import defaultdict
 
 
 class ParseTable():
    def __init__(self):
       pass
 
-   def parse_row(self,row):
-      num_cols=len(row)
-      col_vals=[0]*num_cols
-      qc_operations=[]
-      for col_idx,col_data in row.items():
-         col_idx=int(float(col_idx))-1
-         val=col_data['content']
-         col_vals[col_idx]=val
-         if col_data.get('qc_change_type',None):
-            qc_operations.append(col_data['qc_change_type'])
-      return col_vals,qc_operations
+   def parse_row(self, props):
+      row_idx = int(float(props['row_idx']))
+      row_roi_id = props.get('row_roi_id', '')
+      row = props['row_props']
+      num_cols = len(row)
+      col_vals = {}
+      for col_idx, col_data in row.items():
+         col_idx = int(float(col_idx))
+         roi_data = col_data.get('roi_id', {})
+         col_vals[col_idx] = {'val': col_data.get('content', ''), 'row_roi_id': row_roi_id,
+                              'cell_roi': roi_data.get('datacell_roi_id', '')}
+      return row_idx, col_vals
 
-   def is_same_op(self,qc_operations,op_type):
-      same_type=True
-      for op in qc_operations:
-         if op==op_type: 
-            same_type=False
-            break
-      return same_type
-
-   def find_row_operation(self,qc_operations):   
-      is_row_add=self.is_same_op(qc_operations,'add')
-      is_row_delete=self.is_same_op(qc_operations,'delete')
-      return is_row_add,is_row_delete
-
-
-   def parse_complete_table(self,table_data):
-      rows_data=dict()
-      idx = 0
+   def parse(self, table_data):
+      num_rows = len(table_data)
+      rows_data = {}
       for row in table_data:
-         num_cols=len(row)
-         row_data=self.parse_row(row)
-         rows_data[str(idx)] = row_data
-         idx = idx + 1
-      num_rows=len(rows_data)
-      shorted_rows_data = {k: v for k, v in sorted(rows_data.items(), key=lambda x: x)}
-      return num_rows,num_cols,shorted_rows_data
-      
+         row_idx, row_data = self.parse_row(row)
+         num_cols = len(row['row_props'])
+         rows_data[row_idx] = row_data
+      return num_rows, num_cols, rows_data
+
+   def get_order_data(self, rows_data, order='row'):
+      num_rows = len(rows_data)
+      num_cols = len(rows_data[0])
+      out_data = defaultdict(list)
+      for row_idx, row_vals in rows_data.items():
+         for col_idx, row_vals in row_vals.items():
+            if order == 'col':
+               out_data[col_idx].append(rows_data[row_idx][col_idx])
+            else:
+               out_data[row_idx].append(rows_data[row_idx][col_idx])
+      return out_data
+
 
 class TableOp:
    CREATE_TABLE = 'create_table'
@@ -57,7 +54,7 @@ class TableOp:
    INSERT_ROW = 'insert_row'
    INSERT_COLUMN = 'insert_column'
    DELETE_ROW = 'delete_row'
-   DELETE_COLUMN = 'delete_col'
+   DELETE_COLUMN = 'delete_column'
    UPDATE_COLUMN = 'update_column'
 
 
@@ -162,7 +159,7 @@ class DocumenttablesDb(SchemaBase):
    GT_TextMatch = Column(TEXT)
    GT_ScoreMatch = Column(DOUBLE_PRECISION, nullable=False)
    GT_ImageFilename = Column(TEXT)
-   references = Column(TEXT)
+   # references = Column(TEXT)
 
    @staticmethod
    def create(session, data):
@@ -172,17 +169,40 @@ class DocumenttablesDb(SchemaBase):
 
       """
       doc_table_helper = DocTableHelper()
-      # if not data.get('op_type', None):
-      #    raise Exception("table operation type not defined ")
+      if not data.get('op_type', None):
+         raise MissingParamException('op_type')
       if not data.get('content', None):
-         raise Exception('content info is missing from request ')
+        raise MissingParamException('content')
+      content = data['content']
+      if not content.get('TableProperties', None):
+         raise MissingParamException('.TableProperties.')
+      table_props = content['TableProperties']
+      if isinstance(table_props, str):
+         table_props = json.loads(table_props)
 
-      table_props=data['content']['TableProperties']
-      #load to json
-      table_props = json.loads(table_props)
-      parse_table=ParseTable()
-      num_rows,num_cols,vals=parse_table.parse_complete_table(table_props)
-      table_id=doc_table_helper.create_table(session,data,num_rows, num_cols, vals)
+      if isinstance(table_props, str):
+         table_props = json.loads(table_props)
+      parse_table = ParseTable()
+      num_rows, num_cols, table_data = parse_table.parse(table_props)
+      if data['op_type'] == TableOp.CREATE_TABLE:
+         table_id = doc_table_helper.create_table(
+             session, data, num_rows, num_cols, table_data)
+         print('table id is ', table_id)
+      else:
+         table_roi_id = data.get('line_id', None)
+         if not table_roi_id:
+            raise MissingParamException('line_id')
+         if data['op_type'] == TableOp.INSERT_ROW:
+            for row_idx, row_data in table_data.items():
+               if not row_idx:
+                  raise MissingParamException('row_idx ')
+               doc_table_helper.insert_row(
+                   session, table_roi_id, row_idx, row_data)
+
+         elif data['op_type'] == TableOp.INSERT_COLUMN:
+            doc_table_helper.insert_col(session, table_roi_id, table_data)
+         else:
+            raise MissingParamException(" or invalid operation type ")
 
       return data
 
@@ -191,25 +211,42 @@ class DocumenttablesDb(SchemaBase):
       """
       """
       doc_table_helper = DocTableHelper()
-      table_id = data['id']
-      doc_table_helper.delete_table(session, table_id)
-
       if not data.get('content', None):
-             raise Exception('content info is missing from request ')
-
-      table_props=data['content']['TableProperties']
-      #load to json
-      table_props = json.loads(table_props)
-      parse_table=ParseTable()
-      num_rows,num_cols,vals=parse_table.parse_complete_table(table_props)
-      table_id=doc_table_helper.create_table(session,data,num_rows, num_cols, vals)
-
+          raise MissingParamException('.content.')
+      content = data['content']
+      if not content.get('TableProperties', None):
+         raise MissingParamException('.TableProperties.')
+      table_props = content['TableProperties']
+      if isinstance(table_props, str):
+         table_props = json.loads(table_props)
+      parse_table = ParseTable()
+      _, _, table_data = parse_table.parse(table_props)
+      doc_table_helper.update_table(session, table_data)
 
    @staticmethod
    def delete(session, data):
       doc_table_helper = DocTableHelper()
       table_id = data['id']
-      doc_table_helper.delete_table(session, table_id)
+      if data['op_type'] == TableOp.DELETE_TABLE:
+         doc_table_helper.delete_table(session, table_id)
+      else:
+         if not data.get('content', None):
+             raise MissingParamException('.content.')
+         content = data['content']
+         if not content.get('TableProperties', None):
+             raise MissingParamException('.TableProperties.')
+         table_props = content['TableProperties']
+         if isinstance(table_props, str):
+            table_props = json.loads(table_props)
+         parse_table = ParseTable()
+         _, _, table_data = parse_table.parse(table_props)
+         if data['op_type'] == TableOp.DELETE_ROW:
+            doc_table_helper.delete_row(session, table_id, table_data)
+
+         elif data['op_type'] == TableOp.DELETE_COLUMN:
+            doc_table_helper.delete_column(session, table_data)
+         else:
+            raise MissingParamException(" or invalid operation type ")
 
 
 class DocTableHelper():
@@ -222,13 +259,12 @@ class DocTableHelper():
       if data['prev_id']:
          cid = data['prev_id']
       else:
-         cid = data['id']
+         cid = data['next_id']
          is_top_elm = True
       prev_data = session.query(IqvpageroiDb).filter(
           and_(IqvpageroiDb.id == cid, IqvpageroiDb.group_type != 'ChildBoxes')).first()
       if not prev_data:
-         _id = data['prev_id']
-         raise Exception(f'{_id} is missing from pageroi db')
+         raise MissingParamException(cid)
       prev_dict = schema_to_dict(prev_data)
       para_data = DocumenttablesDb(**prev_dict)
       _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
@@ -236,24 +272,28 @@ class DocTableHelper():
       para_data.hierarchy = 'table'
       para_data.group_type = 'DocumentTables'
       para_data.id = _id
-      para_data.Value=''
-      para_data.DocumentSequenceIndex = 0 if is_top_elm else prev_data.DocumentSequenceIndex+1
-      para_data.SequenceID = 0 if is_top_elm else prev_data.SequenceID+1
+      para_data.Value = ''
+      para_data.DocumentSequenceIndex = prev_data.DocumentSequenceIndex-1 if is_top_elm else prev_data.DocumentSequenceIndex+1
+      para_data.SequenceID = prev_data.SequenceID-1 if is_top_elm else prev_data.SequenceID+1
       doc_id = prev_data.doc_id
       para_data.parent_id = doc_id
-      update_roi_index(session, doc_id, prev_data.SequenceID, CurdOp.CREATE)
+      update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
       session.add(para_data)
       return para_data
 
-   def _update_table_row_index(self, session, table_name, parent_id, row_sequence_id, op):
+   def _update_table_row_index(self, session, table_name, row_id_list, op):
       """
       parent_id is table_id
       row_sequence_id: update existing row index as well ,here we considering exact row idx
       """
-      op_code = '+' if op == CurdOp.CREATE else '-'
+      op_code = '+' if op == CurdOp.CREATE else '-' 
+      row_id_str=''
+      for row_id in row_id_list:    
+         row_id_str+=f"'{row_id}',"
+      row_id_str=row_id_str[0:-1]
       sql_query = f'UPDATE {table_name} SET "tableCell_rowIndex" = "tableCell_rowIndex" {op_code} 1 ,\
-         "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "tableCell_rowIndex" >= {row_sequence_id} \
-            AND "parent_id" = \'{parent_id}\' AND "group_type"= \'ChildBoxes\' '
+         "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE \
+         "parent_id" IN ({row_id_str}) OR "id" IN ({row_id_str})'
       session.execute(sql_query)
 
    def _update_table_col_index(self, session, table_name, parent_id, col_sequence_id, op):
@@ -263,40 +303,57 @@ class DocTableHelper():
       """
       op_code = '+' if op == CurdOp.CREATE else '-'
       sql_query = f'UPDATE {table_name} SET "tableCell_colIndex" = "tableCell_colIndex" {op_code} 1 ,\
-         "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "tableCell_colIndex" >= {col_sequence_id} \
+         "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "tableCell_colIndex" >= \'{col_sequence_id}\' \
             AND "parent_id" = \'{parent_id}\' AND "group_type"= \'ChildBoxes\' '
       session.execute(sql_query)
 
-   def insert_col(self,session,table_id,col_idx,col_data):
+   def insert_col(self, session, table_id, data):
       """
       table_id is parent id for all rows 
       first all rows ids must be fetched then crossponding col can be updated.
       """
-      rows=self._get_all_rows(session,table_id)
-      for row_obj in rows:
-         row_dict=schema_to_dict(row_obj)
-         content=col_data[row_obj.tableCell_rowIndex] if col_data else ''
-         self.add_col(session,row_dict,col_idx,content)
-         self._update_table_col_index(session,DocumenttablesDb.__tablename__,row_obj.id,col_idx,CurdOp.CREATE)
+      rows_info=self._get_all_rows_ids(session,table_id)
+      row_obj = self._get_table_obj(session, table_id)
+      for row_id,row_idx in rows_info:       
+         row_dict = schema_to_dict(row_obj)
+         row_dict['tableCell_rowIndex']=row_idx
+         row_dict['id']=row_id
+         r_data = data.get(row_dict['tableCell_rowIndex'], None)
+         if not r_data:
+            raise MissingParamException(
+                f'{row_dict["tableCell_rowIndex"]} row index  ')
+         for col_idx, col_data in r_data.items():
+            #first update indexes then update..
+            self._update_table_col_index(
+                session, DocumenttablesDb.__tablename__,row_id, col_idx, CurdOp.CREATE)
+            self.add_col(session, row_dict, col_idx, col_data['val'])
 
-   def delete_column(self,session,data_list):
-      for data in data_list:
-         row_id,cell_id,col_idx=data['row_id'],data['cell_id'],data['col_idx']
-         session.query(DocumenttablesDb).filter(DocumenttablesDb.id == cell_id).delete()
-         self._update_table_col_index(session,DocumenttablesDb.__tablename__,row_id,col_idx,CurdOp.DELETE)
+   def delete_column(self, session, table_data):
+      for _, row_data in table_data.items():
+         for col_idx, col_data in row_data.items():
+            row_id, cell_id = col_data['row_roi_id'], col_data['cell_roi']
+            session.query(DocumenttablesDb).filter(
+                DocumenttablesDb.id == cell_id).delete()
+            self._update_table_col_index(
+                session, DocumenttablesDb.__tablename__, row_id, col_idx, CurdOp.DELETE)
 
    def _get_all_rows(self, session, table_id):
-      rows=session.query(DocumenttablesDb).filter(and_(DocumenttablesDb.parent_id == table_id,
-                                                     DocumenttablesDb.group_type=='ChildBoxes')).all()
+      rows = session.query(DocumenttablesDb).filter(and_(DocumenttablesDb.parent_id == table_id,
+                                                         DocumenttablesDb.group_type == 'ChildBoxes')).all()
       return rows
 
-   def _get_row_obj(self, session, table_id):
-      row_obj = session.query(DocumenttablesDb).filter(and_(DocumenttablesDb.parent_id == table_id,
-                                                            DocumenttablesDb.group_type == 'ChildBoxes')).first()
+   def _get_all_rows_ids(self, session, table_id):
+      row_obj = session.query(DocumenttablesDb.id,DocumenttablesDb.tableCell_rowIndex).filter(and_(DocumenttablesDb.parent_id == table_id,
+                                                            DocumenttablesDb.group_type == 'ChildBoxes')).all()
       return row_obj
+   
+   def _get_table_obj(self, session, table_id):
+      obj = session.query(DocumenttablesDb).filter(DocumenttablesDb.id == table_id,
+                                                         DocumenttablesDb.hierarchy == 'table').first()
+      return obj
 
    def add_row(self, session, table_data, row_idx):
-      _id = uuid.uuid4()
+      _id = str(uuid.uuid4())
       row_data = DocumenttablesDb(**table_data)
       row_data.id = _id
       row_data.hierarchy = 'table'
@@ -313,7 +370,7 @@ class DocTableHelper():
       """
       row_data: for copying default values. 
       """
-      _id = uuid.uuid4()
+      _id = str(uuid.uuid4())
       col_data = DocumenttablesDb(**row_data)
       row_idx = row_data['tableCell_rowIndex']
       col_data.id = _id
@@ -327,25 +384,32 @@ class DocTableHelper():
       session.add(col_data)
       return col_data
 
-
-   def insert_row(self, session, data,content,row_idx):
+   def insert_row(self, session, table_roi_id, row_idx, data):
       """
       table_id: is parent id for row
       """
-      row_obj = self._get_row_obj(session, data['id'])
-      row_dict = schema_to_dict(row_obj)
-      row_dict['id'] = data['id']
-      row_data = self.add_row(session, row_dict, row_idx)
-      row_data = schema_to_dict(row_data)
-      if content:
-         for col_idx, col_val in enumerate(content):
-            self.add_col(session, row_data, col_idx, col_val)
+      rows_info=self._get_all_rows_ids(session,table_roi_id)
+      all_row_ids=[]
+      for row_id,r_idx in rows_info:
+         if r_idx>=row_idx:
+            all_row_ids.append(row_id)
       self._update_table_row_index(session, DocumenttablesDb.__tablename__,
-                                   row_data['parent_id'], row_idx, CurdOp.CREATE)
+                                   all_row_ids, CurdOp.CREATE)
+      
+      table_obj = self._get_table_obj(session, table_roi_id)
+      table_dict = schema_to_dict(table_obj)   
+      table_dict['id']=table_roi_id
+      row_data = self.add_row(session, table_dict, row_idx)
+      row_data = schema_to_dict(row_data)
+      for col_idx, col_data in data.items():
+         self.add_col(session, row_data, col_idx, col_data['val'])
+
 
    def update_cell_info(self, session, content, col_uid):
+      if not col_uid:
+         raise MissingParamException('col_uid')
       table_name = DocumenttablesDb.__tablename__
-      sql_query = f'UPDATE {table_name} SET "Value" = {content} WHERE "id" = \'{col_uid}\''
+      sql_query = f'UPDATE {table_name} SET "Value" = \'{content}\' WHERE "id" = \'{col_uid}\''
       session.execute(sql_query)
 
    def create_table(self, session, data, num_rows, num_cols, rows_data):
@@ -354,13 +418,11 @@ class DocTableHelper():
       """
       table_entry = self._create_table_entry(session, data)
       table_entry_dict = schema_to_dict(table_entry)
-      for row_idx in range(num_rows):
+      for row_idx, row_data in rows_data.items():
          row_entry = self.add_row(session, table_entry_dict, row_idx)
          row_dict = schema_to_dict(row_entry)
-         row_data = rows_data.get(str(row_idx), [])
-         for col_idx in range(num_cols):
-            col_val = row_data[col_idx] if row_data else ''
-            self.add_col(session, row_dict, col_idx, col_val)
+         for col_idx, col_val in row_data.items():
+            self.add_col(session, row_dict, col_idx, col_val['val'])
       return table_entry.id
 
    def delete_table(self, session, table_id):
@@ -384,34 +446,44 @@ class DocTableHelper():
       # update roi index
       update_roi_index(session, doc_id, sequence_id, CurdOp.DELETE)
 
-   def delete_row(self, session,table_id,row_id,row_idx):
-      table_id, row_id, row_idx = table_id,row_id,row_idx
-      session.query(DocumenttablesDb).filter(
-          DocumenttablesDb.parent_id == row_id).delete()
-      session.query(DocumenttablesDb).filter(
-          DocumenttablesDb.id == row_id).delete()
-      self._update_table_row_index(
-          session, DocumenttablesDb.__tablename__, table_id, row_idx, CurdOp.DELETE)
+   def delete_row(self, session, table_id, table_data):
 
+      rows_info=self._get_all_rows_ids(session,table_id)
+      for row_idx, row_data in table_data.items():
+         row_id = row_data[0]['row_roi_id']
+         session.query(DocumenttablesDb).filter(
+               DocumenttablesDb.parent_id == row_id).delete()
+         session.query(DocumenttablesDb).filter(
+               DocumenttablesDb.id == row_id).delete()
+         all_row_ids=[]
+         for row_id,r_idx in rows_info:
+            if r_idx>row_idx:
+               all_row_ids.append(row_id)  
+         self._update_table_row_index(
+               session, DocumenttablesDb.__tablename__, all_row_ids, CurdOp.DELETE)
 
    def get_table(self, session, table_id):
       row_ids = session.query(DocumenttablesDb.id).filter(and_(
           DocumenttablesDb.parent_id == table_id, DocumenttablesDb.group_type == 'ChildBoxes')).all()
-      table_data = []
+      table_data = {}
       for row_id in row_ids:
          cols_data = session.query(DocumenttablesDb).filter(
              DocumenttablesDb.parent_id == row_id[0]).all()
          row_data = ['']*len(cols_data)
+         row_idx=''
          for col in cols_data:
+             row_idx=col.tableCell_rowIndex
              row_data[col.tableCell_colIndex] = {
-                 'row_id': row_id[0], 'row_idx': col.tableCell_rowIndex, 'cell_id': col.id, 'value': col.Value}
-         table_data.append(row_data)
+                 'col_idx': col.tableCell_colIndex, 'row_roi_id': row_id[0],
+                 'row_idx': row_idx, 'datacell_roi_id': col.id, 'val': col.Value
+             }
+         table_data[row_idx]=row_data
       return table_data
 
-   def update_table(self, session, data_list):
+   def update_table(self, session, table_data):
       """
       """
-      for data in data_list:
-         self.update_cell_info(session, data['value'], data['cell_id'])
-
-
+      for row_idx, row_data in table_data.items():
+         for col_idx, col_data in row_data.items():
+            self.update_cell_info(
+                session, col_data['val'], col_data['cell_roi'])

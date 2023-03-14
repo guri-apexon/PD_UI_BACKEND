@@ -3,6 +3,7 @@
 
     "type": "table",
     "qc_change_type": "add",
+    "op_type": "create_table",
     "section_locked": false,
     "uuid":"04ecca0a-db2a-410b-9c05-871503b36756",
     "line_id":"",
@@ -13,7 +14,7 @@
     }
 }
     ,
-      {
+  {
 
     "type": "table",
     "qc_change_type": "modify",
