@@ -1,6 +1,6 @@
 from typing import Optional
 import psycopg2
-from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_doc_id,GetIQVDocumentFromDB_with_imagebinaries
+from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_with_imagebinaries
 from app.db.session import psqlengine
 from app.utilities.config import settings
 import logging
