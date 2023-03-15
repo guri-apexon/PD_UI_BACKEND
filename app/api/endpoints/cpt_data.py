@@ -177,6 +177,9 @@ async def get_cpt_section_data_with_configurable_parameter(
         # Section data from the existing end point
         link_id, link_level, link_dict = crud.link_id_link_level_based_on_section_text(psdb, aidoc_id, section_text, link_id, link_level)
        
+        if link_id == "":
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={
+                    "message": f"Data not found for section text {section_text}"})
 
         section_res = await get_cpt_section_data(psdb, aidoc_id, link_level, link_id,
                                                 user_id, protocol)
