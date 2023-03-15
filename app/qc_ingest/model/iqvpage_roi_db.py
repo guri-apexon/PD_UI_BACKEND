@@ -1,6 +1,7 @@
-from sqlalchemy import Column,Index
+
+from sqlalchemy import Column
 from .__base__ import SchemaBase
-from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER,BOOLEAN,BIGINT,JSONB,BYTEA
+from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER,BOOLEAN
 
 class IqvpageroiDb(SchemaBase):
    __tablename__ = "iqvpageroi_db"
@@ -103,18 +104,4 @@ class IqvpageroiDb(SchemaBase):
    GT_TextMatch = Column(TEXT)
    GT_ScoreMatch = Column(DOUBLE_PRECISION,nullable=False)
    GT_ImageFilename = Column(TEXT)
-
-Index('iqvpageroi_db_doc_id',IqvpageroiDb.doc_id)
-Index('iqvpageroi_db_doc_id_hierarchy',IqvpageroiDb.doc_id,IqvpageroiDb.hierarchy)
-Index('iqvpageroi_db_iqv_standard_term',IqvpageroiDb.iqv_standard_term)
-Index('iqvpageroi_db_link_id',IqvpageroiDb.link_id)
-Index('iqvpageroi_db_link_id_level2',IqvpageroiDb.link_id_level2)
-Index('iqvpageroi_db_link_id_level3',IqvpageroiDb.link_id_level3)
-Index('iqvpageroi_db_link_id_level4',IqvpageroiDb.link_id_level4)
-Index('iqvpageroi_db_link_id_level5',IqvpageroiDb.link_id_level5)
-Index('iqvpageroi_db_link_id_level6',IqvpageroiDb.link_id_level6)
-Index('iqvpageroi_db_link_id_subsection1',IqvpageroiDb.link_id_subsection1)
-Index('iqvpageroi_db_link_id_subsection2',IqvpageroiDb.link_id_subsection2)
-Index('iqvpageroi_db_link_id_subsection3',IqvpageroiDb.link_id_subsection3)
-Index('iqvpageroi_db_parent_id',IqvpageroiDb.parent_id,IqvpageroiDb.group_type)
-Index('iqvpageroi_db_parent_id_hierarchy',IqvpageroiDb.parent_id,IqvpageroiDb.hierarchy,IqvpageroiDb.group_type)
+   #references=Column(TEXT)

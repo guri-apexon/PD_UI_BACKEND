@@ -1,0 +1,23 @@
+[
+    {
+      "type": "table",
+      "qc_change_type": "delete",
+      "op_type": "delete_row",
+      "section_locked": false,
+      "line_id": "204e1b2b-a769-40ce-a014-835420abdf99",
+      "prev_detail": {
+        "line_id": ""
+      },
+      "content": {
+        "TableProperties": [
+          {
+            "row_roi_id": "ccbbd855-a554-4bd8-a4d3-9d01349250a5",
+            "row_idx": "2",
+            "row_props": {
+   
+            }
+          }
+        ]
+      }
+    }
+  ]

@@ -100,13 +100,13 @@ async def get_cpt_section_data(
     :returns: requested section/header data
               if document does not exist return json response with "docid does not exist"
     """
-    iqv_document = crud.get_document_object(aidoc_id, link_level, link_id)
+    iqv_document,imagebinaries = crud.get_document_object(aidoc_id, link_level, link_id)
     if iqv_document is None:
         logger.info(f"Docid {aidoc_id} does not exists")
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={
             "message": "This document is not available in our database"})
     protocol_view_redaction = ProtocolViewRedaction(userId, protocol)
-    finalized_iqvxml = PrepareUpdateData(iqv_document,
+    finalized_iqvxml = PrepareUpdateData(iqv_document, imagebinaries,
                                          protocol_view_redaction.profile_details,
                                          protocol_view_redaction.entity_profile_genre)
     finalization_req_dict, _ = finalized_iqvxml.prepare_msg()
@@ -177,6 +177,9 @@ async def get_cpt_section_data_with_configurable_parameter(
         # Section data from the existing end point
         link_id, link_level, link_dict = crud.link_id_link_level_based_on_section_text(psdb, aidoc_id, section_text, link_id, link_level)
        
+        if link_id == "":
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={
+                    "message": f"Data not found for section text {section_text}"})
 
         section_res = await get_cpt_section_data(psdb, aidoc_id, link_level, link_id,
                                                 user_id, protocol)

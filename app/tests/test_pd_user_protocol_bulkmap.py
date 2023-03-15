@@ -12,11 +12,11 @@ client = TestClient(app)
 db = SessionLocal()
 logger = logging.getLogger("unit-test")
 
-@pytest.mark.parametrize("file_path",
-                         [('app/tests/data/Bulk_Map2.xlsx'),
-                          ('app/tests/data/bulk_upload_testing.txt')])
-def test_add_user_protocol_many_to_many(file_path):
-    bulk_load = pd_user_protocols.excel_data_to_db(db, file_path)
+@pytest.mark.parametrize("file_path, user_updated, access_reason",
+                         [('app/tests/data/Bulk_Map2.xlsx', 'admin', 'via ticket'),
+                          ('app/tests/data/bulk_upload_testing.txt', 'admin', 'via ticket')])
+def test_add_user_protocol_many_to_many(file_path, user_updated, access_reason):
+    bulk_load = pd_user_protocols.excel_data_to_db(db, file_path, user_updated, access_reason)
     if bulk_load:
         if file_path == 'app/tests/data/Bulk_Map2.xlsx':
             user_protocol_delete = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == 'newuser').filter(

@@ -14,7 +14,7 @@ from .pd_protocol_data import ProtocolData, ProtocolDataCreate, ProtocolDataUpda
 from .pd_protocol_qcdata import ProtocolQcData, ProtocolQcDataCreate, ProtocolQcDataUpdate, ProtocolQcDataReadIqvdataBase, \
     ProtocolQcDataReadIqvdata
 from .pd_user_protocols import UserProtocol, UserProtocolCreate, UserProtocolUpdate, UserProtocolBase, UserProtocolAdd, \
-    UserFollowProtocol, UserProtocolSoftDelete
+    UserFollowProtocol, UserProtocolSoftDelete, UserProtocolData
 from .pd_search import SearchJson
 from .pd_user_alert import UserAlertInput, UserAlert, UserAlertTestUpdate
 from .pd_notification_read import NotificationRead
