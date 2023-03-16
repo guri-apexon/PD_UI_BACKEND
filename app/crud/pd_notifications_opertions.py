@@ -1,8 +1,8 @@
 import datetime
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.models.pd_user_protocols import PD_User_Protocols
 from app.models.pd_protocol_alert import ProtocolAlert
+from app.models.pd_user_notification_type import PdUserNotificationType
 from sqlalchemy.engine import Row
 import logging
 from app.utilities.config import settings
@@ -21,16 +21,16 @@ def get_notifications_from_db(db:Session  ,user_id:str) -> list:
     """
 
     start_period_timestamp = datetime.datetime.utcnow() - datetime.timedelta(days=settings.NOTIFICATION_ALERT_FROM_DAYS)
-    unique_protocols_user_opted = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == user_id).distinct(PD_User_Protocols.protocol).all()
-    protocol_list = [item.protocol for item in unique_protocols_user_opted]
-    notification_query = db.query(ProtocolAlert).filter(
-        ProtocolAlert.protocol.in_(protocol_list),
-        ProtocolAlert.timeUpdated >= start_period_timestamp,
-        ProtocolAlert.isActive == True)
-    notification_list = [{"id": record.id, "protocol": record.protocol,
-                          "protocolTitle": record.protocolTitle,
-                          "readFlag": record.readFlag, "doc_id": record.aidocId,
-                          "timestamp": record.timeUpdated} for record in
+    notification_query = db.query(PdUserNotificationType).filter(
+                                    PdUserNotificationType.created_time  >= start_period_timestamp,
+                                    PdUserNotificationType.read_flag == False,
+                                    PdUserNotificationType.notification_delete == False,
+                                    PdUserNotificationType.userId == user_id
+                                )
+    notification_list = [{"id": record.id, "protocol": eval(record.content).get("protocol",""),
+                          "protocolTitle": eval(record.content).get("protocolTitle",""),
+                          "readFlag": record.read_flag, "doc_id": eval(record.content).get("doc_id",""),
+                          "timestamp": record.created_time} for record in
                          notification_query]
     logger.info(f"fetching all notification for user_id {user_id}") 
     return notification_list
@@ -57,12 +57,11 @@ def create_notification_record_and_send_email(db: Session, metadata_resource: Ro
 def read_or_delete_notification(db: Session, aidocId: str, id: str, protocol: str, action: str) -> dict:
     try:
         if action == "delete":
-            db.query(ProtocolAlert).filter(ProtocolAlert.id == id, ProtocolAlert.protocol == protocol, ProtocolAlert.aidocId == aidocId).update({ProtocolAlert.isActive: False})
+            db.query(PdUserNotificationType).filter(PdUserNotificationType.id == id).update({PdUserNotificationType.notification_delete: True})
             logger.info(f"notification record update isActive to False for doc_id {aidocId}, id {id} and protocol {protocol}")
         elif action == "read":
-            db.query(ProtocolAlert).filter(ProtocolAlert.id == id, ProtocolAlert.protocol == protocol, ProtocolAlert.aidocId == aidocId).update({ProtocolAlert.readFlag: True})
+            db.query(PdUserNotificationType).filter(PdUserNotificationType.id == id).update({PdUserNotificationType.read_flag: True})
             logger.info(f"notification record update readflag to True for doc_id {aidocId}, id {id} and protocol {protocol}")
-            
         db.commit()
         return {"status":"success","id":id}
     except Exception as ex:
