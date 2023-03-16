@@ -101,7 +101,7 @@ class CPTExtractor:
                 for imagebinary in imagebinary_list:
                     master_dict['image_type'] = "image"
                     image_dict=dict()
-                    roi_id = {'para': master_roi.id, 'childbox': level_roi.id, 'subtext': ""}
+                    roi_id = {'para': master_roi.id, 'childbox': master_roi.id, 'subtext': ""}
                     master_dict['para_subtext_text'] = master_roi.Value
                     master_dict['image_content'] =  f"data:image/{imagebinary.image_format};base64,"+base64.b64encode(imagebinary.img).decode('utf-8') if imagebinary.img else ""#iqv_subtext.strText
                     image_dict['para_subtext_font_details'] = dict({'IsBold': master_roi.fontInfo.Bold, 'font_size': master_roi.fontInfo.Size,
