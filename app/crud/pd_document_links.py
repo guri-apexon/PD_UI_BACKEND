@@ -43,11 +43,13 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
         df = df.reset_index(drop=True)
         df['link_id'] = df.apply(lambda x: x['link_id'] if x['LinkLevel']
                                 == 1 else x['link_id_level{}'.format(x['LinkLevel'])], axis=1)
-        df = df[['doc_id', 'group_type', 'link_id', 'LinkLevel',
-                'LinkPage', 'LinkPrefix', 'LinkText', 'LinkType', 'parent_id']]
-        df = df.rename(columns={'LinkText': 'source_file_section',
-                                'LinkPage': 'page', 'LinkPrefix': 'sec_id',
-                                'parent_id': 'line_id'})
+        df = df[['doc_id', 'group_type', 'link_id', 'LinkLevel', 'LinkPage',
+                 'LinkPrefix', 'LinkText', 'LinkType', 'parent_id',
+                 'iqv_standard_term']]
+        df = df.rename(
+            columns={'LinkText': 'source_file_section', 'LinkPage': 'page',
+                     'LinkPrefix': 'sec_id', 'parent_id': 'line_id',
+                     'iqv_standard_term': 'preferred_term'})
         df['page'] = df['page'] + 1
         # sorting by page number and sec_id
         df = df.sort_values(by=['page','sec_id']).reset_index(drop=True) 
@@ -93,14 +95,14 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
                 toc_headers.append(header)
             childlevel_headers = []
             for header in toc_headers:
-                if len(header) != 13:
+                if len(header) != 14:
                     parent_header = (header["childlevel"])
                     sorted_parent_header = sorted(parent_header, key = lambda x:x['sec_id'])
                     for parent_header_item in sorted_parent_header:
-                        if len(parent_header_item) != 13:
+                        if len(parent_header_item) != 14:
                             sorted_parent_header_child = sorted((parent_header_item["childlevel"]), key = lambda x:x['sec_id'])
                             for sorted_parent_header_item in sorted_parent_header_child:
-                                if len(sorted_parent_header_item) != 13:
+                                if len(sorted_parent_header_item) != 14:
                                     sorted_parent_header_child_1 = sorted((sorted_parent_header_item["childlevel"]), key = lambda x:x['sec_id'])
                                     sorted_parent_header_item['childlevel'] = sorted_parent_header_child_1
                             parent_header_item['childlevel'] = sorted_parent_header_child
