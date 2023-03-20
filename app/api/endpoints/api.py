@@ -34,6 +34,7 @@ from app.api.endpoints import ldap_user_details
 from app.api.endpoints import cpt_data
 from app.api.endpoints import qc_ingest
 from app.api.endpoints import user_alert_setting
+from app.api.endpoints import pd_elastic_ingest
 
 api_router = APIRouter()
 api_router.include_router(health_check.router, prefix="/health", tags=["API Health Check"])
@@ -71,3 +72,4 @@ api_router.include_router(ldap_user_details.router, prefix="/ldap_user_details",
 api_router.include_router(cpt_data.router, prefix="/cpt_data", tags=["Get CPT data for document"])
 api_router.include_router(qc_ingest.router, prefix="/qc_ingest", tags=["QC Ingest"])
 api_router.include_router(user_alert_setting.router, prefix="/user_alert_setting", tags=["User Alert Setting to get notification"])
+api_router.include_router(pd_elastic_ingest.router, prefix="/elastic_ingest", tags=["Elastic Ingest"])

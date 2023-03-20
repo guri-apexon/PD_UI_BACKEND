@@ -1,8 +1,7 @@
-from .fontinfo_db import FontinfoDb
-from .iqvpageroi_db import IqvpageroiDb
-from .iqvsubtext_db import IqvsubtextDb
 from .documentparagraphs_db import DocumentparagraphsDb
 from .documenttables_db import DocumenttablesDb
-from .documentimages_db import DocumentimagesDb
-from .iqvdocumentlink_db import IqvdocumentlinkDb
+from .iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
+from .iqvdocument_link_db import IqvdocumentlinkDb
+from .iqvpage_roi_db import IqvpageroiDb
 from .__base__ import SchemaBase
+

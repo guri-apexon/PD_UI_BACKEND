@@ -1,0 +1,77 @@
+
+[
+{
+    "type": "table",
+    "qc_change_type": "add",
+    "op_type": "insert_column",
+    "section_locked": false,
+    "line_id": "204e1b2b-a769-40ce-a014-835420abdf99",
+    "prev_detail": {
+        "line_id": ""
+    },
+    "content": {
+        "TableProperties": [
+            {
+                "row_roi_id": "c89db072-4e80-4d8a-b55b-5831b2685953",
+                "row_idx": "0",
+                "row_props": {
+                    "1": {
+                        "entities": [],
+                        "content": "AA",
+                        "roi_id": {
+                            "row_roi_id": "",
+                            "column_roi_id": "",
+                            "datacell_roi_id": ""
+                        }
+                    }
+                }
+            },
+            {
+                "row_roi_id": "1ee79c36-3e78-4ae7-a674-84ddac412be3",
+                "row_idx": "1",
+                "row_props": {
+                    "1": {
+                        "content": "BB",
+                        "roi_id": {
+                            
+                            "row_roi_id": "5a150ddc-eceb-4759-a403-1e016a649adb",
+                            "column_roi_id": "",
+                            "datacell_roi_id": ""
+                        }
+                    }
+                }
+            },
+            {
+                "row_roi_id": "1495a48b-3949-4022-a20f-a4f1f15a6970",
+                "row_idx": "2",
+                "row_props": {
+                    "1": {
+                        "content": "CC",
+                        "roi_id": {
+                            
+                            "row_roi_id": "",
+                            "column_roi_id": "",
+                            "datacell_roi_id": ""
+                        }
+                    }
+                }
+            },
+            {
+                "row_roi_id": "ccbbd855-a554-4bd8-a4d3-9d01349250a5",
+                "row_idx": "3",
+                "row_props": {
+                    "1": {
+                        "content": "DD",
+                        "roi_id": {
+                            
+                            "row_roi_id": "",
+                            "column_roi_id": "",
+                            "datacell_roi_id": ""
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
+]
