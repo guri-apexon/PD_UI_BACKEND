@@ -7,7 +7,7 @@ from app.utilities.config import settings
 
 from app import schemas
 from app.api import deps
-from app.crud.pd_user_alert_setting import user_alert_setting
+from app.crud.pd_user import user
 from app.api.endpoints import auth
 
 router = APIRouter()
@@ -25,8 +25,7 @@ async def get_user_alert_setting(
     Collect user alerts setting options, config by user
     """
     logger.debug("To get user alert global setting options")
-    user_alert_options = user_alert_setting.get_user_options(db,
-                                                             user_id=user_id)
+    user_alert_options = user.get_user_options(db, user_id=user_id)
     return user_alert_options if user_alert_options else False
 
 
@@ -41,6 +40,5 @@ async def update_user_alert_setting(
     Update user alert setting options, config by user
     """
     logger.debug("To update user alert global setting options")
-    user_alert_data = user_alert_setting.update_user_alert_setting(db,
-                                                                   obj_in=obj_in.data)
+    user_alert_data = user.update_user_alert_setting(db, obj_in=obj_in.data)
     return user_alert_data

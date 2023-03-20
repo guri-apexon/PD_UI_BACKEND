@@ -18,10 +18,8 @@ from .pd_user_protocols import UserProtocol, UserProtocolCreate, UserProtocolUpd
 from .pd_search import SearchJson
 from .pd_user_alert import UserAlertInput, UserAlert, UserAlertTestUpdate
 from .pd_notification_read import NotificationRead
-from .pd_user import User, UserBaseInDBBase, UserUpdate, UserCreate
+from .pd_user import User, UserBaseInDBBase, UserUpdate, UserCreate, UserAlertSettingData
 from .pd_login import Login, LoginBaseInDBBase, User_Soft_Delete
 from .pd_roles import RolesCreate, Roles, RolesBaseInDBBase
 from .pd_ldap_user_details import LdapUserDetails, LdapUserRequest
 from .pd_nlp_entity_db import NlpEntityBase, NlpEntityCreate, NlpEntityUpdate, NlpEntityData
-from .pd_user_alert_setting import UserAlertSettingBase, UserAlertSettingCreate, \
-    UserAlertSettingUpdate, UserAlertSettingData
