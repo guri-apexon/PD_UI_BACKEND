@@ -2,6 +2,8 @@ import json
 
 import pytest
 from app.models.pd_user import User
+from datetime import datetime
+
 from app.db.session import SessionLocal
 from app.main import app
 from fastapi.testclient import TestClient
@@ -24,7 +26,6 @@ def create_user_alert_setting_record():
                          qc_complete=True,
                          new_document_version=True,
                          edited=True)
-
         try:
             db.add(alert_obj)
             db.commit()
