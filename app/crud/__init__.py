@@ -22,4 +22,3 @@ from .pd_document_object import get_document_object
 from .pd_document_config_terms import get_document_terms_data
 from .pd_document_config_terms import link_id_link_level_based_on_section_text
 from .pd_nlp_entity_data import nlp_entity_content
-from .pd_user_alert_setting import user_alert_setting
