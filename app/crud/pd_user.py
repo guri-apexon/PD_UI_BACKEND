@@ -99,9 +99,9 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
             "created_time": obj_in.date_of_registration,
             "updated_time": obj_in.lastUpdated,
             "options": {
-                "QC_Complete": obj_in.QC_complete,
-                "New_Document/Version": obj_in.new_document_version,
-                "Edited": obj_in.edited
+                "QC_Complete": obj_in.qc_complete or False,
+                "New_Document/Version": obj_in.new_document_version or False,
+                "Edited": obj_in.edited or False
             }
         }
 
@@ -124,7 +124,7 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
             alert_rec.new_document_version = obj_in.options.get(
                 'New_Document/Version', False)
             alert_rec.edited = obj_in.options.get('Edited', False)
-            alert_rec.QC_complete = obj_in.options.get('QC_Complete', False)
+            alert_rec.qc_complete = obj_in.options.get('QC_Complete', False)
             alert_rec.lastUpdated = datetime.utcnow()
             try:
                 db.add(alert_rec)

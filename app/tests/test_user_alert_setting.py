@@ -21,7 +21,7 @@ def create_user_alert_setting_record():
                          email='dev_test@example.com',
                          username=user_id,
                          user_type='primary',
-                         QC_complete=True,
+                         qc_complete=True,
                          new_document_version=True,
                          edited=True)
 

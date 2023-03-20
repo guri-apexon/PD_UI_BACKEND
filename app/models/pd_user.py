@@ -18,4 +18,4 @@ class User(Base):
     reason_for_change = Column(String, nullable=True)
     new_document_version = Column(Boolean, nullable=True)
     edited = Column(Boolean, nullable=True)
-    QC_complete = Column(Boolean, nullable=True)
+    qc_complete = Column(Boolean, nullable=True)
