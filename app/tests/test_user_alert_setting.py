@@ -1,8 +1,7 @@
 import json
-from datetime import datetime
 
 import pytest
-from app.models.pd_user_alert_setting import UserAlertSetting
+from app.models.pd_user import User
 from app.db.session import SessionLocal
 from app.main import app
 from fastapi.testclient import TestClient
@@ -13,16 +12,18 @@ db = SessionLocal()
 
 
 def create_user_alert_setting_record():
-    rec_id = '101-TEST_ID'
     user_id = '1234567_test'
-    alert_obj = db.query(UserAlertSetting).filter(
-        UserAlertSetting.id == rec_id).first()
+    alert_obj = db.query(User).filter(User.username == user_id).first()
     if not alert_obj:
-        alert_obj = UserAlertSetting(id=rec_id, userId=user_id,
-                                     created_time=datetime.utcnow(),
-                                     updated_time=datetime.utcnow(),
-                                     QC_complete=True,
-                                     new_document_version=True, edited=True)
+        alert_obj = User(first_name='Dev_test',
+                         last_name='Dev_test',
+                         country='IN',
+                         email='dev_test@example.com',
+                         username=user_id,
+                         user_type='primary',
+                         QC_complete=True,
+                         new_document_version=True,
+                         edited=True)
 
         try:
             db.add(alert_obj)
