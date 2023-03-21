@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-#The Following Below Details will be displayed in Swagger UI
+# The Following Below Details will be displayed in Swagger UI
 class UserBase(BaseModel):
     username: Optional[str] = None
     first_name:Optional[str]=None
@@ -28,6 +28,7 @@ class UserUpdate(UserBase):
     reason_for_change: Optional[str] = None
 
 
+
 class UserCreate(UserBase):
     username: str = Field(...)
     first_name: str = Field(...)
@@ -38,5 +39,15 @@ class UserCreate(UserBase):
     reason_for_change: str = Field(...)
 
 
+
 class User(UserBaseInDBBase):
     pass
+
+
+class UserAlertSettingUpdate(BaseModel):
+    userId: Optional[str] = None
+    options: Optional[dict] = None
+
+
+class UserAlertSettingData(BaseModel):
+    data: UserAlertSettingUpdate
