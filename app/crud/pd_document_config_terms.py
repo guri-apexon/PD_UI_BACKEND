@@ -83,9 +83,9 @@ def get_document_terms_data(db: Session, aidoc_id: str,
                 DocumenttablesDb.doc_id == aidoc_id).all()
 
         preferred_values = [{"id": term_record.id, "preferred_term": term_record.iqv_standard_term,
-                             "parent_id": term_record.parent_id} for term_record in all_term_data]
+                             "parent_id": term_record.parent_id, "text": term_record.LinkText} for term_record in all_term_data]
         preferred_values_from_tables = [{"id": tb_term_record.id, "preferred_term": tb_term_record.iqv_standard_term,
-                                         "parent_id": tb_term_record.parent_id} for tb_term_record in all_term_data_from_tables]
+                                         "parent_id": tb_term_record.parent_id, "text": tb_term_record.strText} for tb_term_record in all_term_data_from_tables]
         all_term_records = preferred_values+preferred_values_from_tables
         terms_values.update({'preferred_terms': all_term_records})
         logger.info(f"preferred terms results {all_term_records}")
