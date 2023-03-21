@@ -1,17 +1,15 @@
 import datetime
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.models.pd_protocol_alert import ProtocolAlert
 from app.models.pd_user_notification_type import PdUserNotificationType
-from sqlalchemy.engine import Row
 import logging
 from app.utilities.config import settings
-from app.utilities.email.send_mail import qc_complete_mail
 
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
-def get_notifications_from_db(db:Session  ,user_id:str) -> list:
+
+def get_notifications_from_db(db: Session, user_id: str) -> list:
     
     """
     Get all notification for user 
@@ -35,24 +33,6 @@ def get_notifications_from_db(db:Session  ,user_id:str) -> list:
     logger.info(f"fetching all notification for user_id {user_id}") 
     return notification_list
 
-def create_notification_record_and_send_email(db: Session, metadata_resource: Row, event: str = "QC Complete") -> dict:
-    """
-    Create Notification record after QC Approve
-    :param db: db instance
-    :metadata_resource: ProtocolAlert table column 
-    """
-    pd_alert_obj = ProtocolAlert(
-        aidocId = metadata_resource.aidocId,
-        protocol = metadata_resource.protocol,
-        protocolTitle = metadata_resource.protocolTitle + event,
-    )
-    db.add(pd_alert_obj)
-    db.commit()
-    db.refresh(pd_alert_obj)
-    qc_complete_mail(db, pd_alert_obj.aidocId)
-    logger.info(f"notification record created at protocol_alert table for QC complete for doc_id {metadata_resource.aidocId}")
-
-    return {"id":pd_alert_obj.id}
 
 def read_or_delete_notification(db: Session, aidocId: str, id: str, protocol: str, action: str) -> dict:
     try:
