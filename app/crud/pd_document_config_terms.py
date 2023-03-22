@@ -1,6 +1,4 @@
-from typing import Any
 from app.utilities.config import settings
-from sqlalchemy.orm import Session
 from typing import Tuple
 import logging
 from app.models.pd_iqvvisitrecord_db import IqvvisitrecordDb
@@ -10,10 +8,7 @@ from app.models.pd_iqvexternallink_db import IqvexternallinkDb
 from app.models.pd_iqvkeyvalueset_db import IqvkeyvaluesetDb
 from app.models.pd_documenttables_db import DocumenttablesDb
 from app.utilities.extractor_config import ModuleConfig
-from fastapi import Depends
 from app import crud
-from app.api import deps
-from app.api.endpoints import auth
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from sqlalchemy import or_
@@ -149,34 +144,20 @@ def get_document_terms_data(db: Session, aidoc_id: str,
     return [terms_values]
 
 
-def get_preffered_data(
-        db,
-        doc_id: str = "",
-        link_id: str = "",
-) -> Any:
+def get_preferred_data(db, doc_id: str = "", link_id: str = "", ) -> list:
     """
-    Get preffered terms values for the enriched text as per doc and section id
+    Get preferred terms values for the enriched text as per doc and section id
     :param db: database object
     :param doc_id: document id
     :param link_id: link id of document as section id
-    :returns: To collect all the preffered terms values for the enriched text
+    :returns: To collect all the preferred terms values for the enriched text
     from all over the section
     """
-    config_variables = {"preferred_terms" : True}
-    preffered_document_data = crud.get_document_terms_data(db, doc_id,
-                                            link_id, config_variables, {})   
-    
-    preffered_data = []
-    for entity in preffered_document_data[0].get("preferred_terms"):
-        preffered_values = {
-            'id': entity["id"],
-            'parent_id': entity["parent_id"],
-            'preferred_term': entity["preferred_term"],
-            'text': entity["text"]
-        }
-        preffered_data.append(preffered_values)
-
-    return preffered_data
+    config_variables = "preferred_terms"
+    preferred_document_data = crud.get_document_terms_data(db, doc_id, link_id,
+                                                           config_variables, {})
+    return preferred_document_data[0].get("preferred_terms",
+                                          []) if preferred_document_data else []
 
 
 def link_id_link_level_based_on_section_text(psdb: Session, aidoc_id: str, section_text: str, link_id: str, link_level: str = "") -> Tuple[int, str, dict]:

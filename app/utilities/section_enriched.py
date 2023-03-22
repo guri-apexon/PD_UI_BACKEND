@@ -7,19 +7,20 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 def update_section_data_with_enriched_data(section_data: dict,
                                            enriched_data: list,
-                                           preffered_data: list) -> dict:
+                                           preferred_data: list) -> dict:
     """
     To modify the section data with enriched text and terms.
     :param section_data: Response of section data API
     :param enriched_data: Response of enriched API with clinical terms
-    :param preffered_data: Response of enriched API with preffered terms
+    :param preferred_data: Response of enriched API with preferred terms
     :returns: Updated section data with clinical terms
     """
     enriched_df = pd.DataFrame(enriched_data)
-    preffered_df = pd.DataFrame(preffered_data)
+    preferred_df = pd.DataFrame(preferred_data)
 
-    if enriched_df.empty and preffered_df.empty:
-        logger.info("There is no clinical and preffered terms present for the sections")
+    if enriched_df.empty and preferred_df.empty:
+        logger.info(
+            "There is no clinical and preferred terms present for the sections")
     else:
         for sub_section in section_data:
             font_info = sub_section.get("font_info")
@@ -45,12 +46,13 @@ def update_section_data_with_enriched_data(section_data: dict,
                     terms_values = rows.set_index('text').to_dict(orient='index')
                     sub_section.update({'clinical_terms': terms_values})
 
-                if not preffered_df.empty:
-                    rows = preffered_df[
-                        preffered_df['id'].isin([link_id, link_id_level2, link_id_level3, link_id_level4, link_id_level5, link_id_level6])]
+                if not preferred_df.empty:
+                    rows = preferred_df[preferred_df['id'].isin(
+                        [link_id, link_id_level2, link_id_level3,
+                         link_id_level4, link_id_level5, link_id_level6])]
                     # Deleted df columns which is not needed any more
                     rows.drop(['parent_id'], axis=1, inplace=True)
                     terms_values = rows.set_index('text').to_dict(orient='index')
-                    sub_section.update({'preffered_term': terms_values})
+                    sub_section.update({'preferred_terms': terms_values})
 
     return section_data
