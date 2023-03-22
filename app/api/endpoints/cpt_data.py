@@ -10,7 +10,7 @@ from app.utilities.config import settings
 from app.api.endpoints import auth
 from app.utilities.redaction.protocol_view_redaction import \
     ProtocolViewRedaction
-from crud.utilities import get_preffered_data
+from app.crud.utilities import get_preffered_data
 from fastapi.responses import JSONResponse
 from fastapi import status
 import logging
