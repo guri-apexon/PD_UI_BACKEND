@@ -150,16 +150,15 @@ def get_document_terms_data(db: Session, aidoc_id: str,
 
 
 def get_preffered_data(
-        db: Session = Depends(deps.get_db),
+        db,
         doc_id: str = "",
         link_id: str = "",
 ) -> Any:
     """
     Get preffered terms values for the enriched text as per doc and section id
-    :param db: database session
+    :param db: database object
     :param doc_id: document id
     :param link_id: link id of document as section id
-    :param _: To validate API token
     :returns: To collect all the preffered terms values for the enriched text
     from all over the section
     """
