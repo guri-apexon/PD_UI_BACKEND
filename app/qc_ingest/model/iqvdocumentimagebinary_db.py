@@ -1,7 +1,8 @@
-from sqlalchemy import Column
+from sqlalchemy import Column, DateTime
 from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props,MissingParamException
 from . import DocumentparagraphsDb
 import uuid
+from datetime import datetime
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER, BYTEA
 import base64
 
@@ -27,6 +28,10 @@ class IqvdocumentimagebinaryDb(SchemaBase):
    sequence_id = Column(INTEGER)
    img = Column(BYTEA)
    image_format = Column(TEXT)
+   userId = Column(VARCHAR(100))
+   last_updated = Column(DateTime(timezone=True),
+                          default=datetime.utcnow, nullable=False)
+   num_updates = Column(INTEGER, default=1)
 
    @staticmethod
    def create(session, data):
@@ -74,6 +79,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       binary_obj.image_format=img_format
       binary_obj.para_id = para_data.id
       binary_obj.childbox_id = para_data.id
+      binary_obj.userId = data.get('userId', None)
       session.add(para_data)
       session.add(binary_obj)
       return data
@@ -83,17 +89,30 @@ class IqvdocumentimagebinaryDb(SchemaBase):
    def update(session, data):
       """
       """
+      para_obj = session.query(DocumentparagraphsDb).filter(
+          DocumentparagraphsDb.id == data['id']).first()
+      if not para_obj:
+         _id = data['id']
+         raise MissingParamException(f'{_id} is missing from paragraph db')
+      para_obj.userId = data.get('userId', None)
+      para_obj.last_updated = datetime.utcnow()
+      para_obj.num_updates = para_obj.num_updates + 1
+
       obj = session.query(IqvdocumentimagebinaryDb).filter(
           IqvdocumentimagebinaryDb.para_id == data['id']).first()
       if not obj:
          _id = data['id']
-         raise MissingParamException(f'{_id} is missing from paragraph and imagebinary db')
+         raise MissingParamException(f'{_id} is missing from imagebinary db')
       content=data['content']
       idx=content.find(',')
       org_content=content[idx+1:]
       img_format=content[content.find('/')+1:content.find(';')]
       obj.img = base64.b64decode(org_content)
-      obj.image_format=img_format
+      obj.image_format = img_format
+      obj.userId = data.get('userId', None)
+      obj.last_updated = datetime.utcnow()
+      obj.num_updates = obj.num_updates + 1
+      session.add(para_obj)
       session.add(obj)
 
 

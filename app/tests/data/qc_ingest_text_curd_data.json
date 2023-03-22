@@ -10,6 +10,9 @@
         "prev_detail": {
             "line_id": "8a3e1b2b-a769-40ce-a014-835420abdf99"
           },
+        "audit": {
+            "last_updated_user":"1072234"
+        },
 
         "section_locked": false
     },
@@ -20,6 +23,9 @@
         "qc_change_type": "modify",
         "link_id":"",
         "line_id": "mpf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
+        "audit": {
+            "last_updated_user":"1072235"
+        },
         "section_locked": false
     },
     {
@@ -27,6 +33,9 @@
         "content": "Rationale:",
         "qc_change_type": "delete",
         "line_id": "mpf5d19t-16f5-4xf2-xe06-35fcc0c0eeux",
+        "audit": {
+            "last_updated_user":"1072237"
+        },
         "section_locked": false
         }
 ]

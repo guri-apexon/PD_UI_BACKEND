@@ -1,7 +1,8 @@
 
-from sqlalchemy import Column
+from sqlalchemy import Column, DateTime
 from .__base__ import SchemaBase
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER,BOOLEAN
+from datetime import datetime
 
 class IqvpageroiDb(SchemaBase):
    __tablename__ = "iqvpageroi_db"
@@ -104,4 +105,8 @@ class IqvpageroiDb(SchemaBase):
    GT_TextMatch = Column(TEXT)
    GT_ScoreMatch = Column(DOUBLE_PRECISION,nullable=False)
    GT_ImageFilename = Column(TEXT)
+   userId = Column(VARCHAR(100))
+   last_updated = Column(DateTime(timezone=True),
+                          default=datetime.utcnow, nullable=False)
+   num_updates = Column(INTEGER, default=1)
    #references=Column(TEXT)
