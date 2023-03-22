@@ -153,7 +153,6 @@ def get_preffered_data(
         db: Session = Depends(deps.get_db),
         doc_id: str = "",
         link_id: str = "",
-        _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Get preffered terms values for the enriched text as per doc and section id
