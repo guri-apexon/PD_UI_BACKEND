@@ -1,7 +1,8 @@
-from sqlalchemy import Column,and_
+from sqlalchemy import Column,and_, DateTime
 from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP
 import uuid
+from datetime import datetime
 from .documentparagraphs_db import DocumentparagraphsDb
 import logging
 
@@ -38,6 +39,10 @@ class IqvdocumentlinkDb(SchemaBase):
     LinkLevel = Column(INTEGER, nullable=False)
     LinkText = Column(TEXT)
     LinkPrefix = Column(TEXT)
+    userId = Column(VARCHAR(100))
+    last_updated = Column(DateTime(timezone=True),
+                            default=datetime.utcnow, nullable=False)
+    num_updates = Column(INTEGER, default=1)
 
 
     @staticmethod
@@ -149,8 +154,10 @@ class IqvdocumentlinkDb(SchemaBase):
         if data.get('content',None):
             data['content']=link_text
         sql = f'UPDATE {IqvdocumentlinkDb.__tablename__} SET "LinkText" = \'{link_text}\' , \
-                    "LinkPrefix" = \'{link_prefix}\'  \
-                      WHERE  "id" = \'{obj.id}\' '
+                    "LinkPrefix" = \'{link_prefix}\' , \
+                    "last_updated" = \'{datetime.utcnow()}\' , \
+                    "num_updates" = "num_updates" + 1  \
+                    WHERE  "id" = \'{obj.id}\' '
         session.execute(sql)
 
     @staticmethod

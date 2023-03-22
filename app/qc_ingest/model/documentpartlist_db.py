@@ -1,7 +1,9 @@
-from sqlalchemy import Column,Index
+from sqlalchemy import Column,Index, DateTime
 from .__base__ import SchemaBase,schema_to_dict,update_partlist_index,CurdOp,update_existing_props,MissingParamException
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER
 import uuid
+from datetime import datetime
+
 
 class DocumentpartslistDb(SchemaBase):
     __tablename__ = "documentpartslist_db"
@@ -21,6 +23,10 @@ class DocumentpartslistDb(SchemaBase):
     parent_id = Column(TEXT)
     group_type = Column(TEXT)
     sequence_id = Column(INTEGER,nullable=False)
+    userId = Column(VARCHAR(100))
+    last_updated = Column(DateTime(timezone=True),
+                            default=datetime.utcnow, nullable=False)
+    num_updates = Column(INTEGER, default=1)
    
     @staticmethod
     def create(session,data):
@@ -67,6 +73,8 @@ class DocumentpartslistDb(SchemaBase):
             _id=data['id']
             raise MissingParamException(f'{_id} in document partlist db ')     
         update_existing_props(obj,data)
+        obj.last_updated = datetime.utcnow()
+        obj.num_updates = obj.num_updates + 1
         session.add(obj)
 
     @staticmethod

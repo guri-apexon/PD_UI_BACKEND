@@ -36,6 +36,9 @@
             "link_level":"1"
 
         },
+        "audit": {
+            "last_updated_user":"1072234"
+        },
 
         "section_locked": false
     },
@@ -47,6 +50,9 @@
         "content":"",
         "link_id": "94200490-bx4r-1pef-8aab-10505xab64ft",
         "link_level":"1",
+        "audit": {
+            "last_updated_user":"1072235"
+        },
         "section_locked": false
     },
     {
@@ -54,6 +60,9 @@
         "qc_change_type": "delete",
         "link_id": "94200490-bx4r-1pef-8aab-10505xab64ft",
         "link_level":"1",
+        "audit": {
+            "last_updated_user":"1072235"
+        },
         "section_locked": false
     }
  
