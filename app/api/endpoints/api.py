@@ -34,6 +34,8 @@ from app.api.endpoints import ldap_user_details
 from app.api.endpoints import cpt_data
 from app.api.endpoints import qc_ingest
 from app.api.endpoints import pd_notification
+from app.api.endpoints import audit_info
+from app.api.endpoints import section_lock
 from app.api.endpoints import pd_elastic_ingest
 
 api_router = APIRouter()
@@ -72,4 +74,6 @@ api_router.include_router(ldap_user_details.router, prefix="/ldap_user_details",
 api_router.include_router(cpt_data.router, prefix="/cpt_data", tags=["Get CPT data for document"])
 api_router.include_router(qc_ingest.router, prefix="/qc_ingest", tags=["QC Ingest"])
 api_router.include_router(pd_notification.router, prefix="/pd_notification", tags=["PD UI notification & email alert"])
+api_router.include_router(audit_info.router, prefix="/audit_info", tags=["Audit Info"])
+api_router.include_router(section_lock.router, prefix="/section_lock", tags=["Section Lock"])
 api_router.include_router(pd_elastic_ingest.router, prefix="/elastic_ingest", tags=["Elastic Ingest"])

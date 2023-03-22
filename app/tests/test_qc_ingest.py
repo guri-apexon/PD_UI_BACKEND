@@ -182,9 +182,9 @@ def modify_data(uuid,new_token_on_headers):
         for cell_idx,cell_data in row_props.items():
             cell_data['roi_id']['datacell_roi_id']=rdata[int(cell_idx)]['datacell_roi_id']
       
-        response = client.post(
-            TEST_END_POINT, json=payload, headers=new_token_on_headers)
-        assert response.status_code == 200  
+    response = client.post(
+        TEST_END_POINT, json=payload, headers=new_token_on_headers)
+    assert response.status_code == 200  
 
 
 def create_table(qc_ingest_test_data,new_token_on_headers):

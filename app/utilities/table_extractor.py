@@ -8,6 +8,7 @@ from app.utilities import data_extractor_utils as utils
 from app.utilities.extractor_config import ModuleConfig
 from fastapi.responses import JSONResponse
 from fastapi import status
+import json
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -232,7 +233,7 @@ class SOAResponse:
                         if ((int(float(tabIndex['TableIndex'])) == int(float(tabseq))) and append==1):
                             resulttable=resulttable.reset_index(drop=True)
                             resultreturn['Table']=resulttable.to_html(escape=False)
-                            resultreturn['TableProperties'] = resulttable_redact.to_json(orient="records")
+                            resultreturn['TableProperties'] = return_table_formated_data(resulttable_redact.to_json(orient="records"))
                             resultreturn.update(tabIndex)
                             resultreturn['Header']=keep_header
                             result.append(resultreturn)
@@ -244,3 +245,28 @@ class SOAResponse:
         except Exception as e :
             logger.error("Error SOA :Reconstruction of table failed with error : {}".format(e))
             return ({}, 0)
+
+
+
+def get_roi_id(item):
+    for k,v in item.items():
+        if isinstance(v,dict):
+            if v.get('roi_id'):
+                roi_id = v['roi_id']['row_roi_id']
+                break
+        else:
+            roi_id = ""
+    return roi_id
+
+def return_table_formated_data(data):
+    count_row_idx = 0
+    table_properties_formater = []
+    for item in eval(data):
+        new_format = {
+            "row_idx": count_row_idx,
+            "roi_id": get_roi_id(item),
+            "row_props": {int(float(kee)):val for kee, val in item.items()}
+        }
+        count_row_idx += 1
+        table_properties_formater.append(new_format)
+    return json.dumps(table_properties_formater)

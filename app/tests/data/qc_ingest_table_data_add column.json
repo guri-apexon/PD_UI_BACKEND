@@ -9,6 +9,9 @@
     "prev_detail": {
         "line_id": ""
     },
+    "audit": {
+        "last_updated_user":"1072234"
+    },
     "content": {
         "TableProperties": [
             {

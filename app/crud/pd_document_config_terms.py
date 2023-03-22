@@ -9,6 +9,8 @@ from app.models.pd_iqvexternallink_db import IqvexternallinkDb
 from app.models.pd_iqvkeyvalueset_db import IqvkeyvaluesetDb
 from app.models.pd_documenttables_db import DocumenttablesDb
 from app.utilities.extractor_config import ModuleConfig
+from sqlalchemy import func
+from sqlalchemy import or_
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -153,8 +155,21 @@ def link_id_link_level_based_on_section_text(psdb: Session, aidoc_id: str, secti
     link_dict = {}
     if section_text:
         try:
-            get_link_id = psdb.query(IqvdocumentlinkDb).filter(
-                IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.LinkText.contains(section_text)).first()
+            if section_text.replace('.','').isnumeric():            
+                get_link_id =  psdb.query(IqvdocumentlinkDb).filter(
+                                IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.LinkType =='toc' ,IqvdocumentlinkDb.LinkPrefix == section_text).first()
+            else:
+                get_link_id = psdb.query(IqvdocumentlinkDb).filter(
+                                    IqvdocumentlinkDb.doc_id == aidoc_id, IqvdocumentlinkDb.LinkType =='toc',
+                                    or_(
+                                        IqvdocumentlinkDb.iqv_standard_term == section_text,
+                                        func.lower(IqvdocumentlinkDb.LinkText).contains(section_text.lower())
+                                    )
+                            ).first()
+
+            if get_link_id == None:
+                return "", 0, {}
+
             link_dict.update({"link_id":get_link_id.link_id,"link_id_level2":get_link_id.link_id_level2,"link_id_level3":get_link_id.link_id_level3
                                 ,"link_id_level4":get_link_id.link_id_level4,"link_id_level5":get_link_id.link_id_level5,"link_id_level6":get_link_id.link_id_level6})
             link_dict = {k:v for k,v in link_dict.items() if v}
