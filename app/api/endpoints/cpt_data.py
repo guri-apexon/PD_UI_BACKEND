@@ -10,7 +10,7 @@ from app.utilities.config import settings
 from app.api.endpoints import auth
 from app.utilities.redaction.protocol_view_redaction import \
     ProtocolViewRedaction
-from app.crud.utilities import get_preffered_data
+from app.crud.pd_document_config_terms import get_preffered_data
 from fastapi.responses import JSONResponse
 from fastapi import status
 import logging
@@ -114,7 +114,7 @@ async def get_cpt_section_data(
     # Collect the enriched clinical data based on doc and link ids.
     enriched_data = await get_enriched_data(psdb, aidoc_id, link_id)
     # Collect the enriched preffered data based on doc and link ids.
-    preffered_data = await get_preffered_data(psdb, aidoc_id, link_id)
+    preffered_data = get_preffered_data(psdb, aidoc_id, link_id)
     section_with_enriched = update_section_data_with_enriched_data(
         section_data=finalization_req_dict, enriched_data=enriched_data, preffered_data=preffered_data)
 
