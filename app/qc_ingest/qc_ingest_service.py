@@ -79,6 +79,8 @@ def get_content_info(data: dict, action_type):
         data['prev_id'] = prev_line_id
         data['next_id']=next_line_id
         data['id'] = data.get('line_id', '')[0:36]
+        audit = data.get('audit', {})
+        data['userId'] = audit.get('last_updated_user', None)
         return data
     except Exception as e:
         raise Exception("Invalid input parameters : "+str(e))
