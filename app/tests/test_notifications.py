@@ -1,11 +1,12 @@
 import logging
-from fastapi import status
+from datetime import datetime
 import pytest
 from app.db.session import SessionLocal
 from app.main import app
 from fastapi.testclient import TestClient
 
 from app.models.pd_protocol_alert import ProtocolAlert
+from app.models.pd_user_notification_type import PdUserNotificationType
 
 client = TestClient(app)
 db = SessionLocal()
@@ -57,12 +58,41 @@ def test_update_notification_read_record(new_token_on_headers, aidocId, id,
         db.commit()
     except:
         assert False
+
+    # Create test record if not present
+    notify_obj = db.query(PdUserNotificationType).filter(PdUserNotificationType.id == id).first()
+    if not notify_obj:
+        notify_obj = PdUserNotificationType(id=id,
+                                            userId='user_test',
+                                            content={},
+                                            read_flag=False,
+                                            notification_delete=False,
+                                            created_time=datetime.utcnow())
+        try:
+            db.add(notify_obj)
+            db.commit()
+            db.refresh(notify_obj)
+        except Exception as ex:
+            db.rollback()
+
     # API call
     update_notifications = client.get("/api/pd_notification/update", params={
         "aidocId": aidocId, "id": id, "protocol": protocol, "action": action},
                                       headers=new_token_on_headers)
 
+    db.refresh(notify_obj)
     assert update_notifications.status_code == status
+    result = db.query(PdUserNotificationType).filter(PdUserNotificationType.id == id).one()
+    if action == "delete":
+        assert result.notification_delete is True
+    if action == "read":
+        assert result.read_flag is True
+    # revert the action
+    db.query(PdUserNotificationType).filter(
+        PdUserNotificationType.id == id).update(
+        {PdUserNotificationType.notification_delete: False,
+         PdUserNotificationType.read_flag: False})
+    db.commit()
 
     if update_notifications.status_code == 200:
         db_record = db.query(ProtocolAlert).filter(ProtocolAlert.id == id,
