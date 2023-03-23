@@ -10,8 +10,8 @@ from app.utilities.config import settings
 from app.api.endpoints import auth
 from app.utilities.redaction.protocol_view_redaction import \
     ProtocolViewRedaction
+from app.crud.pd_document_config_terms import get_preferred_data
 from fastapi.responses import JSONResponse
-from fastapi import status
 import logging
 from fastapi import HTTPException, status
 
@@ -110,11 +110,13 @@ async def get_cpt_section_data(
                                          protocol_view_redaction.profile_details,
                                          protocol_view_redaction.entity_profile_genre)
     finalization_req_dict, _ = finalized_iqvxml.prepare_msg()
-
-    # Collect the enriched data based on doc and link ids.
+    # Collect the enriched clinical data based on doc and link ids.
     enriched_data = await get_enriched_data(psdb, aidoc_id, link_id)
+    # Collect the enriched preferred data based on doc and link ids.
+    preferred_data = get_preferred_data(psdb, aidoc_id, link_id)
     section_with_enriched = update_section_data_with_enriched_data(
-        section_data=finalization_req_dict, enriched_data=enriched_data)
+        section_data=finalization_req_dict, enriched_data=enriched_data,
+        preferred_data=preferred_data)
 
     return section_with_enriched
 
