@@ -3,7 +3,6 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.pd_user_notification_type import PdUserNotificationType
 import logging
-from app.config import NOTIFICATION_ALERT_FROM_DAYS
 from app.utilities.config import settings
 
 
@@ -19,7 +18,7 @@ def get_notifications_from_db(db: Session, user_id: str) -> list:
     filtering for notifications created since 45 days old
     """
 
-    start_period_timestamp = datetime.datetime.utcnow() - datetime.timedelta(days=NOTIFICATION_ALERT_FROM_DAYS)
+    start_period_timestamp = datetime.datetime.utcnow() - datetime.timedelta(days=settings.NOTIFICATION_ALERT_FROM_DAYS)
     notification_query = db.query(PdUserNotificationType).filter(
                                     PdUserNotificationType.created_time  >= start_period_timestamp,
                                     PdUserNotificationType.read_flag == False,
