@@ -77,4 +77,5 @@ REGEX_EMP_ID_ALPHA_REPLACE = re.compile('^[a-zA-Z]+')
 
 # Value for QC
 QC = 'QC'
+NOTIFICATION_ALERT_FROM_DAYS = 45
 
