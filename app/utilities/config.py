@@ -52,9 +52,6 @@ class Settings(BaseSettings):
     LDAP_USERNAME: str
     LDAP_PWD: str
 
-    # notification from days
-    NOTIFICATION_ALERT_FROM_DAYS: int
-
     # Legacy Protocol Configuration
     LEGACY_PROTOCOL_UPLOAD_DATE: str
 
