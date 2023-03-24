@@ -60,7 +60,7 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
                             reason_for_change=obj_in.reason_for_change,
                             new_document_version=False,
                             edited=False,
-                            QC_complete=False
+                            qc_complete=False
                             )
             db.add(db_obj)
             db.commit()
