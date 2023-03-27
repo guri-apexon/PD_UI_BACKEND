@@ -1,6 +1,6 @@
 from sqlalchemy import Column, DateTime
 from datetime import datetime
-from .__base__ import SchemaBase, schema_to_dict
+from .__base__ import SchemaBase, schema_to_dict, MissingParamException
 from sqlalchemy.dialects.postgresql import TEXT
 
 
@@ -17,6 +17,9 @@ class IqvsectionlockDb(SchemaBase):
         """
         get existing section loked info
         """
+        if not data.get('link_id', None):
+            raise MissingParamException(f'link_id ')
+        
         obj = session.query(IqvsectionlockDb).filter(
             IqvsectionlockDb.link_id == data['link_id']).first()
         if not obj:
@@ -35,6 +38,9 @@ class IqvsectionlockDb(SchemaBase):
         """
         update section locked info
         """
+        if not data.get('link_id', None):
+            raise MissingParamException(f'link_id ')
+        
         if data.get('section_lock') == False:
             section_info = IqvsectionlockDb()
             section_info.link_id = data['link_id']
