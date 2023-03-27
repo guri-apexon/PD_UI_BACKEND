@@ -5,19 +5,20 @@ from .documentparagraphs_db import DocumentparagraphsDb
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN
 import uuid
 import json
+from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime
 
 
 class ParseTable():
-    def __init__(self):
-        pass
 
     def parse_row(self, props):
+        """
+        parse rows of tables
+        """
         row_idx = int(float(props['row_idx']))
         row_roi_id = props.get('row_roi_id', '')
         row = props['row_props']
-        num_cols = len(row)
         col_vals = {}
         for col_idx, col_data in row.items():
             col_idx = int(float(col_idx))
@@ -27,6 +28,9 @@ class ParseTable():
         return row_idx, col_vals
 
     def parse(self, table_data):
+        """
+        parse table data
+        """
         num_rows = len(table_data)
         rows_data = {}
         for row in table_data:
@@ -36,8 +40,9 @@ class ParseTable():
         return num_rows, num_cols, rows_data
 
     def get_order_data(self, rows_data, order='row'):
-        num_rows = len(rows_data)
-        num_cols = len(rows_data[0])
+        """
+        get order data
+        """
         out_data = defaultdict(list)
         for row_idx, row_vals in rows_data.items():
             for col_idx, row_vals in row_vals.items():
@@ -47,16 +52,60 @@ class ParseTable():
                     out_data[row_idx].append(rows_data[row_idx][col_idx])
         return out_data
 
+    def get_op_params(self, op_type, op_params, table_data):
+        """
+        get op_params
+        """
+        for table_prop in op_params:
+            if op_type == TableOp.UPDATE_TABLE:
+                row_idx = table_prop["row_idx"]
+                rdata = table_data[int(row_idx)]
+                table_prop['row_roi_id'] = rdata[0]['row_roi_id']
+                row_props = table_prop['row_props']
+                for cell_idx, cell_data in row_props.items():
+                    cell_data['roi_id']['datacell_roi_id'] = rdata[int(
+                        cell_idx)]['datacell_roi_id']
+
+            elif op_type == TableOp.INSERT_COLUMN:
+                row_idx = table_prop["row_idx"]
+                rdata = table_data[int(row_idx)]
+                table_prop['row_roi_id'] = rdata[0]['row_roi_id']
+
+            elif op_type == TableOp.DELETE_ROW:
+                row_idx = table_prop["row_idx"]
+                rdata = table_data[int(row_idx)]
+                table_prop['row_roi_id'] = rdata[0]['row_roi_id']
+                prop = {"content": "",
+                        "roi_id": {
+                            "row_roi_id": "",
+                            "datacell_roi_id": ""
+                        }}
+                row_props = table_prop['row_props']
+                for cell_data in rdata:
+                    col_idx = cell_data['col_idx']
+                    row_props[col_idx] = deepcopy(prop)
+                    row_props[col_idx]['roi_id']['datacell_roi_id'] = cell_data['datacell_roi_id']
+
+            elif op_type == TableOp.DELETE_COLUMN:
+                row_idx = table_prop["row_idx"]
+                rdata = table_data[int(row_idx)]
+                table_prop['row_roi_id'] = rdata[0]['row_roi_id']
+                row_props = table_prop['row_props']
+                for col_idx, cell_data in row_props.items():
+                    col_cell_data = rdata[int(col_idx)]
+                    cell_data['roi_id']['datacell_roi_id'] = col_cell_data['datacell_roi_id']
+
+        return op_params
+
 
 class TableOp:
     CREATE_TABLE = 'create_table'
     DELETE_TABLE = 'delete_table'
-    UPDATE_TABLE = 'delete_table'
+    UPDATE_TABLE = 'modify'
     INSERT_ROW = 'insert_row'
     INSERT_COLUMN = 'insert_column'
     DELETE_ROW = 'delete_row'
     DELETE_COLUMN = 'delete_column'
-    UPDATE_COLUMN = 'update_column'
 
 
 class DocumenttablesDb(SchemaBase):
@@ -174,17 +223,7 @@ class DocumenttablesDb(SchemaBase):
 
         """
         doc_table_helper = DocTableHelper()
-        if not data.get('op_type', None):
-            raise MissingParamException('op_type')
-        if not data.get('content', None):
-            raise MissingParamException('content')
-        content = data['content']
-        if not content.get('TableProperties', None):
-            raise MissingParamException('.TableProperties.')
-        table_props = content['TableProperties']
-
-        if isinstance(table_props, str):
-            table_props = json.loads(table_props)
+        table_props = data.get('op_params')
         parse_table = ParseTable()
         num_rows, num_cols, table_data = parse_table.parse(table_props)
         if data['op_type'] == TableOp.CREATE_TABLE:
@@ -192,21 +231,7 @@ class DocumenttablesDb(SchemaBase):
                 session, data, num_rows, num_cols, table_data)
             print('table id is ', table_id)
         else:
-            userId = data['userId']
-            table_roi_id = data.get('line_id', None)
-            if not table_roi_id:
-                raise MissingParamException('line_id')
-            if data['op_type'] == TableOp.INSERT_ROW:
-                for row_idx, row_data in table_data.items():
-                    if not row_idx:
-                        raise MissingParamException('row_idx ')
-                    doc_table_helper.insert_row(
-                        session, table_roi_id, row_idx, row_data, userId)
-
-            elif data['op_type'] == TableOp.INSERT_COLUMN:
-                doc_table_helper.insert_col(session, table_roi_id, table_data, userId)
-            else:
-                raise MissingParamException(" or invalid operation type ")
+            raise MissingParamException(" or invalid operation type ")
 
         return data
 
@@ -214,44 +239,46 @@ class DocumenttablesDb(SchemaBase):
     def update(session, data):
         """
         """
+        table_roi_id = data.get('id')
+        if not table_roi_id:
+            raise MissingParamException('line_id')
         doc_table_helper = DocTableHelper()
-        if not data.get('content', None):
-            raise MissingParamException('.content.')
-        content = data['content']
-        userId = data['userId']
-        if not content.get('TableProperties', None):
-            raise MissingParamException('.TableProperties.')
-        table_props = content['TableProperties']
-        if isinstance(table_props, str):
-            table_props = json.loads(table_props)
+        table_data = doc_table_helper.get_table(session, table_roi_id)
+        userid = data.get('userId')
+        op_params = data.get('op_params')
+        op_type = data.get('op_type', None)
         parse_table = ParseTable()
-        _, _, table_data = parse_table.parse(table_props)
-        doc_table_helper.update_table(session, table_data, userId)
+        op_params = parse_table.get_op_params(op_type, op_params, table_data)
+        _, _, table_data = parse_table.parse(op_params)
+        if op_type == TableOp.UPDATE_TABLE:
+            doc_table_helper.update_table(session, table_data, userid)
+        elif op_type == TableOp.INSERT_ROW:
+            for row_idx, row_data in table_data.items():
+                if not row_idx:
+                    raise MissingParamException('row_idx ')
+                doc_table_helper.insert_row(
+                    session, table_roi_id, row_idx, row_data, userid)
+
+        elif op_type == TableOp.INSERT_COLUMN:
+            doc_table_helper.insert_col(
+                session, table_roi_id, table_data, userid)
+
+        elif op_type == TableOp.DELETE_ROW:
+            doc_table_helper.delete_row(session, table_roi_id, table_data)
+
+        elif op_type == TableOp.DELETE_COLUMN:
+            doc_table_helper.delete_column(session, table_data)
+        else:
+            raise MissingParamException(" or invalid operation type")
 
     @staticmethod
     def delete(session, data):
         doc_table_helper = DocTableHelper()
-        table_id = data['id']
+        table_id = data.get('id')
         if data['op_type'] == TableOp.DELETE_TABLE:
             doc_table_helper.delete_table(session, table_id)
         else:
-            if not data.get('content', None):
-                raise MissingParamException('.content.')
-            content = data['content']
-            if not content.get('TableProperties', None):
-                raise MissingParamException('.TableProperties.')
-            table_props = content['TableProperties']
-            if isinstance(table_props, str):
-                table_props = json.loads(table_props)
-            parse_table = ParseTable()
-            _, _, table_data = parse_table.parse(table_props)
-            if data['op_type'] == TableOp.DELETE_ROW:
-                doc_table_helper.delete_row(session, table_id, table_data)
-
-            elif data['op_type'] == TableOp.DELETE_COLUMN:
-                doc_table_helper.delete_column(session, table_data)
-            else:
-                raise MissingParamException(" or invalid operation type ")
+            raise MissingParamException("or invalid operation type")
 
 
 class DocTableHelper():
@@ -314,7 +341,7 @@ class DocTableHelper():
             AND "parent_id" = \'{parent_id}\' AND "group_type"= \'ChildBoxes\' '
         session.execute(sql_query)
 
-    def insert_col(self, session, table_id, data, userId):
+    def insert_col(self, session, table_id, data, userid):
         """
         table_id is parent id for all rows 
         first all rows ids must be fetched then crossponding col can be updated.
@@ -325,7 +352,7 @@ class DocTableHelper():
             row_dict = schema_to_dict(row_obj)
             row_dict['tableCell_rowIndex'] = row_idx
             row_dict['id'] = row_id
-            row_dict['userId'] = userId
+            row_dict['userId'] = userid
             r_data = data.get(row_dict['tableCell_rowIndex'], None)
             if not r_data:
                 raise MissingParamException(
@@ -392,7 +419,7 @@ class DocTableHelper():
         session.add(col_data)
         return col_data
 
-    def insert_row(self, session, table_roi_id, row_idx, data, userId):
+    def insert_row(self, session, table_roi_id, row_idx, data, userid):
         """
         table_id: is parent id for row
         """
@@ -407,17 +434,17 @@ class DocTableHelper():
         table_obj = self._get_table_obj(session, table_roi_id)
         table_dict = schema_to_dict(table_obj)
         table_dict['id'] = table_roi_id
-        table_dict['userId'] = userId
+        table_dict['userId'] = userid
         row_data = self.add_row(session, table_dict, row_idx)
         row_data = schema_to_dict(row_data)
         for col_idx, col_data in data.items():
             self.add_col(session, row_data, col_idx, col_data['val'])
 
-    def update_cell_info(self, session, content, col_uid, userId):
+    def update_cell_info(self, session, content, col_uid, userid):
         if not col_uid:
             raise MissingParamException('col_uid')
         table_name = DocumenttablesDb.__tablename__
-        sql_query = f'UPDATE {table_name} SET "Value" = \'{content}\',"userId" =  \'{userId}\', "last_updated" = \'{datetime.utcnow()}\' , "num_updates" = "num_updates" + 1  WHERE "id" = \'{col_uid}\''
+        sql_query = f'UPDATE {table_name} SET "Value" = \'{content}\',"userId" =  \'{userid}\', "last_updated" = \'{datetime.utcnow()}\' , "num_updates" = "num_updates" + 1  WHERE "id" = \'{col_uid}\''
         session.execute(sql_query)
 
     def create_table(self, session, data, num_rows, num_cols, rows_data):
@@ -488,10 +515,18 @@ class DocTableHelper():
             table_data[row_idx] = row_data
         return table_data
 
-    def update_table(self, session, table_data, userId):
+    def _get_cell_roi_id(self, session, row_idx, col_idx):
+        cell_id = session.query(DocumenttablesDb.id).filter(
+            and_(DocumenttablesDb.tableCell_rowIndex == row_idx, DocumenttablesDb.tableCell_colIndex != col_idx, DocumenttablesDb.group_type == 'ChildBoxes')).first()
+        return cell_id[0]
+
+    def update_table(self, session, table_data, userid):
         """
         """
         for row_idx, row_data in table_data.items():
             for col_idx, col_data in row_data.items():
+                if not col_data.get('cell_roi', None):
+                    col_data['cell_roi'] = self._get_cell_roi_id(
+                        session, row_idx, col_idx)
                 self.update_cell_info(
-                    session, col_data['val'], col_data['cell_roi'], userId)
+                    session, col_data['val'], col_data['cell_roi'], userid)

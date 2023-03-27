@@ -1,11 +1,14 @@
 
 import logging
+import json
+from copy import deepcopy
 from app.utilities.config import settings
 from .model.documentparagraphs_db import DocumentparagraphsDb
 from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
 from .model.documenttables_db import DocumenttablesDb
+from .model.__base__ import MissingParamException
 from app.db.session import SessionLocal
 
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -65,12 +68,24 @@ class RelationalMapper():
             child_table.delete(session, data)
 
 
-def get_content_info(data: dict, action_type):
+def get_content_info(data: dict):
     """
     use prev_line id for add ,delete update curr line id used
     """
     try:
-        line_id, prev_link_id, prev_line_id,next_line_id = None, None, None,None
+        action_type = data['qc_change_type']
+        action_list = list()
+        line_id, prev_link_id, prev_line_id,next_line_id, table_props = None, None, None,None,None
+        if data.get('type') == 'table':
+            if not data.get('content', None):
+                raise MissingParamException('content')
+            content = data['content']   
+            if not content.get('TableProperties', None):
+                raise MissingParamException('.TableProperties.')
+            table_props = content['TableProperties']
+            if isinstance(table_props, str):
+                table_props = json.loads(table_props)
+
         if action_type == 'add':
             prev_details = data.get('prev_detail',{})
             prev_line_id = prev_details.get('line_id', '')[0:36]
@@ -81,20 +96,34 @@ def get_content_info(data: dict, action_type):
         data['id'] = data.get('line_id', '')[0:36]
         audit = data.get('audit', {})
         data['userId'] = audit.get('last_updated_user', None)
-        return data
+
+        if table_props == None:
+            action_list.append(data)
+        else:
+            for table_props_data in table_props:
+                if not table_props_data.get('op_type', None):
+                    raise MissingParamException('op_type')
+                if not table_props_data.get('op_params', None) and table_props_data['op_type'] != 'delete_table':
+                    raise MissingParamException('op_params')
+                data['op_type'] = table_props_data['op_type']
+                data['op_params'] = table_props_data['op_params']
+                action_data = deepcopy(data)
+                action_list.append(action_data)
+        return action_type, action_list
     except Exception as e:
         raise Exception("Invalid input parameters : "+str(e))
 
 
 def process_data(session, mapper, data: dict):
-    action_name = data['qc_change_type']
-    action_data = get_content_info(data, action_name)
-    if action_name == 'add' and action_data:
-        mapper.create(session, action_data)
-    elif action_name == 'modify' and action_data:
-        mapper.update(session, action_data)
-    elif action_name == 'delete' and action_data:
-        mapper.delete(session, action_data)
+    action_name, action_list = get_content_info(data)
+    for action_data in action_list:
+        if action_name == 'add' and action_data:
+            mapper.create(session, action_data)
+        elif action_name == 'modify' and action_data:
+            mapper.update(session, action_data)
+        elif action_name == 'delete' and action_data:
+            mapper.delete(session, action_data)
+        session.commit()
     return data
 
 
@@ -113,5 +142,4 @@ def process(payload: list):
             uid_list.append({'uuid':data.get('uuid',''),
                              'op_type':data.get('op_type',''),
                              'qc_change_type':data.get('qc_change_type','')})
-        session.commit()
     return uid_list

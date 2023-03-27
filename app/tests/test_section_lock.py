@@ -35,5 +35,5 @@ def test_section_lock_get_curd(new_token_on_headers, section_lock_test_data):
         data = f.read()
         test_payload_dict = json.loads(data)
     get_section_lock = client.get(
-        TEST_END_POINT_GET, json=test_payload_dict, headers=new_token_on_headers)
+        TEST_END_POINT_GET, params=test_payload_dict, headers=new_token_on_headers)
     assert get_section_lock.status_code == 200
