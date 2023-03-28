@@ -39,12 +39,13 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         return entity_rec
 
     @staticmethod
-    def insert_data(entity_obj: NlpEntityDb, db: Session, data):
+    def insert_data(db: Session, data, entity_obj: NlpEntityDb = None):
         """ To create new records with updated clinical terms"""
-        synonyms = data.entity_xref or entity_obj.entity_xref
-        preferred_term = data.iqv_standard_term or entity_obj.iqv_standard_term
-        classification = data.entity_class or entity_obj.entity_class
-        ontology = data.ontology or entity_obj.ontology
+        synonyms = data.entity_xref or entity_obj.entity_xref or ""
+        preferred_term = data.iqv_standard_term or entity_obj.iqv_standard_term or ""
+        classification = data.entity_class or entity_obj.entity_class or ""
+        ontology = data.ontology or entity_obj.ontology or ""
+        entity_obj = entity_obj if entity_obj else data
 
         new_entity = NlpEntityDb(id=str(uuid.uuid1()),
                                  doc_id=entity_obj.doc_id,
@@ -72,51 +73,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                  standard_entity_name=entity_obj.standard_entity_name,
                                  confidence=entity_obj.confidence,
                                  start=entity_obj.start,
-                                 text_len=entity_obj.text_len)
-        try:
-            db.add(new_entity)
-            db.commit()
-            db.refresh(new_entity)
-        except Exception as ex:
-            db.rollback()
-            raise HTTPException(status_code=401,
-                                detail=f"Exception to create entity data {str(ex)}")
-        return new_entity
-
-    @staticmethod
-    def insert_nlp_data(db: Session, data):
-        """ To create new records with updated terms"""
-        synonyms = data.entity_xref or ""
-        preferred_term = data.iqv_standard_term or ""
-        classification = data.entity_class or ""
-        ontology = data.ontology or ""
-        new_entity = NlpEntityDb(id=str(uuid.uuid1()),
-                                 doc_id=data.doc_id,
-                                 link_id=data.link_id,
-                                 link_id_level2=data.link_id_level2,
-                                 link_id_level3=data.link_id_level3,
-                                 link_id_level4=data.link_id_level4,
-                                 link_id_level5=data.link_id_level5,
-                                 link_id_level6=data.link_id_level6,
-                                 link_id_subsection1=data.link_id_subsection1,
-                                 link_id_subsection2=data.link_id_subsection2,
-                                 link_id_subsection3=data.link_id_subsection3,
-                                 hierarchy=data.hierarchy,
-                                 iqv_standard_term=preferred_term,
-                                 parent_id=data.parent_id,
-                                 group_type=data.group_type,
-                                 process_source=data.process_source,
-                                 text=data.text,
-                                 user_id=data.user_id,
-                                 entity_class=classification,
-                                 entity_xref=synonyms,
-                                 ontology=ontology,
-                                 ontology_version=data.ontology_version,
-                                 ontology_item_code=data.ontology_item_code,
-                                 standard_entity_name=data.standard_entity_name,
-                                 confidence=data.confidence,
-                                 start=data.start,
-                                 text_len=len(data.standard_entity_name))
+                                 text_len=len(entity_obj.standard_entity_name))
         try:
             db.add(new_entity)
             db.commit()
@@ -136,7 +93,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
             results = {}
 
             if not entity_objs:
-                db_record = self.insert_nlp_data(db, data)
+                db_record = self.insert_data(db, data)
                 results = {'doc_id': db_record.doc_id,
                            'link_id': db_record.link_id,
                            "standard_entity_name": db_record.standard_entity_name,
@@ -147,7 +104,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                            'id': [db_record.id]}
             else:
                 for entity_obj in entity_objs:
-                    db_record = self.insert_data(entity_obj, db, data)
+                    db_record = self.insert_data(db, data, entity_obj)
                     if 'id' in results:
                         results.get('id').append(db_record.id)
                     else:
