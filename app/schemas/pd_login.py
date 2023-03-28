@@ -8,6 +8,11 @@ class LoginBase(BaseModel):
     username: Optional[str] = None
     active_user: Optional[bool] = True
     lastUpdated: Optional[datetime] = None
+    reason_for_change: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+
 
 
 class Soft_Delete(LoginBase):
