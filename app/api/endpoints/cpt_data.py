@@ -143,7 +143,6 @@ def create_enriched_data(
                                                             data.data)
     return enriched_data
 
-
 @router.get("/get_section_data_configurable_parameter")
 async def get_cpt_section_data_with_configurable_parameter(
         psdb: Session = Depends(deps.get_db),
