@@ -8,7 +8,7 @@ from app.schemas.pd_user import UserUpdate, UserCreate
 from app.models.pd_login import Login
 from app import config
 from app.utilities.config import settings
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -111,7 +111,7 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
         user_obj = self.get_by_user_id(db=db, user_id=user_id)
         if not user_obj:
             logger.exception(f'User: {user_id} does not exist')
-            raise HTTPException(status_code=404,
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f"User: {user_id} does not exist'.")
 
         return self.prepare_response(user_obj, user_id)
@@ -124,7 +124,7 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
         alert_rec = self.get_by_user_id(db=db, user_id=user_id)
         if not alert_rec:
             logger.exception(f'User: {user_id} does not exist')
-            raise HTTPException(status_code=404,
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f"User: {user_id} does not exist'.")
         else:
             alert_rec.new_document_version = obj_in.options.get(
