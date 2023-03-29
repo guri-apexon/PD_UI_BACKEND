@@ -4,10 +4,11 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from app.crud.base import CRUDBase
 from app.models.pd_user import User
-from app.schemas.pd_user import UserUpdate, UserCreate, UserBaseInDBBase
+from app.schemas.pd_user import UserUpdate, UserCreate
 from app.models.pd_login import Login
 from app import config
 from app.utilities.config import settings
+from fastapi import HTTPException
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -109,7 +110,10 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
         """ To get user alert global setting """
         user_obj = self.get_by_user_id(db=db, user_id=user_id)
         if not user_obj:
-            return None
+            logger.exception(f'User: {user_id} does not exist')
+            raise HTTPException(status_code=404,
+                                detail=f"User: {user_id} does not exist'.")
+
         return self.prepare_response(user_obj, user_id)
 
     def update_user_alert_setting(self, db: Session, obj_in: User):
@@ -119,7 +123,9 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
         user_id = obj_in.userId
         alert_rec = self.get_by_user_id(db=db, user_id=user_id)
         if not alert_rec:
-            return False
+            logger.exception(f'User: {user_id} does not exist')
+            raise HTTPException(status_code=404,
+                                detail=f"User: {user_id} does not exist'.")
         else:
             alert_rec.new_document_version = obj_in.options.get(
                 'New_Document/Version', False)
