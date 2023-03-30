@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
 from app.db.base_class import Base
+from datetime import datetime
 
 
 class IqvdocumentlinkDb(Base):
@@ -28,3 +29,8 @@ class IqvdocumentlinkDb(Base):
     group_type = Column(String , nullable=True)
     hierarchy = Column(String , nullable=True)
     DocumentSequenceIndex = Column(Integer , nullable=True)
+    last_updated = Column(DateTime(timezone=True),
+                            default=datetime.utcnow, nullable=False)
+    userId = Column(String, nullable=True)
+    num_updates = Column(Integer, default=1)
+
