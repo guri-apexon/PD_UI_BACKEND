@@ -5,22 +5,25 @@ import pandas as pd
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
-def update_section_data_with_enriched_data(section_data: dict,
-                                           enriched_data: list,
-                                           preferred_data: list) -> dict:
+def update_section_data_with_enriched_data(
+    section_data: dict, enriched_data: list, preferred_data: list, references_data: list
+) -> dict:
     """
     To modify the section data with enriched text and terms.
     :param section_data: Response of section data API
     :param enriched_data: Response of enriched API with clinical terms
     :param preferred_data: Response of enriched API with preferred terms
+    :param references_data: Response of enriched API with reference data
     :returns: Updated section data with clinical terms
     """
     enriched_df = pd.DataFrame(enriched_data)
     preferred_df = pd.DataFrame(preferred_data)
+    reference_df = pd.DataFrame(references_data)
 
-    if enriched_df.empty and preferred_df.empty:
+
+    if enriched_df.empty and preferred_df.empty and reference_df.empty:
         logger.info(
-            "There is no clinical and preferred terms present for the sections")
+            "There is no clinical, preferred terms and references present for the sections")
     else:
         for sub_section in section_data:
             font_info = sub_section.get("font_info")
@@ -46,6 +49,7 @@ def update_section_data_with_enriched_data(section_data: dict,
                     terms_values = rows.set_index('text').to_dict(orient='index')
                     sub_section.update({'clinical_terms': terms_values})
 
+
                 if not preferred_df.empty:
                     rows = preferred_df[preferred_df['id'].isin(
                         [link_id, link_id_level2, link_id_level3,
@@ -54,5 +58,13 @@ def update_section_data_with_enriched_data(section_data: dict,
                     rows.drop(['parent_id'], axis=1, inplace=True)
                     terms_values = rows.set_index('text').to_dict(orient='index')
                     sub_section.update({'preferred_terms': terms_values})
+
+                if not reference_df.empty:
+                    rows = reference_df[reference_df['id'].isin(
+                        [link_id, link_id_level2, link_id_level3,
+                         link_id_level4, link_id_level5, link_id_level6])]
+                    rows.drop(['parent_id'], axis=1, inplace=True)
+                    ref_values = rows.set_index('destination_link_prefix').to_dict(orient='index')
+                    sub_section.update({'link_and_reference': ref_values})
 
     return section_data
