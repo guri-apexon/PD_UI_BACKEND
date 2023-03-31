@@ -1,0 +1,226 @@
+[
+    {
+        "type": "table",
+        "qc_change_type": "modify",
+        "table_roi_id": "",
+        "line_id": "204e1b2b-a769-40ce-a014-835420abdf99",
+        "prev_detail": {
+            "line_id": ""
+        },
+        "audit": {
+            "last_updated_user": "1072235"
+        },
+        "content": {
+            "TableProperties": [
+                {
+                    "op_type": "modify",
+                    "op_params": [
+                        {
+                            "row_roi_id": "c89db072-4e80-4d8a-b55b-5831b2685953",
+                            "row_idx": "0",
+                            "row_props": {
+                                "0": {
+                                    "content": "10 mod",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": "87ba265e-dc6d-4631-9751-cde881a4910a"
+                                    }
+                                },
+                                "1": {
+                                    "content": "11 mod",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": "b367b588-2011-4dee-915e-61305ae047fb"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "1495a48b-3949-4022-a20f-a4f1f15a6970",
+                            "row_idx": "1",
+                            "row_props": {
+                                "0": {
+                                    "content": "15 mod",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": "d130560c-124a-42c3-ac90-101caa7a508d"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "op_type": "insert_row",
+                    "op_params": [
+                        {
+                            "row_roi_id": "",
+                            "row_idx": "2",
+                            "row_props": {
+                                "0": {
+                                    "content": "X",
+                                    "roi_id": {
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                },
+                                "1": {
+                                    "content": "Y",
+                                    "roi_id": {
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "op_type": "delete_row",
+                    "op_params": [
+                        {
+                            "row_roi_id": "ccbbd855-a554-4bd8-a4d3-9d01349250a5",
+                            "row_idx": "2",
+                            "row_props": {}
+                        }
+                    ]
+                },
+                {
+                    "op_type": "insert_column",
+                    "op_params": [
+                        {
+                            "row_roi_id": "c89db072-4e80-4d8a-b55b-5831b2685953",
+                            "row_idx": "0",
+                            "row_props": {
+                                "1": {
+                                    "entities": [],
+                                    "content": "AA",
+                                    "roi_id": {
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "1ee79c36-3e78-4ae7-a674-84ddac412be3",
+                            "row_idx": "1",
+                            "row_props": {
+                                "1": {
+                                    "content": "BB",
+                                    "roi_id": {
+                                        "row_roi_id": "5a150ddc-eceb-4759-a403-1e016a649adb",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "1495a48b-3949-4022-a20f-a4f1f15a6970",
+                            "row_idx": "2",
+                            "row_props": {
+                                "1": {
+                                    "content": "CC",
+                                    "roi_id": {
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "ccbbd855-a554-4bd8-a4d3-9d01349250a5",
+                            "row_idx": "3",
+                            "row_props": {
+                                "1": {
+                                    "content": "DD",
+                                    "roi_id": {
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "op_type": "delete_column",
+                    "op_params": [
+                        {
+                            "row_roi_id": "c89db072-4e80-4d8a-b55b-5831b2685953",
+                            "row_idx": "0",
+                            "row_props": {
+                                "1": {
+                                    "content": "",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "c89db072-4e80-4d8a-b55b-5831b2685953",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": "b367b588-2011-4dee-915e-61305ae047fb"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "1ee79c36-3e78-4ae7-a674-84ddac412be3",
+                            "row_idx": "1",
+                            "row_props": {
+                                "1": {
+                                    "content": "",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "1ee79c36-3e78-4ae7-a674-84ddac412be3",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": "c7acffd7-9b9f-46bd-9d7e-3f9b1302866c"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "1495a48b-3949-4022-a20f-a4f1f15a6970",
+                            "row_idx": "2",
+                            "row_props": {
+                                "1": {
+                                    "content": "",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": "d130560c-124a-42c3-ac90-101caa7a508d"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "1495a48b-3949-4022-a20f-a4f1f15a6970",
+                            "row_idx": "3",
+                            "row_props": {
+                                "1": {
+                                    "content": "",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": "d130560c-124a-42c3-ac90-101caa7a508d"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+]

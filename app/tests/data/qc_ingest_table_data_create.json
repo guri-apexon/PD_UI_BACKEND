@@ -1,114 +1,117 @@
 [
-{
-    "type": "table",
-    "qc_change_type": "add",
-    "op_type": "create_table",
-    "section_locked": false,
-    "line_id": "",
-    "uuid":"294e1b2b-a769-40ce-a014-835420abdf99",
-    "prev_detail": {
-        "line_id": "ad4ae3e5-4ad4-4232-9427-47680e2e4c80"
-    },
-    "audit": {
-        "last_updated_user":"1072234"
-    },
-    "content": {
-        "TableProperties": [
-            {
-                "row_roi_id": "",
-                "row_idx": "0",
-                "row_props": {
-                    "0": {
-                        "content": "10",
-                        "roi_id": {
+    {
+        "type": "table",
+        "qc_change_type": "add",
+        "line_id": "",
+        "uuid": "294e1b2b-a769-40ce-a014-835420abdf99",
+        "prev_detail": {
+            "line_id": "ad4ae3e5-4ad4-4232-9427-47680e2e4c80"
+        },
+        "audit": {
+            "last_updated_user": "1072234"
+        },
+        "content": {
+            "TableProperties": [
+                {
+                    "op_type": "create_table",
+                    "op_params": [
+                        {
                             "row_roi_id": "",
-                            "datacell_roi_id": ""
-                        }
-                    },
-                    "1": {
-                        "content": "11",
-                        "roi_id": {
-                            "table_roi_id": "",
+                            "row_idx": "0",
+                            "row_props": {
+                                "0": {
+                                    "content": "10",
+                                    "roi_id": {
+                                        "row_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                },
+                                "1": {
+                                    "content": "11",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
+                        },
+                        {
                             "row_roi_id": "",
-                            "column_roi_id": "",
-                            "datacell_roi_id": ""
+                            "row_idx": "1",
+                            "row_props": {
+                                "0": {
+                                    "content": "12",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                },
+                                "1": {
+                                    "content": "13",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "",
+                            "row_idx": "2",
+                            "row_props": {
+                                "0": {
+                                    "content": "14",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                },
+                                "1": {
+                                    "content": "15",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "row_roi_id": "",
+                            "row_idx": "3",
+                            "row_props": {
+                                "0": {
+                                    "content": "16",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                },
+                                "1": {
+                                    "content": "17",
+                                    "roi_id": {
+                                        "table_roi_id": "",
+                                        "row_roi_id": "",
+                                        "column_roi_id": "",
+                                        "datacell_roi_id": ""
+                                    }
+                                }
+                            }
                         }
-                    }
+                    ]
                 }
-            },
-            {
-                "row_roi_id": "",
-                "row_idx": "1",
-                "row_props": {
-                    "0": {
-                        "content": "12",
-                        "roi_id": {
-                            "table_roi_id": "",
-                            "row_roi_id": "",
-                            "column_roi_id": "",
-                            "datacell_roi_id": ""
-                        }
-                    },
-                    "1": {
-                        "content": "13",
-                        "roi_id": {
-                            "table_roi_id": "",
-                            "row_roi_id": "",
-                            "column_roi_id": "",
-                            "datacell_roi_id": ""
-                        }
-                    }
-                }
-            },
-            {
-                "row_roi_id": "",
-                "row_idx": "2",
-                "row_props": {
-                    "0": {
-                        "content": "14",
-                        "roi_id": {
-                            "table_roi_id": "",
-                            "row_roi_id": "",
-                            "column_roi_id": "",
-                            "datacell_roi_id": ""
-                        }
-                    },
-                    "1": {
-                        "content": "15",
-                        "roi_id": {
-                            "table_roi_id": "",
-                            "row_roi_id": "",
-                            "column_roi_id": "",
-                            "datacell_roi_id": ""
-                        }
-                    }
-                }
-            },
-            {
-                "row_roi_id": "",
-                "row_idx": "3",
-                "row_props": {
-                    "0": {
-                        "content": "16",
-                        "roi_id": {
-                            "table_roi_id": "",
-                            "row_roi_id": "",
-                            "column_roi_id": "",
-                            "datacell_roi_id": ""
-                        }
-                    },
-                    "1": {
-                        "content": "17",
-                        "roi_id": {
-                            "table_roi_id": "",
-                            "row_roi_id": "",
-                            "column_roi_id": "",
-                            "datacell_roi_id": ""
-                        }
-                    }
-                }
-            }
-        ]
+            ]
+        }
     }
-}
 ]
