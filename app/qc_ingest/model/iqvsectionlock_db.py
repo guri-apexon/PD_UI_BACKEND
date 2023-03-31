@@ -9,6 +9,7 @@ class IqvsectionlockDb(SchemaBase):
     link_id = Column(TEXT, primary_key=True, nullable=False)
     doc_id = Column(TEXT)
     userId = Column(TEXT)
+    user_name = Column(TEXT)
     last_updated = Column(DateTime(timezone=True),
                           default=datetime.utcnow, nullable=False)
 
@@ -25,11 +26,13 @@ class IqvsectionlockDb(SchemaBase):
         if not obj:
             data['section_lock'] = True
             data['userId'] = ''
+            data['user_name'] = ''
             data['last_updated'] = ''
         else:
             obj_dict = schema_to_dict(obj)
             data['section_lock'] = False
             data['userId'] = obj_dict['userId']
+            data['user_name'] = obj_dict['user_name']
             data['last_updated'] = obj_dict['last_updated']
         return data
 
@@ -46,7 +49,8 @@ class IqvsectionlockDb(SchemaBase):
             section_info.link_id = data['link_id']
             section_info.doc_id = data['doc_id']
             section_info.userId = data['userId']
-            section_info.last_updated = datetime.utcnow()
+            section_info.user_name = data['user_name']
+            section_info.last_updated = data['last_updated'] = datetime.utcnow()
             session.add(section_info)
         else:
             obj = session.query(IqvsectionlockDb).filter(
