@@ -76,10 +76,29 @@ class NlpEntityUpdate(BaseModel):
     entity_class: str = ''
     entity_xref: str = ''
     ontology: str = ''
+    doc_id: str = ''
+    link_id: str = ''
+    link_id_level2: str = ''
+    link_id_level3: str = ''
+    link_id_level4: str = ''
+    link_id_level5: str = ''
+    link_id_level6: str = ''
+    link_id_subsection1: str = ''
+    link_id_subsection2: str = ''
+    link_id_subsection3: str = ''
+    hierarchy: str = ''
+    parent_id: str = ''
+    group_type: str = ''
+    process_source: str = ''
+    text: str = ''
+    user_id: str = ''
+    ontology_version: str = ''
+    ontology_item_code: str = ''
+    confidence: str = ''
+    start: str = ''
+    text_len: str = ''
 
 
 class NlpEntityData(BaseModel):
     data: NlpEntityUpdate
-
-
 
