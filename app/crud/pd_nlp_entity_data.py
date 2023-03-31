@@ -39,40 +39,42 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         return entity_rec
 
     @staticmethod
-    def insert_data(entity_obj: NlpEntityDb, db: Session, data):
-        """ To create new records with updated clinical terms"""
-        synonyms = data.entity_xref or entity_obj.entity_xref
-        preferred_term = data.iqv_standard_term or entity_obj.iqv_standard_term
-        classification = data.entity_class or entity_obj.entity_class
-        ontology = data.ontology or entity_obj.ontology
+    def insert_nlp_data(db: Session, doc_id, link_id, data, entity_obj=None):
+        """ To create new records with updated terms"""
+        synonyms = data.entity_xref or ""
+        preferred_term = data.iqv_standard_term or ""
+        classification = data.entity_class or ""
+        ontology = data.ontology or ""
+
+        data = entity_obj if entity_obj else data
 
         new_entity = NlpEntityDb(id=str(uuid.uuid1()),
-                                 doc_id=entity_obj.doc_id,
-                                 link_id=entity_obj.link_id,
-                                 link_id_level2=entity_obj.link_id_level2,
-                                 link_id_level3=entity_obj.link_id_level3,
-                                 link_id_level4=entity_obj.link_id_level4,
-                                 link_id_level5=entity_obj.link_id_level5,
-                                 link_id_level6=entity_obj.link_id_level6,
-                                 link_id_subsection1=entity_obj.link_id_subsection1,
-                                 link_id_subsection2=entity_obj.link_id_subsection2,
-                                 link_id_subsection3=entity_obj.link_id_subsection3,
-                                 hierarchy=entity_obj.hierarchy,
+                                 doc_id=doc_id,
+                                 link_id=link_id,
+                                 link_id_level2=data.link_id_level2,
+                                 link_id_level3=data.link_id_level3,
+                                 link_id_level4=data.link_id_level4,
+                                 link_id_level5=data.link_id_level5,
+                                 link_id_level6=data.link_id_level6,
+                                 link_id_subsection1=data.link_id_subsection1,
+                                 link_id_subsection2=data.link_id_subsection2,
+                                 link_id_subsection3=data.link_id_subsection3,
+                                 hierarchy=data.hierarchy,
                                  iqv_standard_term=preferred_term,
-                                 parent_id=entity_obj.parent_id,
-                                 group_type=entity_obj.group_type,
-                                 process_source=entity_obj.process_source,
-                                 text=entity_obj.text,
-                                 user_id=entity_obj.user_id,
+                                 parent_id=data.parent_id,
+                                 group_type=data.group_type,
+                                 process_source=data.process_source,
+                                 text=data.text,
+                                 user_id=data.user_id,
                                  entity_class=classification,
                                  entity_xref=synonyms,
                                  ontology=ontology,
-                                 ontology_version=entity_obj.ontology_version,
-                                 ontology_item_code=entity_obj.ontology_item_code,
-                                 standard_entity_name=entity_obj.standard_entity_name,
-                                 confidence=entity_obj.confidence,
-                                 start=entity_obj.start,
-                                 text_len=entity_obj.text_len)
+                                 ontology_version=data.ontology_version,
+                                 ontology_item_code=data.ontology_item_code,
+                                 standard_entity_name=data.standard_entity_name,
+                                 confidence=data.confidence,
+                                 start=data.start,
+                                 text_len=len(data.standard_entity_name))
         try:
             db.add(new_entity)
             db.commit()
@@ -83,26 +85,42 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                 detail=f"Exception to create entity data {str(ex)}")
         return new_entity
 
-    def save_data_to_db(self, db: Session, aidoc_id: str, link_id: str, data):
+    def save_data_to_db(self, db: Session, aidoc_id: str, link_id: str, operation_type: str, data):
         """ To create new record with updated clinical terms based on enriched
         text, apart from keep existing record data """
         try:
             entity_text = data.standard_entity_name
             entity_objs = self.get_records(db, aidoc_id, link_id, entity_text)
             results = {}
-            for entity_obj in entity_objs:
-                db_record = self.insert_data(entity_obj, db, data)
-                if 'id' in results:
-                    results.get('id').append(db_record.id)
-                else:
-                    results = {'doc_id': db_record.doc_id,
-                               'link_id': db_record.link_id,
-                               "standard_entity_name": db_record.standard_entity_name,
-                               "iqv_standard_term": db_record.iqv_standard_term,
-                               "entity_class": db_record.entity_class,
-                               "entity_xref": db_record.entity_xref,
-                               "ontology": db_record.ontology,
-                               'id': [db_record.id]}
+
+            if not entity_objs:
+                db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
+                results = {'doc_id': db_record.doc_id,
+                           'link_id': db_record.link_id,
+                           "standard_entity_name": db_record.standard_entity_name,
+                           "iqv_standard_term": db_record.iqv_standard_term,
+                           "entity_class": db_record.entity_class,
+                           "entity_xref": db_record.entity_xref,
+                           "ontology": db_record.ontology,
+                           'id': [db_record.id]}
+            else:
+                for entity_obj in entity_objs:
+                    if operation_type == "delete":
+                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
+                    else:
+                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data, entity_obj)
+
+                    if 'id' in results:
+                        results.get('id').append(db_record.id)
+                    else:
+                        results = {'doc_id': db_record.doc_id,
+                                   'link_id': db_record.link_id,
+                                   "standard_entity_name": db_record.standard_entity_name,
+                                   "iqv_standard_term": db_record.iqv_standard_term,
+                                   "entity_class": db_record.entity_class,
+                                   "entity_xref": db_record.entity_xref,
+                                   "ontology": db_record.ontology,
+                                   'id': [db_record.id]}
             return results
         except Exception as ex:
             raise HTTPException(status_code=401, detail=f"Exception in Saving JSON data to DB {str(ex)}")

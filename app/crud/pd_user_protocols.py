@@ -115,6 +115,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
             user_protocol.redactProfile = redact_profile
             user_protocol.reason_for_change = obj_in.accessReason
             user_protocol.userUpdated = obj_in.userUpdated
+            user_protocol.lastUpdated = datetime.utcnow()
             db.add(user_protocol)
             db.commit()
         except Exception as ex:
