@@ -14,3 +14,4 @@ class NotificationRead(NotificationReadBase):
     protocol: Optional[str] = None
     aidocId: Optional[str] = None
     readFlag: Optional[bool] = False
+    notification_delete: Optional[bool] = False

@@ -13,21 +13,23 @@ client = TestClient(app)
 
 
 @pytest.mark.parametrize(
-    ["id", "protocol", "aidocId", "readFlag", "insert_flag", "comment"],
+    ["id", "protocol", "aidocId", "readFlag", "notification_delete" ,"insert_flag", "comment"],
     [
-        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, 1, "To be inserted into db as correct id, aidocid and protocol number combination."),
-        ("610", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, 0, "Not to be inserted into db as incorrect id (incorrect id), aidocid and protocol number combination."),
-        ("611", "test_compare_0213_K-877-30", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, 0, "Not to be inserted into db as incorrect id, aidocid (incorrect aidocid) and protocol number combination."),
-        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0c", True, 0, "Not to be inserted into db as incorrect id, aidocid and protocol number (incorrect aidocid) combination.")
+        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, False, 1, "To be inserted into db as correct id, aidocid and protocol number combination."),
+        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, True, 1, "To be inserted into db as correct id, aidocid and protocol number combination and verifies notification_delete."),
+        ("610", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, False, 0, "Not to be inserted into db as incorrect id (incorrect id), aidocid and protocol number combination."),
+        ("611", "test_compare_0213_K-877-30", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, False, 0, "Not to be inserted into db as incorrect id, aidocid (incorrect aidocid) and protocol number combination."),
+        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0c", True, False, 0, "Not to be inserted into db as incorrect id, aidocid and protocol number (incorrect aidocid) combination.")
 
      ])
-def test_notification_read(id, protocol, aidocId, readFlag, insert_flag, comment):
+def test_notification_read(id, protocol, aidocId, readFlag, notification_delete, insert_flag, comment):
 
     notification_read_in = schemas.NotificationRead()
     notification_read_in.id = id
     notification_read_in.protocol = protocol
     notification_read_in.aidocId = aidocId
     notification_read_in.readFlag = readFlag
+    notification_read_in.notification_delete = notification_delete
 
 
     try:
@@ -40,6 +42,7 @@ def test_notification_read(id, protocol, aidocId, readFlag, insert_flag, comment
         if protocol_alert:
             protocol_alert.readFlag = False
             protocol_alert.readTime = None
+            protocol_alert.notification_delete = False
             db.add(protocol_alert)
             db.commit()
 
