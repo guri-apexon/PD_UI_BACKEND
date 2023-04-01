@@ -7,16 +7,6 @@
             "last_updated_user": "1072234"
         },
         "line_id": "204e1b2b-a769-40ce-a014-835420abdf99",
-        "content": {
-            "TableProperties": [
-                {
-                    "op_type": "delete_table",
-                    "op_params": ""
-                }
-            ]
-        },
-        "prev_detail": {
-            "line_id": ""
-        }
+        "content": ""
     }
 ]

@@ -254,8 +254,6 @@ class DocumenttablesDb(SchemaBase):
             doc_table_helper.update_table(session, table_data, userid)
         elif op_type == TableOp.INSERT_ROW:
             for row_idx, row_data in table_data.items():
-                if not row_idx:
-                    raise MissingParamException('row_idx ')
                 doc_table_helper.insert_row(
                     session, table_roi_id, row_idx, row_data, userid)
 
@@ -494,8 +492,9 @@ class DocTableHelper():
             for row_id, r_idx in rows_info:
                 if r_idx > row_idx:
                     all_row_ids.append(row_id)
-            self._update_table_row_index(
-                session, DocumenttablesDb.__tablename__, all_row_ids, CurdOp.DELETE)
+            if len(all_row_ids) != 0:
+                self._update_table_row_index(
+                    session, DocumenttablesDb.__tablename__, all_row_ids, CurdOp.DELETE)
 
     def get_table(self, session, table_id):
         row_ids = session.query(DocumenttablesDb.id).filter(and_(

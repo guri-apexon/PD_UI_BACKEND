@@ -23,14 +23,13 @@ db = SessionLocal()
 class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.UserAlert]):
     def get_by_userid(self, db: Session, *, user_id: Any, alert_from_days=settings.ALERT_FROM_DAYS):
         alert_from_time = datetime.utcnow() + timedelta(days=alert_from_days)
-
         user_alerts = db.query(ProtocolAlert, PD_Protocol_Metadata.uploadDate) \
             .join(PD_User_Protocols, and_(PD_User_Protocols.userId == user_id,
                                           PD_User_Protocols.follow == True,
                                           PD_User_Protocols.id == ProtocolAlert.id)) \
             .join(PD_Protocol_Metadata, and_(PD_Protocol_Metadata.id == ProtocolAlert.aidocId,
                                              PD_Protocol_Metadata.protocol == ProtocolAlert.protocol)) \
-            .filter(ProtocolAlert.timeCreated > alert_from_time).all()
+            .filter(ProtocolAlert.timeCreated > alert_from_time, ProtocolAlert.notification_delete.is_not(True)).all()
 
         for user_alert, protocol_upload_date in user_alerts:
             profile_name, profile_details, _ = redactor.get_current_redact_profile(current_db=db,
@@ -57,6 +56,9 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
         return user_alerts
 
     def update_notification_read_status(self, notification_read_in: schemas.NotificationRead, db):
+        """
+        This function is makes notification readFlag column to true and notification_delete column based on user input becomes true or false
+        """
         try:
             if notification_read_in.aidocId == '' or notification_read_in.id == '':
                 logger.error("Got aidocid: {} and id: {} in update_notification_read_status.".format(notification_read_in.aidocId, notification_read_in.id))
@@ -71,16 +73,17 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
             if protocol_alert:
                 time_ = datetime.utcnow()
                 protocol_alert.readFlag = True
+                protocol_alert.notification_delete = notification_read_in.notification_delete
                 protocol_alert.readTime = time_
                 protocol_alert.timeUpdated = time_
                 db.add(protocol_alert)
                 db.commit()
                 res = {'ResponseCode': HTTPStatus.OK, 'Message': 'Success'}
             else:
-                logger.info("Entry for {} not found in db to update pd_protocol_alert notification read.".format(notification_read_in.aidocId))
+                logger.info("Entry for {} not found in db to update pd_protocol_alert notification read or delete.".format(notification_read_in.aidocId))
                 res = dict()
                 res['ResponseCode'] = HTTPStatus.NO_CONTENT
-                res['Message'] = 'Entry for {} not found in db to update pd_protocol_alert notification read.'.format(notification_read_in.aidocId)
+                res['Message'] = 'Entry for {} not found in db to update pd_protocol_alert notification read or delete.'.format(notification_read_in.aidocId)
 
         except Exception as ex:
             logger.exception("Exception Inside update_notification_read_status", ex)

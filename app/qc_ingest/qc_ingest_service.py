@@ -9,6 +9,7 @@ from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
 from .model.documenttables_db import DocumenttablesDb
 from .model.__base__ import MissingParamException
+from .table_payload_wrapper import get_table_props
 from app.db.session import SessionLocal
 
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -75,17 +76,9 @@ def get_content_info(data: dict):
     try:
         action_type = data['qc_change_type']
         action_list = list()
-        line_id, prev_link_id, prev_line_id,next_line_id, table_props = None, None, None,None,None
+        prev_line_id,next_line_id, table_props = None, None, None
         if data.get('type') == 'table':
-            if not data.get('content', None):
-                raise MissingParamException('content')
-            content = data['content']   
-            if not content.get('TableProperties', None):
-                raise MissingParamException('.TableProperties.')
-            table_props = content['TableProperties']
-            if isinstance(table_props, str):
-                table_props = json.loads(table_props)
-
+            table_props = get_table_props(action_type, data)
         if action_type == 'add':
             prev_details = data.get('prev_detail',{})
             prev_line_id = prev_details.get('line_id', '')[0:36]
