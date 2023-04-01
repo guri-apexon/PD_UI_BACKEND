@@ -1,7 +1,8 @@
 from sqlalchemy import Column, DateTime
 from datetime import datetime
 from .__base__ import SchemaBase, schema_to_dict, MissingParamException
-from .user import get_user_name
+from ...crud.pd_user import CRUDUserSearch
+from ...models.pd_user import User
 from sqlalchemy.dialects.postgresql import TEXT
 
 
@@ -47,10 +48,14 @@ class IqvsectionlockDb(SchemaBase):
         
         if data.get('section_lock') == False:
             section_info = IqvsectionlockDb()
+            crud_user_search = CRUDUserSearch(User)
             section_info.link_id = data.get('link_id')
             section_info.doc_id = data.get('doc_id','')
             section_info.userId = user_id = data.get('userId','')
-            user_name = get_user_name(session, user_id)
+            user_name_obj = crud_user_search.get_by_username(session, user_id)
+            if not user_name_obj:
+                raise MissingParamException("{0} user_id in User DB".format(user_id))
+            user_name = user_name_obj.first_name + ' ' + user_name_obj.last_name
             section_info.user_name = user_name
             section_info.last_updated = data['last_updated'] = datetime.utcnow()
             session.add(section_info)
@@ -58,6 +63,6 @@ class IqvsectionlockDb(SchemaBase):
             obj = session.query(IqvsectionlockDb).filter(
                 IqvsectionlockDb.link_id == data['link_id']).first()
             if not obj:
-                MissingParamException("{0} in iqv section lock DB".format(data['link_id']))
+                raise MissingParamException("{0} in iqv section lock DB".format(data['link_id']))
             session.delete(obj)
         return data
