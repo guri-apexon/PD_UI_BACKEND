@@ -2,6 +2,7 @@ import logging
 import pytest
 import json
 from app.db.session import SessionLocal
+from app.qc_ingest.model.iqvfootnoterecord_db import IqvfootnoterecordDb
 from app.main import app
 from fastapi.testclient import TestClient
 from app.qc_ingest.model.documenttables_db import DocTableHelper
@@ -89,6 +90,18 @@ def get_table_data(uuid):
         data = helper.get_table(session, uuid)
         return data
 
+def get_table_footnote_data(uuid):
+    data = list()
+    with SessionLocal() as session:
+        obj = session.query(IqvfootnoterecordDb).filter(IqvfootnoterecordDb.table_roi_id == uuid).order_by(IqvfootnoterecordDb.DocumentSequenceIndex).all()
+        if not obj:
+           data = list()
+        for row in obj:
+           data.append({"footnote_line_id": row.id,
+                    "footnote_indicator": row.footnote_indicator,
+                    "footnote_text": row.footnote_text}) 
+        return data
+
 
 def get_payload(file_name):
     with open(file_name, 'r') as f:
@@ -121,6 +134,13 @@ def modify_data_all(uuid, new_token_on_headers):
     qc_ingest_test_data = r"./app/tests/data/qc_ingest_table_data_modify_table.json"
     payload = get_payload(qc_ingest_test_data)
     payload[0]['line_id'] = uuid
+    table_footnote_data = get_table_footnote_data(uuid)
+    footnote_list = payload[0]['content']['AttachmentListProperties']
+    index = 0
+    for footnote in footnote_list:
+        if footnote["qc_change_type_footnote"] != 'add':
+            footnote["footnote_line_id" ]= table_footnote_data[index]['footnote_line_id']
+            index += 1
     response = client.post(
         TEST_END_POINT, json=payload, headers=new_token_on_headers)
     assert response.status_code == 200
@@ -171,8 +191,18 @@ def test_document_table_curd_all_modifiction(new_token_on_headers, qc_ingest_tes
     assert data[4][3]['val'] == '19'
     assert data[4][4]['val'] == "20 new"
     assert data[4][5]['val'] == '20'
-
+    
+    table_footnote_data = get_table_footnote_data(uuid)
+    assert table_footnote_data[0]['footnote_text'] == 'n. footnote_text'
+    assert table_footnote_data[1]['footnote_text'] == 'a. footnote_text'
+    assert table_footnote_data[2]['footnote_text'] == 'b. footnote_text mod'
+    assert table_footnote_data[3]['footnote_text'] == 'd. footnote_text mod'
+    assert table_footnote_data[4]['footnote_text'] == 'e. footnote_text mod'
+    assert table_footnote_data[5]['footnote_text'] == 'ne. footnote_text'
+    assert table_footnote_data[6]['footnote_text'] == 'f. footnote_text'
 
     delete_table(uuid, new_token_on_headers)
     data = get_table_data(uuid)
     assert data == {}
+    table_footnote_data = get_table_footnote_data(uuid)
+    assert table_footnote_data == []
