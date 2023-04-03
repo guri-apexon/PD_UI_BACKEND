@@ -6,6 +6,9 @@ from app import crud
 from app.models.pd_protocol_alert import ProtocolAlert
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
+from app.models.pd_user import User
+from fastapi.responses import JSONResponse
+from fastapi import status
 from app import schemas
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -22,6 +25,12 @@ db = SessionLocal()
 
 class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.UserAlert]):
     def get_by_userid(self, db: Session, *, user_id: Any, alert_from_days=settings.ALERT_FROM_DAYS):
+        if not db.query(User).filter(User.username.ilike(f'%{user_id}%')).with_entities(User.username).one_or_none():
+            logger.error("Got user_id: {} in not in db.".format(user_id))
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"message": "This user is doesn't exists in our database"})
+
         alert_from_time = datetime.utcnow() + timedelta(days=alert_from_days)
         user_alerts = db.query(ProtocolAlert, PD_Protocol_Metadata.uploadDate) \
             .join(PD_User_Protocols, and_(PD_User_Protocols.userId == user_id,
