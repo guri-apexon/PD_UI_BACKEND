@@ -20,3 +20,4 @@ class ProtocolAlert(Base):
     isActive = Column(Boolean(), default=True)
     timeCreated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
     timeUpdated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
+    notification_delete = Column(Boolean(), default=False)

@@ -8,7 +8,9 @@ from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
 from .model.documenttables_db import DocumenttablesDb
+from .model.iqvfootnoterecord_db import IqvfootnoterecordDb
 from .model.__base__ import MissingParamException
+from .table_payload_wrapper import get_table_props
 from app.db.session import SessionLocal
 
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -35,7 +37,7 @@ class RelationalMapper():
         },
         "table":{
             "name": DocumenttablesDb,
-            "children":[]
+            "children":[IqvfootnoterecordDb]
 
         }
 
@@ -75,17 +77,9 @@ def get_content_info(data: dict):
     try:
         action_type = data['qc_change_type']
         action_list = list()
-        line_id, prev_link_id, prev_line_id,next_line_id, table_props = None, None, None,None,None
+        prev_line_id,next_line_id, table_props, footnote_list = None, None, None, None
         if data.get('type') == 'table':
-            if not data.get('content', None):
-                raise MissingParamException('content')
-            content = data['content']   
-            if not content.get('TableProperties', None):
-                raise MissingParamException('.TableProperties.')
-            table_props = content['TableProperties']
-            if isinstance(table_props, str):
-                table_props = json.loads(table_props)
-
+            table_props, footnote_list = get_table_props(action_type, data)
         if action_type == 'add':
             prev_details = data.get('prev_detail',{})
             prev_line_id = prev_details.get('line_id', '')[0:36]
@@ -100,13 +94,17 @@ def get_content_info(data: dict):
         if table_props == None:
             action_list.append(data)
         else:
-            for table_props_data in table_props:
+            for index, table_props_data in enumerate(table_props):
                 if not table_props_data.get('op_type', None):
                     raise MissingParamException('op_type')
                 if not table_props_data.get('op_params', None) and table_props_data['op_type'] != 'delete_table':
                     raise MissingParamException('op_params')
                 data['op_type'] = table_props_data['op_type']
                 data['op_params'] = table_props_data['op_params']
+                if index == len(table_props)-1:
+                    data['AttachmentListProperties'] = footnote_list
+                else:
+                    data['AttachmentListProperties'] = None
                 action_data = deepcopy(data)
                 action_list.append(action_data)
         return action_type, action_list
