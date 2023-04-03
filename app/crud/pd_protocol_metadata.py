@@ -189,7 +189,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                           PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol), isouter=True) \
             .filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()
         if protocol_metadata_first:
-            all_data = self.fetch_workflow_status(db, id)
+            all_data = self.fetch_workflow_status(db, [id])
             protocol_metadata = [{**protocol_metadata_first[0].as_dict(),
                                   **{"redactProfile": protocol_metadata_first[1]}, **{"wfData": all_data}}]
         return protocol_metadata
