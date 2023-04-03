@@ -23,3 +23,4 @@ from .pd_login import Login, LoginBaseInDBBase, User_Soft_Delete
 from .pd_roles import RolesCreate, Roles, RolesBaseInDBBase
 from .pd_ldap_user_details import LdapUserDetails, LdapUserRequest
 from .pd_nlp_entity_db import NlpEntityBase, NlpEntityCreate, NlpEntityUpdate, NlpEntityData
+from .pd_labdata import LabDataCreate, LabDataBase, LabDataUpdate, LabData
