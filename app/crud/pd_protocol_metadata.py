@@ -171,14 +171,14 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         """Fetch All Workflows status for given userId if doc_id of workflow == doc_id of protocol metadata table"""
 
         doc_ids = set([record['id'] for record in protocol_metadata])
-        work_flow_data = {_id:[] for _id in doc_ids }
+        work_flow_data = {_id: [] for _id in doc_ids}
         matching_workflows = self.fetch_workflow_status(db, doc_ids)
         for doc_id in doc_ids:
             for wfData in matching_workflows:
                 if doc_id == wfData['id']:
-                    result=work_flow_data.get(doc_id)
+                    result = work_flow_data.get(doc_id)
                     result.append(wfData)
-                    work_flow_data[doc_id]=result
+                    work_flow_data[doc_id] = result
         return work_flow_data
 
     async def get_by_doc_id(self, db: Session, id: Any, user_id: str) -> Optional[list]:
@@ -249,7 +249,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
     def update_protocol_metadata_with_wf(self, protocol_metadata_with_wf, protocol_metadata):
         """Add the protocol metadata records with information of work flows"""
 
-        for doc_id,record_with_wf in protocol_metadata_with_wf.items():
+        for doc_id, record_with_wf in protocol_metadata_with_wf.items():
             for index, record in enumerate(protocol_metadata):
                 if record["id"] == doc_id:
                     protocol_metadata[index]["wfData"] = record_with_wf
