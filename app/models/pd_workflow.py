@@ -1,4 +1,5 @@
-from sqlalchemy import ARRAY,Column, DateTime, Integer, String, Boolean
+from sqlalchemy import ARRAY,Column, DateTime, Integer, String, Boolean,func
+from sqlalchemy.orm import column_property
 from enum import Enum
 from datetime import datetime
 from app.db.base_class import Base
