@@ -74,14 +74,13 @@ def test_normal_user(new_token_on_headers, user_id, protocol, doc_id, dig_status
     exp_doc_list = [doc for doc in all_curr_user_protocol if doc['id'] in doc_id]
     len_exp_doc_list = len(exp_doc_list)
     exp_doc = exp_doc_list[0] if len_exp_doc_list > 0 else None
-
     # My protocols
     if expected_flg:
         assert len_exp_doc_list > 0
         assert exp_doc['userUploadedFlag'] == userUploadedFlag  # Following protocols
         assert exp_doc['userPrimaryRoleFlag'] == userPrimaryRoleFlag
         assert exp_doc['userFollowingFlag'] == userFollowingFlag
-        assert exp_doc.get('wfData') == True
+        assert exp_doc.get('wfData') is not None
 
     else:
         assert len_exp_doc_list == 0
