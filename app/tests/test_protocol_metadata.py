@@ -81,6 +81,8 @@ def test_normal_user(new_token_on_headers, user_id, protocol, doc_id, dig_status
         assert exp_doc['userUploadedFlag'] == userUploadedFlag  # Following protocols
         assert exp_doc['userPrimaryRoleFlag'] == userPrimaryRoleFlag
         assert exp_doc['userFollowingFlag'] == userFollowingFlag
+        assert exp_doc.get('wfData') == True
+
     else:
         assert len_exp_doc_list == 0
 
