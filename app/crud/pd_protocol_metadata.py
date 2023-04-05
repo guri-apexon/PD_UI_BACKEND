@@ -13,6 +13,7 @@ from app.models.pd_protocol_data import PD_Protocol_Data
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.models.pd_protocol_qc_summary_data import PDProtocolQCSummaryData
+from app.models.pd_workflow import PD_WorkFlow_Status
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
 from app.utilities.config import settings
 from datetime import datetime
@@ -68,7 +69,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                         PD_Protocol_Metadata.phase,
                         PD_Protocol_Metadata.approvalDate
                         ).filter(PD_Protocol_Metadata.id == id,
-                                                                PD_Protocol_Metadata.isActive == True).first()
+                                 PD_Protocol_Metadata.isActive == True).first()
 
     def create(self, db: Session, *, obj_in: ProtocolMetadataCreate) -> PD_Protocol_Metadata:
         db_obj = PD_Protocol_Metadata(id=obj_in.id,
@@ -148,17 +149,49 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol,
                                                      PD_Protocol_Metadata.isActive == True).all()
 
+    def fetch_workflow_status(self, db: Session, _ids: Any, ) -> Optional[list]:
+
+        """Fetch Workflows status for given userId if doc_id of workflow == doc_id of protocol metadata table
+        & add information of Workflows"""
+
+        wfs = db.query(PD_WorkFlow_Status.doc_id.label('id'), PD_WorkFlow_Status.work_flow_id.label('wfId'),
+                       PD_WorkFlow_Status.status.label('status'),
+                       PD_WorkFlow_Status.all_services.label('wfAllServices'),
+                       PD_WorkFlow_Status.work_flow_name.label('wfName'),
+                       PD_WorkFlow_Status.errorMessageDetails.label('wfErrorMessageDetails'),
+                       PD_WorkFlow_Status.finished_services.label('wfFinishedServices'),
+                       PD_WorkFlow_Status.percent_complete.label('wfPercentComplete'),
+                       func.to_char(PD_WorkFlow_Status.timeCreated, 'DD/MM/YYYY HH:MI:SSPM').label(
+                           'timeCreated')).filter(PD_WorkFlow_Status.doc_id.in_(_ids)).all()
+        db.close()
+        all_wf_data = [wf._asdict() for wf in wfs]
+        return all_wf_data
+
+    def fetch_all_workflow_data(self, db, protocol_metadata):
+        """Fetch All Workflows status for given userId if doc_id of workflow == doc_id of protocol metadata table"""
+
+        doc_ids = set([record['id'] for record in protocol_metadata])
+        work_flow_data = {_id: [] for _id in doc_ids}
+        matching_workflows = self.fetch_workflow_status(db, doc_ids)
+        for doc_id in doc_ids:
+            for wfData in matching_workflows:
+                if doc_id == wfData['id']:
+                    result = work_flow_data.get(doc_id)
+                    result.append(wfData)
+                    work_flow_data[doc_id] = result
+        return work_flow_data
+
     async def get_by_doc_id(self, db: Session, id: Any, user_id: str) -> Optional[list]:
         """Retrieves a record based on primary key or id"""
         protocol_metadata = []
-        protocol_metadata_first = db.query(PD_Protocol_Metadata, PD_User_Protocols.redactProfile.label("redactProfile"))\
+        protocol_metadata_first = db.query(PD_Protocol_Metadata, PD_User_Protocols.redactProfile.label("redactProfile")) \
             .join(PD_User_Protocols, and_(user_id == PD_User_Protocols.userId,
-                                          PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol), isouter=True)\
+                                          PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol), isouter=True) \
             .filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()
-
         if protocol_metadata_first:
+            all_data = self.fetch_workflow_status(db, [id])
             protocol_metadata = [{**protocol_metadata_first[0].as_dict(),
-                                  **{"redactProfile": protocol_metadata_first[1]}}]
+                                  **{"redactProfile": protocol_metadata_first[1]}, **{"wfData": all_data}}]
         return protocol_metadata
 
     def get_by_qc_approved_protocol(self, db: Session, protocol: str):
@@ -182,56 +215,94 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                             case([(PD_Protocol_Metadata.qcStatus == config.QcStatus.COMPLETED.value,
                                    PDProtocolQCSummaryData.approvalDate)
                                   ],
-                                 else_= PD_Protocol_Metadata.approvalDate).label('approvalDate')
+                                 else_=PD_Protocol_Metadata.approvalDate).label('approvalDate')
                             ).join(PDProtocolQCSummaryData,
                                    and_(PD_Protocol_Metadata.id == PDProtocolQCSummaryData.aidocId,
-                                        PDProtocolQCSummaryData.source == config.QC,),
-                                   isouter = True).filter(PD_Protocol_Metadata.protocol == protocol,
-                                                          PD_Protocol_Metadata.isActive == True,
-                                                          PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS
-                                                          ).all()
+                                        PDProtocolQCSummaryData.source == config.QC, ),
+                                   isouter=True).filter(PD_Protocol_Metadata.protocol == protocol,
+                                                        PD_Protocol_Metadata.isActive == True,
+                                                        PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS
+                                                        ).all()
         return resource
+
+    def get_workflows_records(self, db: Session, userId: str):
+        """Fetch Workflows status for given userId if doc_id of workflow == doc_id of protocol metadata table"""
+        all_protocol_metadata = \
+            db.query(PD_Protocol_Metadata,
+                     func.row_number().over(
+                         partition_by=PD_Protocol_Metadata.id,
+                         order_by=(PD_User_Protocols.userRole.asc(), PD_User_Protocols.follow.desc())
+                     ).label('rank'),
+                     ).join(PD_User_Protocols, PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol, isouter=True
+                            ).join(PD_WorkFlow_Status, PD_Protocol_Metadata.id == PD_WorkFlow_Status.doc_id).filter(
+                and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId),
+                     PD_Protocol_Metadata.isActive == True,
+                     or_(PD_User_Protocols.userId is None, PD_User_Protocols.userId == userId))).all()
+
+        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), } \
+                             for row in all_protocol_metadata \
+                             ]
+        protocol_metadata = self.fetch_all_workflow_data(db, protocol_metadata)
+
+        return protocol_metadata
+
+    def update_protocol_metadata_with_wf(self, protocol_metadata_with_wf, protocol_metadata):
+        """Add the protocol metadata records with information of work flows"""
+
+        for doc_id, record_with_wf in protocol_metadata_with_wf.items():
+            for index, record in enumerate(protocol_metadata):
+                if record["id"] == doc_id:
+                    protocol_metadata[index]["wfData"] = record_with_wf
+        return protocol_metadata
 
     async def get_metadata_by_userId(self, db: Session, userId: str) -> Optional[list]:
         """Retrieves all protocol metadata along with follow flag and user roles"""
         all_protocol_metadata = \
-            db.query(PD_Protocol_Metadata, 
-                        case(
-                                [(PD_Protocol_Metadata.userId == userId, True)
-                                ], 
-                                else_ = False).label('uploaded_by_user_flg'),
-                        case(
-                                [(and_(PD_User_Protocols.userId == userId, PD_User_Protocols.userRole == config.UserRole.PRIMARY.value), True)
-                                ], 
-                                else_ = False).label('primary_role_flg'),                                          
-                        func.row_number().over(
-                            partition_by = PD_Protocol_Metadata.id,
-                            order_by = (PD_User_Protocols.userRole.asc(), PD_User_Protocols.follow.desc())
-                                            ).label('rank'),
-                        PD_User_Protocols.follow.label('follow_flg'),
-                        PD_User_Protocols.redactProfile.label('redactProfile')
-                    ).join(PD_User_Protocols, PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol , isouter = True
-                    ).filter(and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId),
-                                PD_Protocol_Metadata.isActive == True, or_(PD_User_Protocols.userId is None, PD_User_Protocols.userId == userId))).all()
+            db.query(PD_Protocol_Metadata,
+                     case(
+                         [(PD_Protocol_Metadata.userId == userId, True)
+                          ],
+                         else_=False).label('uploaded_by_user_flg'),
+                     case(
+                         [(and_(PD_User_Protocols.userId == userId,
+                                PD_User_Protocols.userRole == config.UserRole.PRIMARY.value), True)
+                          ],
+                         else_=False).label('primary_role_flg'),
+                     func.row_number().over(
+                         partition_by=PD_Protocol_Metadata.id,
+                         order_by=(PD_User_Protocols.userRole.asc(), PD_User_Protocols.follow.desc())
+                     ).label('rank'),
+                     PD_User_Protocols.follow.label('follow_flg'),
+                     PD_User_Protocols.redactProfile.label('redactProfile')
+                     ).join(PD_User_Protocols, PD_Protocol_Metadata.protocol == PD_User_Protocols.protocol, isouter=True
+                            ).filter(
+                and_(or_(PD_Protocol_Metadata.userId == userId, PD_User_Protocols.userId == userId),
+                     PD_Protocol_Metadata.isActive == True,
+                     or_(PD_User_Protocols.userId is None, PD_User_Protocols.userId == userId))).all()
+        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{
+            'userUploadedFlag': row.uploaded_by_user_flg if row.uploaded_by_user_flg is not None else False, \
+            'userPrimaryRoleFlag': row.primary_role_flg if row.primary_role_flg is not None else False, \
+            'userFollowingFlag': row.follow_flg if row.follow_flg is not None else False, \
+            'redactProfile': row.redactProfile}, **{"wfData": []}
+                              } \
+                             for row in all_protocol_metadata \
+                             if row.rank == 1 and (
+                                     row.uploaded_by_user_flg == True or row.primary_role_flg == True or row.follow_flg == True)]
 
-        protocol_metadata = [{**row.PD_Protocol_Metadata.as_dict(), **{'userUploadedFlag': row.uploaded_by_user_flg if row.uploaded_by_user_flg is not None else False, \
-                                                                       'userPrimaryRoleFlag': row.primary_role_flg if row.primary_role_flg is not None else False, \
-                                                                       'userFollowingFlag': row.follow_flg if row.follow_flg is not None else False, \
-                                                                       'redactProfile': row.redactProfile}} \
-                                                                             for row in all_protocol_metadata \
-                                        if row.rank == 1 and (row.uploaded_by_user_flg == True or row.primary_role_flg == True or row.follow_flg == True)]
+        protocol_metadata_with_wf = self.get_workflows_records(db, userId)
+        protocol_metadata = self.update_protocol_metadata_with_wf(protocol_metadata_with_wf, protocol_metadata)
 
         return protocol_metadata
 
     async def get_qc_protocols(self, db: Session, status: str) -> Optional[list]:
         """Retrieves a record based on user id"""
-        all_protocol_metadata = db.query(PD_Protocol_Metadata)\
-                                        .filter(PD_Protocol_Metadata.qcStatus == status,
-                                            PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
-                                            PD_Protocol_Metadata.isActive == True)\
-                                        .all()
+        all_protocol_metadata = db.query(PD_Protocol_Metadata) \
+            .filter(PD_Protocol_Metadata.qcStatus == status,
+                    PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
+                    PD_Protocol_Metadata.isActive == True) \
+            .all()
 
-        protocol_metadata = [row.as_dict()  for row in all_protocol_metadata]
+        protocol_metadata = [row.as_dict() for row in all_protocol_metadata]
         return protocol_metadata
 
     async def get_qc_status(self, db: Session, doc_id: str = None) -> Optional[list]:
@@ -241,19 +312,19 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         """
         protocol_metadata = []
         if doc_id is not None:
-            protocol_metadata_first = db.query(PD_Protocol_Metadata.id, PD_Protocol_Metadata.qcStatus)\
-                                        .filter(PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
-                                            PD_Protocol_Metadata.isActive == True, PD_Protocol_Metadata.id == doc_id)\
-                                        .first()
+            protocol_metadata_first = db.query(PD_Protocol_Metadata.id, PD_Protocol_Metadata.qcStatus) \
+                .filter(PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
+                        PD_Protocol_Metadata.isActive == True, PD_Protocol_Metadata.id == doc_id) \
+                .first()
             if protocol_metadata_first:
                 protocol_metadata = [protocol_metadata_first._asdict()]
         else:
-            all_protocol_metadata = db.query(PD_Protocol_Metadata.id, PD_Protocol_Metadata.qcStatus)\
-                                        .filter(PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
-                                            PD_Protocol_Metadata.isActive == True)\
-                                        .all()
+            all_protocol_metadata = db.query(PD_Protocol_Metadata.id, PD_Protocol_Metadata.qcStatus) \
+                .filter(PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS,
+                        PD_Protocol_Metadata.isActive == True) \
+                .all()
 
-            protocol_metadata = [row._asdict()  for row in all_protocol_metadata]
+            protocol_metadata = [row._asdict() for row in all_protocol_metadata]
         return protocol_metadata
 
     def activate_protocol(self, db: Session, aidoc_id: str) -> Any:
@@ -277,11 +348,13 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                 raise HTTPException(status_code=401,
                                     detail=f"Exception occured during updating isActive in DB{str(ex)}")
 
-    async def change_qc_status(self, db: Session, doc_id: str, target_status: str, current_timestamp = datetime.utcnow()) -> Tuple[bool, str]:
+    async def change_qc_status(self, db: Session, doc_id: str, target_status: str,
+                               current_timestamp=datetime.utcnow()) -> Tuple[bool, str]:
         """
         Changes QC Activity status on the given doc_id
         """
-        prot_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
+        prot_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id,
+                                                                  PD_Protocol_Metadata.isActive == True).first()
 
         if not prot_metadata_doc:
             return False, "No protocol document found for the requested doc id"
