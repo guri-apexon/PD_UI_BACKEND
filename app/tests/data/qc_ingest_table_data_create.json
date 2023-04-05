@@ -3,6 +3,7 @@
         "type": "table",
         "qc_change_type": "add",
         "line_id": "",
+        "doc_id":"4c7ea27b-8a6b-4bf0-a8ed-2c1e49bbdc8c",
         "uuid": "294e1b2b-a769-40ce-a014-835420abdf99",
         "prev_detail": {
             "line_id": "ad4ae3e5-4ad4-4232-9427-47680e2e4c80"
@@ -13,103 +14,224 @@
         "content": {
             "TableProperties": [
                 {
-                    "op_type": "create_table",
-                    "op_params": [
+                    "row_indx": "0",
+                    "op_type": "",
+                    "columns": [
                         {
-                            "row_roi_id": "",
-                            "row_idx": "0",
-                            "row_props": {
-                                "0": {
-                                    "content": "10",
-                                    "roi_id": {
-                                        "row_roi_id": "",
-                                        "datacell_roi_id": ""
-                                    }
-                                },
-                                "1": {
-                                    "content": "11",
-                                    "roi_id": {
-                                        "table_roi_id": "",
-                                        "row_roi_id": "",
-                                        "column_roi_id": "",
-                                        "datacell_roi_id": ""
-                                    }
-                                }
-                            }
+                            "col_indx": "0",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "1"
                         },
                         {
-                            "row_roi_id": "",
-                            "row_idx": "1",
-                            "row_props": {
-                                "0": {
-                                    "content": "12",
-                                    "roi_id": {
-                                        "table_roi_id": "",
-                                        "row_roi_id": "",
-                                        "column_roi_id": "",
-                                        "datacell_roi_id": ""
-                                    }
-                                },
-                                "1": {
-                                    "content": "13",
-                                    "roi_id": {
-                                        "table_roi_id": "",
-                                        "row_roi_id": "",
-                                        "column_roi_id": "",
-                                        "datacell_roi_id": ""
-                                    }
-                                }
-                            }
+                            "col_indx": "1",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "2"
                         },
                         {
-                            "row_roi_id": "",
-                            "row_idx": "2",
-                            "row_props": {
-                                "0": {
-                                    "content": "14",
-                                    "roi_id": {
-                                        "table_roi_id": "",
-                                        "row_roi_id": "",
-                                        "column_roi_id": "",
-                                        "datacell_roi_id": ""
-                                    }
-                                },
-                                "1": {
-                                    "content": "15",
-                                    "roi_id": {
-                                        "table_roi_id": "",
-                                        "row_roi_id": "",
-                                        "column_roi_id": "",
-                                        "datacell_roi_id": ""
-                                    }
-                                }
-                            }
+                            "col_indx": "2",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "3"
                         },
                         {
-                            "row_roi_id": "",
-                            "row_idx": "3",
-                            "row_props": {
-                                "0": {
-                                    "content": "16",
-                                    "roi_id": {
-                                        "table_roi_id": "",
-                                        "row_roi_id": "",
-                                        "column_roi_id": "",
-                                        "datacell_roi_id": ""
-                                    }
-                                },
-                                "1": {
-                                    "content": "17",
-                                    "roi_id": {
-                                        "table_roi_id": "",
-                                        "row_roi_id": "",
-                                        "column_roi_id": "",
-                                        "datacell_roi_id": ""
-                                    }
-                                }
-                            }
+                            "col_indx": "3",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "4"
+                        },
+                        {
+                            "col_indx": "4",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "5"
                         }
                     ]
+                },
+                {
+                    "row_indx": "1",
+                    "op_type": "",
+                    "columns": [
+                        {
+                            "col_indx": "0",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "6"
+                        },
+                        {
+                            "col_indx": "1",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "7"
+                        },
+                        {
+                            "col_indx": "2",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "8"
+                        },
+                        {
+                            "col_indx": "3",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "9"
+                        },
+                        {
+                            "col_indx": "4",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "10"
+                        }
+                    ]
+                },
+                {
+                    "row_indx": "2",
+                    "op_type": "",
+                    "columns": [
+                        {
+                            "col_indx": "0",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "11"
+                        },
+                        {
+                            "col_indx": "1",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "12"
+                        },
+                        {
+                            "col_indx": "2",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "13"
+                        },
+                        {
+                            "col_indx": "3",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "14"
+                        },
+                        {
+                            "col_indx": "4",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "15"
+                        }
+                    ]
+                },
+                {
+                    "row_indx": "3",
+                    "op_type": "",
+                    "columns": [
+                        {
+                            "col_indx": "0",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "16"
+                        },
+                        {
+                            "col_indx": "1",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "17"
+                        },
+                        {
+                            "col_indx": "2",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "18"
+                        },
+                        {
+                            "col_indx": "3",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "19"
+                        },
+                        {
+                            "col_indx": "4",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "20"
+                        }
+                    ]
+                },
+                {
+                    "row_indx": "4",
+                    "op_type": "",
+                    "columns": [
+                        {
+                            "col_indx": "0",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "21"
+                        },
+                        {
+                            "col_indx": "1",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "22"
+                        },
+                        {
+                            "col_indx": "2",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "23"
+                        },
+                        {
+                            "col_indx": "3",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "24"
+                        },
+                        {
+                            "col_indx": "4",
+                            "op_type": null,
+                            "cell_id": "",
+                            "value": "25"
+                        }
+                    ]
+                }
+            ],
+            "TableIndex": "1",
+            "TableName": "Table New",
+            "AttachmentListProperties": [
+                {
+                    "footnote_line_id": "",
+                    "footnote_indicator": "a",
+                    "footnote_text": "a. footnote_text",
+                    "qc_change_type_footnote": ""
+                },
+                {
+                    "footnote_line_id": "",
+                    "footnote_indicator": "b",
+                    "footnote_text": "b. footnote_text",
+                    "qc_change_type_footnote": ""
+                },
+                {
+                    "footnote_line_id": "",
+                    "footnote_indicator": "c",
+                    "footnote_text": "c. footnote_text",
+                    "qc_change_type_footnote": ""
+                },
+                {
+                    "footnote_line_id": "",
+                    "footnote_indicator": "d",
+                    "footnote_text": "d. footnote_text",
+                    "qc_change_type_footnote": ""
+                },
+                {
+                    "footnote_line_id": "",
+                    "footnote_indicator": "e",
+                    "footnote_text": "e. footnote_text",
+                    "qc_change_type_footnote": ""
+                },
+                {
+                    "footnote_line_id": "",
+                    "footnote_indicator": "f",
+                    "footnote_text": "f. footnote_text",
+                    "qc_change_type_footnote": ""
                 }
             ]
         }

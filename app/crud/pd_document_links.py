@@ -2,6 +2,7 @@ import pandas as pd
 import psycopg2
 from etmfa_core.aidoc.io.load_xml_db_ext import GetIQVDocumentFromDB_headers
 from app.db.session import psqlengine
+from app.crud.pd_document_config_terms import get_section_audit_info
 from fastapi.responses import JSONResponse
 from fastapi import status
 from app.utilities.config import settings
@@ -10,10 +11,11 @@ import logging
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
-def get_document_links(aidoc_id: str, link_levels: int, toc: int):
+def get_document_links(psdb, aidoc_id: str, link_levels: int, toc: int):
     """
     Get document links for the requestd aidoc_id with link_level
 
+    :param psdb: db instance
     :param aidoc_id: document id 
     :param link_level: link level of document
     :param toc: table of content list with parent child relationship
@@ -56,8 +58,12 @@ def get_document_links(aidoc_id: str, link_levels: int, toc: int):
         df['qc_change_type'] = ''
         df['sequence'] = [i for i in range(df.shape[0])]
         df['section_locked'] = False
-        df['audit_info'] = [{'last_reviewed_date': '', 'last_reviewed_by': '',
-                            'total_no_review': ''} for _ in range(df.shape[0])]
+
+        audit_log_info = get_section_audit_info(psdb, aidoc_id=aidoc_id,
+                                                link_ids=df['link_id'],
+                                                link_levels=df['LinkLevel'])
+
+        df['audit_info'] = [audit for audit in audit_log_info]
 
         headers = df.to_dict(orient='records')
         if toc == 0:

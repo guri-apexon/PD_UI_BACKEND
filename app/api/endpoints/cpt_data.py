@@ -10,7 +10,10 @@ from app.utilities.config import settings
 from app.api.endpoints import auth
 from app.utilities.redaction.protocol_view_redaction import \
     ProtocolViewRedaction
-from app.crud.pd_document_config_terms import get_preferred_data
+from app.crud.pd_document_config_terms import (
+    get_preferred_data,
+    get_references_data,
+)
 from fastapi.responses import JSONResponse
 import logging
 from fastapi import HTTPException, status
@@ -22,6 +25,7 @@ logger = logging.getLogger(settings.LOGGER_NAME)
 
 @router.get("/")
 async def get_cpt_headers(
+        psdb: Session = Depends(deps.get_db),
         aidoc_id: str = "",
         link_level: int = 1,
         toc: int = 0,
@@ -30,6 +34,7 @@ async def get_cpt_headers(
     """
     Get CPT Sections/Headers  list for a particular document.
 
+    :param psdb: db instance
     :param aidoc_id: document id
     :param link_level: level of headers in toc
     :param toc: is optional with value 0 or 1
@@ -38,7 +43,8 @@ async def get_cpt_headers(
               if toc will be 1 link_level is 6 it will returs multi dimentional list according to parent child relationship
     """
 
-    headers_dict = crud.get_document_links(aidoc_id, link_level, toc)
+    headers_dict = crud.get_document_links(psdb, aidoc_id, link_level, toc)
+
     return headers_dict
 
 
@@ -112,11 +118,13 @@ async def get_cpt_section_data(
     finalization_req_dict, _ = finalized_iqvxml.prepare_msg()
     # Collect the enriched clinical data based on doc and link ids.
     enriched_data = await get_enriched_data(psdb, aidoc_id, link_id)
+
     # Collect the enriched preferred data based on doc and link ids.
     preferred_data = get_preferred_data(psdb, aidoc_id, link_id)
+    references_data = get_references_data(psdb, aidoc_id, link_id)
     section_with_enriched = update_section_data_with_enriched_data(
         section_data=finalization_req_dict, enriched_data=enriched_data,
-        preferred_data=preferred_data)
+        preferred_data=preferred_data,references_data=references_data)
 
     return section_with_enriched
 
@@ -127,6 +135,7 @@ def create_enriched_data(
         db: Session = Depends(deps.get_db),
         doc_id: str = "",
         link_id: str = "",
+        operation_type: str = "",
         data: schemas.NlpEntityData,
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
@@ -139,10 +148,9 @@ def create_enriched_data(
     :param _: To validate API token
     :returns: response with newly create record
     """
-    enriched_data = crud.nlp_entity_content.save_data_to_db(db, doc_id, link_id,
+    enriched_data = crud.nlp_entity_content.save_data_to_db(db, doc_id, link_id,operation_type,
                                                             data.data)
     return enriched_data
-
 
 @router.get("/get_section_data_configurable_parameter")
 async def get_cpt_section_data_with_configurable_parameter(

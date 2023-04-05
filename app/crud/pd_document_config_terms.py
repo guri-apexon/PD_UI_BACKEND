@@ -1,4 +1,7 @@
+import pytz
 from app.utilities.config import settings
+from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from typing import Tuple
 import logging
 from app.models.pd_iqvvisitrecord_db import IqvvisitrecordDb
@@ -103,6 +106,7 @@ def get_document_terms_data(db: Session, aidoc_id: str,
                 IqvexternallinkDb.doc_id == aidoc_id).all()
 
         references_values = [{"id": reference_link.id, "source_text": reference_link.source_text,
+                              "destination_url": reference_link.destination_url,
                               "destination_link_id": reference_link.destination_link_id,
                               "destination_link_prefix": reference_link.destination_link_prefix, "parent_id": reference_link.parent_id,
                               "destination_link_text": reference_link.destination_link_text} for reference_link in reference_links]
@@ -144,6 +148,40 @@ def get_document_terms_data(db: Session, aidoc_id: str,
     return [terms_values]
 
 
+def get_section_audit_info(psdb: Session, aidoc_id: str, link_ids: list,
+                           link_levels: list) -> list:
+    """
+    get section audit info
+
+    :param psdb: db instance
+    :param aidoc_id: document id
+    :link_ids : link ids of document as section id
+    :link_levels: link ids level
+    :returns : dictionary of single record with specified values
+    """
+    response = []
+    for link_level, link_id in zip(link_levels, link_ids):
+        link_level_dict = {1: IqvdocumentlinkDb.link_id,
+                           2: IqvdocumentlinkDb.link_id_level2,
+                           3: IqvdocumentlinkDb.link_id_level3,
+                           4: IqvdocumentlinkDb.link_id_level4,
+                           5: IqvdocumentlinkDb.link_id_level5,
+                           6: IqvdocumentlinkDb.link_id_level6}
+
+        obj = psdb.query(IqvdocumentlinkDb).filter(
+            IqvdocumentlinkDb.doc_id == aidoc_id,
+            link_level_dict[link_level] == link_id).first()
+        
+        current_timezone = obj.last_updated
+        est_datetime = current_timezone.astimezone(
+            pytz.timezone('US/Eastern')).strftime('%d-%m-%Y')
+        response.append(
+            {"last_reviewed_date": est_datetime, "last_reviewed_by": obj.userId,
+             "total_no_review": obj.num_updates})
+
+    return response
+
+
 def get_preferred_data(db, doc_id: str = "", link_id: str = "", ) -> list:
     """
     Get preferred terms values for the enriched text as per doc and section id
@@ -158,6 +196,22 @@ def get_preferred_data(db, doc_id: str = "", link_id: str = "", ) -> list:
                                                            config_variables, {})
     return preferred_document_data[0].get("preferred_terms",
                                           []) if preferred_document_data else []
+
+
+def get_references_data(db, doc_id: str = "", link_id: str = "", ) -> list:
+    """
+    Get reference values for the sections as per doc and link id
+    :param db: database object
+    :param doc_id: document id
+    :param link_id: link id of document as section id
+    :returns: Fetch all the link and reference data from db for the sections
+    """
+    config_variables = "references"
+    reference_data = crud.get_document_terms_data(db, doc_id, link_id,
+                                                           config_variables, {})
+    return reference_data[0].get("references",
+                                          []) if reference_data else []
+
 
 
 def link_id_link_level_based_on_section_text(psdb: Session, aidoc_id: str, section_text: str, link_id: str, link_level: str = "") -> Tuple[int, str, dict]:

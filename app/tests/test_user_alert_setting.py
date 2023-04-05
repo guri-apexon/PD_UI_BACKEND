@@ -2,7 +2,6 @@ import json
 
 import pytest
 from app.models.pd_user import User
-from datetime import datetime
 
 from app.db.session import SessionLocal
 from app.main import app
@@ -37,7 +36,7 @@ def create_user_alert_setting_record():
 @pytest.mark.parametrize("user_id, status_code, result", [
     ("1234567_test", status.HTTP_200_OK,
      {"QC_Complete": True, "New_Document/Version": True, "Edited": True}),
-    ("1234589_test", status.HTTP_200_OK, False)
+    ("1234589_test", status.HTTP_404_NOT_FOUND, False)
 ])
 def test_get_user_alert_setting(new_token_on_headers, user_id, status_code,
                                 result):
@@ -51,10 +50,10 @@ def test_get_user_alert_setting(new_token_on_headers, user_id, status_code,
                               headers=new_token_on_headers)
     assert user_setting.status_code == status_code
     response = json.loads(user_setting.text)
-    if response:
+    if result:
         assert response.get('options') == result
     else:
-        assert response == result
+        assert response == {'detail': f"User: {user_id} does not exist'."}
 
 
 @pytest.mark.parametrize("user_id, payload, status_code, result", [
@@ -68,7 +67,7 @@ def test_get_user_alert_setting(new_token_on_headers, user_id, status_code,
      {"QC_Complete": True, "New_Document/Version": True, "Edited": True},
      status.HTTP_200_OK,
      {"QC_Complete": True, "New_Document/Version": True, "Edited": True}),
-    ("1234589_test", {}, status.HTTP_200_OK, False)
+    ("1234589_test", {}, status.HTTP_404_NOT_FOUND, False)
 ])
 def test_update_user_alert_setting(new_token_on_headers, user_id, payload,
                                    status_code, result):
@@ -83,7 +82,7 @@ def test_update_user_alert_setting(new_token_on_headers, user_id, payload,
                                headers=new_token_on_headers)
     assert user_setting.status_code == status_code
     response = json.loads(user_setting.text)
-    if response:
+    if result:
         assert response.get('options') == result
     else:
-        assert response == result
+        assert response == {'detail': f"User: {user_id} does not exist'."}
