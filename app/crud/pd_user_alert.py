@@ -26,7 +26,7 @@ db = SessionLocal()
 class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.UserAlert]):
     def get_by_userid(self, db: Session, *, user_id: Any, alert_from_days=settings.ALERT_FROM_DAYS):
         if not db.query(User).filter(User.username.ilike(f'%{user_id}%')).with_entities(User.username).one_or_none():
-            logger.error("Got user_id: {} in not in db.".format(user_id))
+            logger.error("Got user_id: {} is not in db.".format(user_id))
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"message": "This user is doesn't exists in our database"})
