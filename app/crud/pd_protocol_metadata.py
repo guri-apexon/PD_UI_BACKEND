@@ -162,10 +162,30 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                        PD_WorkFlow_Status.finished_services.label('wfFinishedServices'),
                        PD_WorkFlow_Status.percent_complete.label('wfPercentComplete'),
                        func.to_char(PD_WorkFlow_Status.timeCreated, 'DD/MM/YYYY HH:MI:SSPM').label(
-                           'timeCreated')).filter(PD_WorkFlow_Status.doc_id.in_(_ids)).all()
+                           'timeCreated')).filter(PD_WorkFlow_Status.doc_id.in_(_ids)).filter(
+            or_(
+                PD_WorkFlow_Status.status == "RUNNING", PD_WorkFlow_Status.status == "COMPLETED")).order_by(
+            PD_WorkFlow_Status.timeCreated.desc()) \
+            .all()
         db.close()
         all_wf_data = [wf._asdict() for wf in wfs]
         return all_wf_data
+
+    def arrange_wf_data(self, protocol_metadata):
+        """This functions checks if running workflows are present in wfData, if not present function must
+        return last completed workflow"""
+        arranged_protocol_data = {}
+        for doc_id, data in protocol_metadata.items():
+            running_wf = []
+            for wf_data in data:
+                if wf_data['status'] == "RUNNING":
+                    running_wf.append(wf_data)
+            if running_wf:
+                arranged_protocol_data[doc_id] = running_wf
+            else:
+                wf_data = sorted(data, key=lambda x: x['timeCreated'])
+                arranged_protocol_data[doc_id] = wf_data
+        return arranged_protocol_data
 
     def fetch_all_workflow_data(self, db, protocol_metadata):
         """Fetch All Workflows status for given userId if doc_id of workflow == doc_id of protocol metadata table"""
@@ -243,8 +263,8 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                              for row in all_protocol_metadata \
                              ]
         protocol_metadata = self.fetch_all_workflow_data(db, protocol_metadata)
-
-        return protocol_metadata
+        arranged_metadata = self.arrange_wf_data(protocol_metadata)
+        return arranged_metadata
 
     def update_protocol_metadata_with_wf(self, protocol_metadata_with_wf, protocol_metadata):
         """Add the protocol metadata records with information of work flows"""
