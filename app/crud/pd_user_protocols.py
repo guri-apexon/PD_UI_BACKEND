@@ -51,6 +51,9 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         # check if record exists for the given userId and Protocol, if exists update else create new record
         user_protocol_obj = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == obj_in.userId,
             PD_User_Protocols.protocol == obj_in.protocol).first()
+        if obj_in.follow is True:
+            crud.user.follow_protocol_to_update_user_setting(db=db,
+                                                             user_id=obj_in.userId)
         if user_protocol_obj:
             try:
                 user_protocol_obj.isActive = True
