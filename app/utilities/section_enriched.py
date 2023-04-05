@@ -20,7 +20,6 @@ def update_section_data_with_enriched_data(
     preferred_df = pd.DataFrame(preferred_data)
     reference_df = pd.DataFrame(references_data)
 
-
     if enriched_df.empty and preferred_df.empty and reference_df.empty:
         logger.info(
             "There is no clinical, preferred terms and references present for the sections")
@@ -34,6 +33,9 @@ def update_section_data_with_enriched_data(
             link_id_level4 = font_info.get("link_id_level4")
             link_id_level5 = font_info.get("link_id_level5")
             link_id_level6 = font_info.get("link_id_level6")
+            sub_section.update({'clinical_terms': {}})
+            sub_section.update({'preferred_terms': {}})
+            sub_section.update({'link_and_reference': {}})
             if content:
                 roi_id = font_info.get("roi_id")
                 para_id = roi_id.get("para")
@@ -60,11 +62,9 @@ def update_section_data_with_enriched_data(
                     sub_section.update({'preferred_terms': terms_values})
 
                 if not reference_df.empty:
-                    rows = reference_df[reference_df['id'].isin(
-                        [link_id, link_id_level2, link_id_level3,
-                         link_id_level4, link_id_level5, link_id_level6])]
-                    rows.drop(['parent_id'], axis=1, inplace=True)
-                    ref_values = rows.set_index('destination_link_prefix').to_dict(orient='index')
-                    sub_section.update({'link_and_reference': ref_values})
+                    if reference_df.iloc[0]['parent_id']:
+                        rows = reference_df[reference_df['parent_id'].isin([para_id])]
+                        ref_values = rows.set_index('id').to_dict(orient='index')
+                        sub_section.update({'link_and_reference': ref_values})
 
     return section_data
