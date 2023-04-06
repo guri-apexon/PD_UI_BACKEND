@@ -21,3 +21,4 @@ class ProtocolAlert(Base):
     timeCreated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
     timeUpdated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
     notification_delete = Column(Boolean(), default=False)
+    alert_id = Column(Integer, primary_key=True)
