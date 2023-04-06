@@ -25,13 +25,6 @@ db = SessionLocal()
 
 class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.UserAlert]):
     def get_by_userid(self, db: Session, *, user_id: Any, alert_from_days=settings.ALERT_FROM_DAYS):
-        user_id_list_for_filer = [user_id, 'q'+user_id, 'u'+user_id]
-        if not db.query(User).filter(User.username.in_((user_id_list_for_filer))).one_or_none():
-            logger.error("Got user_id: {} is not in db.".format(user_id))
-            return JSONResponse(
-                status_code=status.HTTP_404_NOT_FOUND,
-                content={"message": "This user is doesn't exists in our database"})
-
         alert_from_time = datetime.utcnow() + timedelta(days=alert_from_days)
         user_alerts = db.query(ProtocolAlert, PD_Protocol_Metadata.uploadDate) \
             .join(PD_User_Protocols, and_(PD_User_Protocols.userId == user_id,
