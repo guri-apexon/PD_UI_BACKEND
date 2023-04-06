@@ -6,9 +6,6 @@ from app import crud
 from app.models.pd_protocol_alert import ProtocolAlert
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
-from app.models.pd_user import User
-from fastapi.responses import JSONResponse
-from fastapi import status
 from app import schemas
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
