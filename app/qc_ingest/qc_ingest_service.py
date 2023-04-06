@@ -3,6 +3,7 @@ import logging
 import json
 from copy import deepcopy
 from app.utilities.config import settings
+from app.utilities.utils import notification_service
 from .model.documentparagraphs_db import DocumentparagraphsDb
 from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
@@ -140,4 +141,5 @@ def process(payload: list):
             uid_list.append({'uuid':data.get('uuid',''),
                              'op_type':data.get('op_type',''),
                              'qc_change_type':data.get('qc_change_type','')})
+    notification_service(session.query(IqvdocumentlinkDb).filter_by(id=payload[0]['link_id']).first().doc_id, "EDITED",False)
     return uid_list
