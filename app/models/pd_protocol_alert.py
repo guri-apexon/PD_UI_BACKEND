@@ -7,8 +7,8 @@ from sqlalchemy import Boolean, Column, Date, DateTime, String, Integer
 class ProtocolAlert(Base):
     __tablename__ = "pd_protocol_alert"
 
-    id = Column(Integer)
-    aidocId = Column(String(100))
+    id = Column(Integer, primary_key=True)
+    aidocId = Column(String(100), primary_key=True)
     protocol = Column(String(500))
     protocolTitle = Column(String(1500))
     readFlag = Column(Boolean(), default=False)
