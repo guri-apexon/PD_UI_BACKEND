@@ -15,6 +15,7 @@ from app.utilities.file_utils import post_qc_approval_complete_to_mgmt_service
 from app.utilities.redact import redactor
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+import requests
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -191,6 +192,9 @@ async def approve_qc(
 
         if qc_file_flg and dig_saved_filename and mgmt_svc_flg:
             logger.info(f'{aidoc_id}: qc_approve completed successfully')
+            PARAMS = {"doc_id": aidoc_id, "event": "QC_COMPLETED", "send_mail": True}
+            response_qc_mail = requests.get(url=settings.MANAGEMENT_SERVICE_URL+"notifications/send/email", params=PARAMS, headers=settings.MGMT_CRED_HEADERS)
+            logger.info(f'for {aidoc_id} mail sent {str(response_qc_mail.json())}')
             return True
         else:
             logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \
