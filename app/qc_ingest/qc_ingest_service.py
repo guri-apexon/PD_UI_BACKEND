@@ -146,6 +146,6 @@ def process(payload: list):
         notification_service(doc_id_from_payload, "EDITED",False)
         logger.info(f"Edited event notification records successfully created for link_id {payload[0]['link_id']}, doc_id {doc_id_from_payload}")
     except Exception as ex:
-        logger.exception(f"exception  occured for payload link id {payload[0]['link_id']} for edited event notifications")
+        logger.exception(f"exception  occured for payload link id{payload[0]} for edited event notifications")
 
     return uid_list
