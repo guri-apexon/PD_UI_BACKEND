@@ -142,9 +142,10 @@ def process(payload: list):
                              'op_type':data.get('op_type',''),
                              'qc_change_type':data.get('qc_change_type','')})
     try:
-        notification_service(session.query(IqvdocumentlinkDb).filter_by(id=payload[0]['link_id']).first().doc_id, "EDITED",False)
-        logger.info(f"Edited event notification records successfully created for payload {payload}")
+        doc_id_from_payload = session.query(IqvdocumentlinkDb).filter_by(id=payload[0]['link_id']).first().doc_id
+        notification_service(doc_id_from_payload, "EDITED",False)
+        logger.info(f"Edited event notification records successfully created for link_id {payload[0]['link_id']}, doc_id {doc_id_from_payload}")
     except Exception as ex:
-        logger.exception(f"exception  occured for payload {payload} for edited event notifications")
+        logger.exception(f"exception  occured for payload link id {payload[0]['link_id']} for edited event notifications")
 
     return uid_list

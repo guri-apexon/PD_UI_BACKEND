@@ -34,5 +34,5 @@ async def update_qc_fields(pd_attributes_for_dashboard: dict, db: Session, get_q
 def notification_service(doc_id: str, event: str, send_mail: bool) -> bool:
     PARAMS = {"doc_id": doc_id, "event": event, "send_mail":send_mail}
     response_qc_mail = requests.get(url=settings.MANAGEMENT_SERVICE_URL+"notifications/send/email", params=PARAMS, headers=settings.MGMT_CRED_HEADERS)
-    logger.info(f"for doc id {doc_id} event {event} records create and API response {str(response_qc_mail.json())}")
+    logger.info(f"for doc id {doc_id} event {event} records create")
     return True
