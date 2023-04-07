@@ -10,6 +10,9 @@ class UserAlertBase(BaseModel):
     readFlag: Optional[bool] = False
     protocolTitle: Optional[str] = None
     timeCreated: Optional[datetime] = None
+    alert_id: Optional[str] = None
+    email_template_id: Optional[str] = None
+
 
 class UserAlert(UserAlertBase):
     class Config:

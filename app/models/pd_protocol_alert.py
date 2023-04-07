@@ -22,3 +22,4 @@ class ProtocolAlert(Base):
     timeUpdated = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
     notification_delete = Column(Boolean(), default=False)
     alert_id = Column(Integer, primary_key=True)
+    email_template_id = Column(String(100))
