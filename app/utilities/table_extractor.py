@@ -246,27 +246,29 @@ class SOAResponse:
             logger.error("Error SOA :Reconstruction of table failed with error : {}".format(e))
             return ({}, 0)
 
-
-
-def get_roi_id(item):
-    for k,v in item.items():
-        if isinstance(v,dict):
-            if v.get('roi_id'):
-                roi_id = v['roi_id']['row_roi_id']
-                break
-        else:
-            roi_id = ""
-    return roi_id
-
 def return_table_formated_data(data):
-    count_row_idx = 0
     table_properties_formater = []
     for item in eval(data):
-        new_format = {
-            "row_idx": count_row_idx,
-            "roi_id": get_roi_id(item),
-            "row_props": {int(float(kee)):val for kee, val in item.items()}
-        }
-        count_row_idx += 1
-        table_properties_formater.append(new_format)
+        column_list = []
+        roi_id = ''
+        for k,v in item.items():
+            if isinstance(v,dict):
+                roi_id = v.get("roi_id",{}).get('row_roi_id')
+                column_list.append({
+                          "col_indx": len(column_list),
+                          "op_type": None,
+                          "cell_id": v.get("roi_id",{}).get("datacell_roi_id",""),
+                          "value": v.get('content')
+                        })
+            else:
+                roi_id = ''
+                column_list.append({
+                          "col_indx": len(column_list),
+                          "op_type": None,
+                          "cell_id": "",
+                          "value": ""
+                        })
+
+        new_dict = {"row_indx": len(table_properties_formater), "roi_id": roi_id, "op_type": None, "columns":column_list}
+        table_properties_formater.append(new_dict)
     return json.dumps(table_properties_formater)

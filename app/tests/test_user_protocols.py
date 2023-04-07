@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from app import config
 from app.crud.pd_user_protocols import pd_user_protocols
+from app.crud.pd_user import user
 from app.db.session import SessionLocal
 from app.main import app
 from fastapi.testclient import TestClient
@@ -56,6 +57,10 @@ def test_follow_protocol(new_token_on_headers, insert_flg, user_id, protocol, fo
 
     if insert_flg:
         assert follow_record.timeCreated == follow_record.lastUpdated
+
+    if follow_flg:
+        user_obj = user.get_by_user_id(db=db, user_id=user_id)
+        assert user_obj.new_document_version is True
 
 
 @pytest.mark.parametrize("user_id, protocol, follow_flg, user_role, project_id, via_ticket, updated_by, expected_json, status_code", [
