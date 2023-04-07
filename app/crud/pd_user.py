@@ -143,5 +143,21 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
         user_options = self.prepare_response(alert_rec, user_id=user_id)
         return user_options
 
+    def follow_protocol_to_update_user_setting(self, db: Session, user_id: str):
+        """
+        Automatically new document version set true when user decided to follow protocol
+        """
+        alert_rec = self.get_by_user_id(db=db, user_id=user_id)
+        if alert_rec and alert_rec.new_document_version is False:
+            alert_rec.new_document_version = True
+            try:
+                db.add(alert_rec)
+                db.commit()
+                db.refresh(alert_rec)
+            except Exception as ex:
+                db.rollback()
+                logger.error(
+                    f"Exception received for userID: {user_id} ERROR Details: {str(ex)}")
+
 
 user = CRUDUserSearch(User)

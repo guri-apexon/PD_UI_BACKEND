@@ -15,6 +15,7 @@ from app.utilities.file_utils import post_qc_approval_complete_to_mgmt_service
 from app.utilities.redact import redactor
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+import requests
 
 router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
@@ -34,7 +35,6 @@ async def read_protocol_metadata(*,
     """
     user_id_input = userId.strip() if userId is not None else userId
     doc_id_input = docId.strip() if docId is not None else docId
-
     protocol_metadata = []
     logger.debug(f'read_protocol_metadata: Getting Metadata for the userID:{user_id_input} or doc_id:{doc_id_input}')
     
@@ -60,7 +60,6 @@ async def read_protocol_metadata(*,
             if userId not in ["QC1", "QC2"]:
                 _, doc_row_dict = redactor.on_attributes(current_db=db, multiple_doc_attributes=[doc_row_dict])
             protocol_metadata[idx] = doc_row_dict
-
     except Exception as ex:
         logger.exception(f'read_protocol_metadata: Exception occurred in read_protocol_metadata {str(ex)}')
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,

@@ -95,6 +95,7 @@ class ProtocolMetadataUserId(ProtocolMetadataBase):
     userUploadedFlag: bool = False
     userPrimaryRoleFlag: bool = False
     userFollowingFlag: bool = False
+    wfData:Optional[list] = {}
 
 # Properties to receive via API on update
 class ProtocolMetadataUpdate(ProtocolMetadataBase):
