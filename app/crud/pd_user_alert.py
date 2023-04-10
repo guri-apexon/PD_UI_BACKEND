@@ -24,7 +24,7 @@ db = SessionLocal()
 class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.UserAlert]):
     def get_by_userid(self, db: Session, *, user_id: Any, alert_from_days=settings.ALERT_FROM_DAYS):
         alert_from_time = datetime.utcnow() + timedelta(days=alert_from_days)
-        user_alerts = db.query(ProtocolAlert, PD_Protocol_Metadata.uploadDate, PdEmailTemplates.event) \
+        user_alerts = db.query(ProtocolAlert, PD_Protocol_Metadata.uploadDate, PdEmailTemplates.event, PD_Protocol_Metadata.documentStatus) \
             .join(PdEmailTemplates, and_(ProtocolAlert.email_template_id == PdEmailTemplates.id)) \
             .join(PD_User_Protocols, and_(PD_User_Protocols.userId == user_id,
                                           PD_User_Protocols.follow == True,
@@ -33,7 +33,7 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
                                              PD_Protocol_Metadata.protocol == ProtocolAlert.protocol)) \
             .filter(ProtocolAlert.timeCreated > alert_from_time, ProtocolAlert.notification_delete.is_not(True)).all()
 
-        for user_alert, protocol_upload_date, email_template in user_alerts:
+        for user_alert, protocol_upload_date, email_template, doc_status in user_alerts:
             profile_name, profile_details, _ = redactor.get_current_redact_profile(current_db=db,
                                                                                    user_id=user_id,
                                                                                    protocol=user_alert.protocol)
@@ -57,7 +57,8 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
         response = []
         for user_alert in user_alerts:
             data = user_alert[0]
-            data.event = user_alert[-1]
+            data.event = user_alert[2]
+            data.status = user_alert[-1]
             response.append(data)
         return response
 

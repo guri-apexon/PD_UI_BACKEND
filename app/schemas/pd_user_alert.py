@@ -12,6 +12,7 @@ class UserAlertBase(BaseModel):
     timeCreated: Optional[datetime] = None
     alert_id: Optional[str] = None
     event: Optional[str] = None
+    status: Optional[str] = None
 
 
 class UserAlert(UserAlertBase):
