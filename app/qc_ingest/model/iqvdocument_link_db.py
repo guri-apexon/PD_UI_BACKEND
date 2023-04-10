@@ -1,6 +1,6 @@
 from sqlalchemy import Column,and_, DateTime
 from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException
-from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP
+from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP,FLOAT
 import uuid
 from datetime import datetime
 from .documentparagraphs_db import DocumentparagraphsDb
@@ -43,6 +43,10 @@ class IqvdocumentlinkDb(SchemaBase):
     last_updated = Column(DateTime(timezone=True),
                             default=datetime.utcnow, nullable=False)
     num_updates = Column(INTEGER, default=1)
+    predicted_term = Column(TEXT,default='')
+    predicted_term_confidence = Column(FLOAT,default=0.0)
+    predicted_term_source_system = Column(TEXT,default='')
+    predicted_term_system_version = Column(TEXT,default='')
 
 
     @staticmethod
