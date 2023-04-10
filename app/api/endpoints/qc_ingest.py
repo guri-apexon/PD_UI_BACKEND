@@ -19,7 +19,7 @@ router = APIRouter()
 @router.post("/")
 async def qc_ingest(
         *,
-        doc_id: str,
+        doc_id: str = "",
         payload: list,
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
