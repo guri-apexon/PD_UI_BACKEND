@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional, Union, Tuple
-
+from sqlalchemy import desc
 from elasticsearch import Elasticsearch
 from fastapi import HTTPException
 from sqlalchemy import or_, and_, case, func, literal
@@ -144,7 +144,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
                                                      PD_Protocol_Metadata.isActive == True,
                                                      PD_Protocol_Metadata.status == config.DIGITIZATION_COMPLETED_STATUS).all()
 
-    # used in comparison of associated documents by protocol  
+    # used in comparison of associated documents by protocol
     def associated_docs_by_protocol(self, db: Session, protocol: str) -> Optional[PD_Protocol_Metadata]:
         return db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.protocol == protocol,
                                                      PD_Protocol_Metadata.isActive == True).all()
@@ -153,19 +153,19 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
 
         """Fetch Workflows status for given userId if doc_id of workflow == doc_id of protocol metadata table
         & add information of Workflows"""
-
         wfs = db.query(PD_WorkFlow_Status.doc_id.label('id'), PD_WorkFlow_Status.work_flow_id.label('wfId'),
-                       PD_WorkFlow_Status.status.label('status'),
+                       PD_WorkFlow_Status.status.label('wfStatus'),
                        PD_WorkFlow_Status.all_services.label('wfAllServices'),
                        PD_WorkFlow_Status.work_flow_name.label('wfName'),
+                       PD_WorkFlow_Status.running_services.label('wfRunningServices'),
                        PD_WorkFlow_Status.errorMessageDetails.label('wfErrorMessageDetails'),
                        PD_WorkFlow_Status.finished_services.label('wfFinishedServices'),
                        PD_WorkFlow_Status.percent_complete.label('wfPercentComplete'),
-                       func.to_char(PD_WorkFlow_Status.timeCreated, 'DD/MM/YYYY HH:MI:SSPM').label(
+                       func.to_char(PD_WorkFlow_Status.timeCreated, 'DD-Mon-YYYY').label(
                            'timeCreated')).filter(PD_WorkFlow_Status.doc_id.in_(_ids)).filter(
             or_(
                 PD_WorkFlow_Status.status == "RUNNING", PD_WorkFlow_Status.status == "COMPLETED")).order_by(
-            PD_WorkFlow_Status.timeCreated.desc()) \
+            desc(PD_WorkFlow_Status.timeCreated)) \
             .all()
         db.close()
         all_wf_data = [wf._asdict() for wf in wfs]
@@ -178,13 +178,16 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         for doc_id, data in protocol_metadata.items():
             running_wf = []
             for wf_data in data:
-                if wf_data['status'] == "RUNNING":
+                if wf_data['wfStatus'] == "RUNNING":
                     running_wf.append(wf_data)
+                    break
             if running_wf:
                 arranged_protocol_data[doc_id] = running_wf
             else:
-                wf_data = sorted(data, key=lambda x: x['timeCreated'])
-                arranged_protocol_data[doc_id] = wf_data
+                if data:
+                    arranged_protocol_data[doc_id] = [data[0]]
+                else:
+                    arranged_protocol_data[doc_id]=[]
         return arranged_protocol_data
 
     def fetch_all_workflow_data(self, db, protocol_metadata):
@@ -210,8 +213,16 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             .filter(PD_Protocol_Metadata.id == id, PD_Protocol_Metadata.isActive == True).first()
         if protocol_metadata_first:
             all_data = self.fetch_workflow_status(db, [id])
+            sorted_protocol_metadata = self.arrange_wf_data({id: all_data})
+            if sorted_protocol_metadata[id]:
+                wf_data={"wfData": [sorted_protocol_metadata[id][0]]}
+            else:
+                wf_data={"wfData": []}
+
             protocol_metadata = [{**protocol_metadata_first[0].as_dict(),
-                                  **{"redactProfile": protocol_metadata_first[1]}, **{"wfData": all_data}}]
+                                  **{"redactProfile": protocol_metadata_first[1]},
+                                  **wf_data}]
+
         return protocol_metadata
 
     def get_by_qc_approved_protocol(self, db: Session, protocol: str):
