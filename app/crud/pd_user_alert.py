@@ -3,6 +3,7 @@ from typing import Any
 
 from app.crud.base import CRUDBase
 from app import crud
+from app.models.pd_email_template import PdEmailTemplates
 from app.models.pd_protocol_alert import ProtocolAlert
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
@@ -23,15 +24,17 @@ db = SessionLocal()
 class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.UserAlert]):
     def get_by_userid(self, db: Session, *, user_id: Any, alert_from_days=settings.ALERT_FROM_DAYS):
         alert_from_time = datetime.utcnow() + timedelta(days=alert_from_days)
-        user_alerts = db.query(ProtocolAlert, PD_Protocol_Metadata.uploadDate) \
+        user_alerts = db.query(ProtocolAlert, PD_Protocol_Metadata.uploadDate, PdEmailTemplates.event, PD_Protocol_Metadata.documentStatus) \
+            .join(PdEmailTemplates, and_(ProtocolAlert.email_template_id == PdEmailTemplates.id)) \
             .join(PD_User_Protocols, and_(PD_User_Protocols.userId == user_id,
                                           PD_User_Protocols.follow == True,
                                           PD_User_Protocols.id == ProtocolAlert.id)) \
             .join(PD_Protocol_Metadata, and_(PD_Protocol_Metadata.id == ProtocolAlert.aidocId,
                                              PD_Protocol_Metadata.protocol == ProtocolAlert.protocol)) \
             .filter(ProtocolAlert.timeCreated > alert_from_time, ProtocolAlert.notification_delete.is_not(True)).all()
-
-        for user_alert, protocol_upload_date in user_alerts:
+        
+        response = []
+        for user_alert, protocol_upload_date, email_template, doc_status in user_alerts:
             profile_name, profile_details, _ = redactor.get_current_redact_profile(current_db=db,
                                                                                    user_id=user_id,
                                                                                    protocol=user_alert.protocol)
@@ -52,8 +55,11 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
                                                                                summary_entities=summary_entities,
                                                                                redact_flg=config.REDACTION_FLAG[profile_name])
                     user_alert.__setattr__(user_alert_keys_lower[attr_name.lower()], redacted_doc_attributes[attr_name])
-        user_alerts = [user_alert[0] for user_alert in user_alerts]
-        return user_alerts
+            data = user_alert
+            data.event = email_template
+            data.status = doc_status
+            response.append(data)
+        return response
 
     def update_notification_read_status(self, notification_read_in: schemas.NotificationRead, db):
         """
