@@ -5,7 +5,6 @@ import pandas as pd
 
 from app import config
 from app.crud.base import CRUDBase
-from app import crud
 from app.utilities.config import settings
 from app.models.pd_user_protocols import PD_User_Protocols
 from app.schemas.pd_user_protocols import (UserFollowProtocol, UserProtocolAdd,
@@ -51,9 +50,7 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         # check if record exists for the given userId and Protocol, if exists update else create new record
         user_protocol_obj = db.query(PD_User_Protocols).filter(PD_User_Protocols.userId == obj_in.userId,
             PD_User_Protocols.protocol == obj_in.protocol).first()
-        if obj_in.follow is True:
-            crud.user.follow_protocol_to_update_user_setting(db=db,
-                                                             user_id=obj_in.userId)
+
         if user_protocol_obj:
             try:
                 user_protocol_obj.isActive = True
@@ -175,6 +172,12 @@ class CRUDUserProtocols(CRUDBase[PD_User_Protocols, UserProtocolCreate, UserProt
         """Getting userId & protocol without isActive"""
         return db.query(PD_User_Protocols).filter(and_(PD_User_Protocols.userId == userId,
                                                        PD_User_Protocols.protocol == protocol)).first()
+
+    def get_user_follow_protocols(self, db: Session, userId: Any) -> Optional[PD_User_Protocols]:
+        """Getting all the protocol followed by user """
+        return db.query(PD_User_Protocols).filter(
+            and_(PD_User_Protocols.userId == userId,
+                 PD_User_Protocols.follow == True)).all()
 
     def get_details_by_userId_protocol(self, db: Session, userId: Any, protocol: Any) -> PD_User_Protocols:
         try:
