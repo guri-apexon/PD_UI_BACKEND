@@ -21,14 +21,17 @@ router = APIRouter()
 logger = logging.getLogger(settings.LOGGER_NAME)
 
 
-@router.get("/", response_model = List[ProtocolMetadataUserId])
+@router.get("/", response_model=List[ProtocolMetadataUserId])
 async def read_protocol_metadata(*,
-        db: Session = Depends(deps.get_db),
-        userId: str = Query(None, description = 'UserId associated with the document(s)', min_length=3, max_length=30),
-        docId: str = Query(None, description = 'Internal document id', min_length=10, max_length=50),
-        getQcInprogressAttr: bool = Query(False, description = 'Override flag to get QC data which are in-progress'),
-        _: str = Depends(auth.validate_user_token)
-) -> Any:
+                                 db: Session = Depends(deps.get_db),
+                                 userId: str = Query(None, description='UserId associated with the document(s)',
+                                                     min_length=3, max_length=30),
+                                 docId: str = Query(None, description='Internal document id', min_length=10,
+                                                    max_length=50),
+                                 getQcInprogressAttr: bool = Query(False,
+                                                                   description='Override flag to get QC data which are in-progress'),
+                                 _: str = Depends(auth.validate_user_token)
+                                 ) -> Any:
     """
     Retrieves Protocol metadata of all the documents associated with the requested userId or docId
     > Note: If both userId and docId are provided, only docId is considered
@@ -37,15 +40,16 @@ async def read_protocol_metadata(*,
     doc_id_input = docId.strip() if docId is not None else docId
     protocol_metadata = []
     logger.debug(f'read_protocol_metadata: Getting Metadata for the userID:{user_id_input} or doc_id:{doc_id_input}')
-    
+
     if user_id_input is None and doc_id_input is None:
         logger.exception(f'read_protocol_metadata: No Valid input Provided')
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No Valid input Provided")
 
     try:
         if doc_id_input is not None:
-            protocol_metadata = await crud.pd_protocol_metadata.get_by_doc_id(db, id=doc_id_input, user_id=user_id_input)
-        
+            protocol_metadata = await crud.pd_protocol_metadata.get_by_doc_id(db, id=doc_id_input,
+                                                                              user_id=user_id_input)
+
         elif user_id_input in config.VALID_QC_STATUS:
             protocol_metadata = await crud.pd_protocol_metadata.get_qc_protocols(db, user_id_input)
 
@@ -103,8 +107,8 @@ def activate_protocol(
 
 
 @router.put("/change_qc_status")
-async def change_qc_status(*, db: Session = Depends(deps.get_db), 
-            request_body: ChangeQcStatus, _: str = Depends(auth.validate_user_token)) -> Any:
+async def change_qc_status(*, db: Session = Depends(deps.get_db),
+                           request_body: ChangeQcStatus, _: str = Depends(auth.validate_user_token)) -> Any:
     """
     Change QC status of requested document ids
     """
@@ -117,12 +121,13 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
     try:
         for aidocid in doc_id_array:
             # Update in DB
-            db_update_status, db_message_str = await crud.pd_protocol_metadata.change_qc_status(db, doc_id = aidocid, target_status = target_status, 
-                                                                                                    current_timestamp = current_timestamp)
+            db_update_status, db_message_str = await crud.pd_protocol_metadata.change_qc_status(db, doc_id=aidocid,
+                                                                                                target_status=target_status,
+                                                                                                current_timestamp=current_timestamp)
 
             # Update in ES
             es_qc_status_update_dict = {'qcStatus': target_status, 'TimeUpdated': current_utc_num_format}
-            es_response = update_elastic({'doc' : es_qc_status_update_dict}, aidocid)
+            es_response = update_elastic({'doc': es_qc_status_update_dict}, aidocid)
 
             if es_response:
                 es_message_str = ". ES update completed"
@@ -137,7 +142,7 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
                 all_success = False
             else:
                 response_dict[aidocid] = {'is_success': True, 'message': message_str}
-     
+
         logger.debug(f"all_success: {all_success}, response: {response_dict}")
         return {'all_success': all_success, 'response': response_dict}
     except Exception as exc:
@@ -148,8 +153,8 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
 @router.put("/qc_approve", response_model=bool)
 async def approve_qc(
         db: Session = Depends(deps.get_db),
-        aidoc_id: str = Query(..., description = "Internal document id", min_length = 1),
-        approvedBy: str = Query(..., description = "Approved UserId", min_length = 1),
+        aidoc_id: str = Query(..., description="Internal document id", min_length=1),
+        approvedBy: str = Query(..., description="Approved UserId", min_length=1),
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
@@ -162,7 +167,7 @@ async def approve_qc(
 
     try:
         # Get current state
-        metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id = aidoc_id)
+        metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id=aidoc_id)
         if not metadata_resource:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"No Document found for {aidoc_id}")
 
@@ -170,18 +175,22 @@ async def approve_qc(
 
         # Create QC file
         qc_file_prefix = run_prefix + config.QC_APPROVED_FILE_PREFIX
-        qc_file_flg, target_abs_filename = file_utils.rename_json_file(db, aidoc_id = aidoc_id, src_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX, target_prefix=qc_file_prefix)
+        qc_file_flg, target_abs_filename = file_utils.rename_json_file(db, aidoc_id=aidoc_id,
+                                                                       src_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX,
+                                                                       target_prefix=qc_file_prefix)
 
         if not qc_file_flg:
-            _, qc_filename = crud.pd_protocol_qcdata.save_db_jsondata_to_file(db, aidoc_id=aidoc_id, file_prefix=qc_file_prefix)
+            _, qc_filename = crud.pd_protocol_qcdata.save_db_jsondata_to_file(db, aidoc_id=aidoc_id,
+                                                                              file_prefix=qc_file_prefix)
             qc_file_flg = True if qc_filename is not None else False
 
         # Create DIG file															
-        dig_file_prefix = run_prefix + config.DIG_FILE_PREFIX															
-        target_folder = Path(metadata_resource.documentFilePath).parent															
-        dig_saved_filename = crud.pd_protocol_data.save_db_jsondata_to_dig_file(db, aidoc_id=aidoc_id, target_folder=target_folder, file_prefix=dig_file_prefix)															
-        logger.debug(f"dig_saved_filename: {dig_saved_filename}")															
-
+        dig_file_prefix = run_prefix + config.DIG_FILE_PREFIX
+        target_folder = Path(metadata_resource.documentFilePath).parent
+        dig_saved_filename = crud.pd_protocol_data.save_db_jsondata_to_dig_file(db, aidoc_id=aidoc_id,
+                                                                                target_folder=target_folder,
+                                                                                file_prefix=dig_file_prefix)
+        logger.debug(f"dig_saved_filename: {dig_saved_filename}")
 
         # Make a post call to management service end point for post-qc process
         if qc_file_flg:
@@ -190,9 +199,7 @@ async def approve_qc(
 
         if qc_file_flg and dig_saved_filename and mgmt_svc_flg:
             logger.info(f'{aidoc_id}: qc_approve completed successfully')
-            PARAMS = {"doc_id": aidoc_id, "event": "QC_COMPLETED", "send_mail": True}
-            response_qc_mail = requests.get(url=settings.MANAGEMENT_SERVICE_URL+"notifications/send/email", params=PARAMS, headers=settings.MGMT_CRED_HEADERS)
-            logger.info(f'for {aidoc_id} mail sent {str(response_qc_mail.json())}')
+            utils.notification_service(aidoc_id, "QC_COMPLETED",True)
             return True
         else:
             logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \

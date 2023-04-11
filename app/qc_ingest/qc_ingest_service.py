@@ -140,4 +140,5 @@ def process(payload: list):
             uid_list.append({'uuid':data.get('uuid',''),
                              'op_type':data.get('op_type',''),
                              'qc_change_type':data.get('qc_change_type','')})
+
     return uid_list

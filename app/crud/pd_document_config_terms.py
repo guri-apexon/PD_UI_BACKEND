@@ -106,6 +106,7 @@ def get_document_terms_data(db: Session, aidoc_id: str,
                 IqvexternallinkDb.doc_id == aidoc_id).all()
 
         references_values = [{"id": reference_link.id, "source_text": reference_link.source_text,
+                              "link_id": reference_link.link_id,
                               "destination_url": reference_link.destination_url,
                               "destination_link_id": reference_link.destination_link_id,
                               "destination_link_prefix": reference_link.destination_link_prefix, "parent_id": reference_link.parent_id,

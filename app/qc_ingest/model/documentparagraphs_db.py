@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Index, DateTime
 from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props, MissingParamException
-from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN, BIGINT, JSONB, BYTEA
+from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN, BIGINT, JSONB, BYTEA,FLOAT
 import uuid
 from datetime import datetime
 from .iqvpage_roi_db import IqvpageroiDb
@@ -111,7 +111,11 @@ class DocumentparagraphsDb(SchemaBase):
     last_updated = Column(DateTime(timezone=True),
                           default=datetime.utcnow, nullable=False)
     num_updates = Column(INTEGER, default=1)
-    # references = Column(TEXT)
+    predicted_term = Column(TEXT,default='')
+    predicted_term_confidence = Column(FLOAT,default=0.0)
+    predicted_term_source_system = Column(TEXT,default='')
+    predicted_term_system_version = Column(TEXT,default='')
+    references = Column(TEXT)
 
     @staticmethod
     def create(session, data):
