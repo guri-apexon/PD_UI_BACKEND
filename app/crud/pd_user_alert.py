@@ -32,7 +32,8 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
             .join(PD_Protocol_Metadata, and_(PD_Protocol_Metadata.id == ProtocolAlert.aidocId,
                                              PD_Protocol_Metadata.protocol == ProtocolAlert.protocol)) \
             .filter(ProtocolAlert.timeCreated > alert_from_time, ProtocolAlert.notification_delete.is_not(True)).all()
-
+        
+        response = []
         for user_alert, protocol_upload_date, email_template, doc_status in user_alerts:
             profile_name, profile_details, _ = redactor.get_current_redact_profile(current_db=db,
                                                                                    user_id=user_id,
@@ -54,11 +55,9 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
                                                                                summary_entities=summary_entities,
                                                                                redact_flg=config.REDACTION_FLAG[profile_name])
                     user_alert.__setattr__(user_alert_keys_lower[attr_name.lower()], redacted_doc_attributes[attr_name])
-        response = []
-        for user_alert in user_alerts:
-            data = user_alert[0]
-            data.event = user_alert[2]
-            data.status = user_alert[-1]
+            data = user_alert
+            data.event = email_template
+            data.status = doc_status
             response.append(data)
         return response
 
