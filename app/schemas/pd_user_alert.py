@@ -11,7 +11,8 @@ class UserAlertBase(BaseModel):
     protocolTitle: Optional[str] = None
     timeCreated: Optional[datetime] = None
     alert_id: Optional[str] = None
-    email_template_id: Optional[str] = None
+    event: Optional[str] = None
+    status: Optional[str] = None
 
 
 class UserAlert(UserAlertBase):
