@@ -153,59 +153,20 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
 @router.put("/qc_approve", response_model=bool)
 async def approve_qc(
         db: Session = Depends(deps.get_db),
-        aidoc_id: str = Query(..., description="Internal document id", min_length=1),
-        approvedBy: str = Query(..., description="Approved UserId", min_length=1),
-        _: str = Depends(auth.validate_user_token)
+        aidoc_id: str = Query(..., description = "Internal document id", min_length = 1)
 ) -> Any:
     """
-    Perform following activities once the QC activity is completed and approved:
-        * Create QC file
-        * Create DIG file
-        * Initiate mgmt svc API to insert/update qc_summary table with updated details (SRC='QC'), setup for Feedback RUN
+    Update the QC status as QC_COMPLETED after api call
     """
-    qc_filename = None
-
     try:
         # Get current state
-        metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id=aidoc_id)
-        if not metadata_resource:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"No Document found for {aidoc_id}")
-
-        run_prefix = "R" + str(metadata_resource.runId).zfill(2)
-
-        # Create QC file
-        qc_file_prefix = run_prefix + config.QC_APPROVED_FILE_PREFIX
-        qc_file_flg, target_abs_filename = file_utils.rename_json_file(db, aidoc_id=aidoc_id,
-                                                                       src_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX,
-                                                                       target_prefix=qc_file_prefix)
-
-        if not qc_file_flg:
-            _, qc_filename = crud.pd_protocol_qcdata.save_db_jsondata_to_file(db, aidoc_id=aidoc_id,
-                                                                              file_prefix=qc_file_prefix)
-            qc_file_flg = True if qc_filename is not None else False
-
-        # Create DIG file															
-        dig_file_prefix = run_prefix + config.DIG_FILE_PREFIX
-        target_folder = Path(metadata_resource.documentFilePath).parent
-        dig_saved_filename = crud.pd_protocol_data.save_db_jsondata_to_dig_file(db, aidoc_id=aidoc_id,
-                                                                                target_folder=target_folder,
-                                                                                file_prefix=dig_file_prefix)
-        logger.debug(f"dig_saved_filename: {dig_saved_filename}")
-
-        # Make a post call to management service end point for post-qc process
-        if qc_file_flg:
-            parent_path = target_abs_filename.parent
-            mgmt_svc_flg = await post_qc_approval_complete_to_mgmt_service(aidoc_id, approvedBy, parent_path)
-
-        if qc_file_flg and dig_saved_filename and mgmt_svc_flg:
-            logger.info(f'{aidoc_id}: qc_approve completed successfully')
-            utils.notification_service(aidoc_id, "QC_COMPLETED",True)
-            return True
-        else:
-            logger.error(f"""{aidoc_id}: qc_approve did NOT completed successfully. \
-                            \nrename_flg={qc_file_flg}; mgmt_svc_flg={mgmt_svc_flg};  dig_saved_filename={dig_saved_filename}""")
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"""{aidoc_id}: qc_approve did NOT completed successfully. \
-                            \nrename_flg={qc_file_flg}; mgmt_svc_flg={mgmt_svc_flg};  dig_saved_filename={dig_saved_filename}""")
+        metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id = aidoc_id)
+        metadata_resource.status = config.QC_COMPLETED_STATUS
+        db.add(metadata_resource)
+        db.commit()
+        db.refresh(metadata_resource)
+        logger.info(f'{aidoc_id}: qc_approve completed successfully')
+        return True
     except Exception as ex:
         logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Exception occurred in qc_approve {str(ex)}')
