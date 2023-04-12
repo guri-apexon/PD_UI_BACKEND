@@ -40,12 +40,24 @@ def test_qc1_qc_notstarted(new_token_on_headers, user_id, protocol, doc_id_1, do
             logger.error(f"test_changeqc[{comments}]: Could not locate active test file [{doc_id_1} or {doc_id_2}] of {user_id}/{protocol}")
             assert False
 
-@pytest.mark.parametrize("doc_id, qc_status, response", [
-("17e79287-ca4c-47aa-821a-21268ee0dc42", "QC_COMPLETED", 200)
+@pytest.mark.parametrize("doc_id, qc_status, response, comments", [
+("17e79287-ca4c-47aa-821a-21268ee0dc42", "QC_COMPLETED", True,"doc id exists and change status"),
+("17e79287-ca4c-47aa-821a-21268ee0dc42", "TEST_STATUS", True,"doc id with different status"),
+("17e79287-ca4c-47aa-821a-21268ee0dc42no", "QC_COMPLETED", False, "doc id does not exists"),
 ])
-def test_qcapproved(new_token_on_headers, doc_id, qc_status, response):
-    qc_status_resp = client.put("/api/protocol_metadata/qc_approve", params={"aidoc_id": doc_id}, headers = new_token_on_headers)
-    metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id = doc_id)
+def test_qcapproved(new_token_on_headers, doc_id, qc_status, response, comments):
 
-    assert metadata_resource.status == config.QC_COMPLETED_STATUS
-    assert qc_status_resp.status_code == response
+    # updating status to TEST_STATUS
+    _ , _ = crud.pd_protocol_metadata.change_status(db, doc_id, qc_status)
+    metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id = doc_id)
+    if metadata_resource:
+        assert metadata_resource.status == qc_status
+
+    qc_status_resp = client.put("/api/protocol_metadata/qc_approve", params={"aidoc_id": doc_id}, headers = new_token_on_headers)
+    if qc_status_resp.status_code == status.HTTP_200_OK:
+        assert qc_status_resp.json() == response
+        if qc_status_resp.json():
+            db.refresh(metadata_resource)
+            assert crud.pd_protocol_metadata.get_by_id(db, id = doc_id).status == config.QC_COMPLETED_STATUS
+    else:
+        assert False

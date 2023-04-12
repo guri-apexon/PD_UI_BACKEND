@@ -153,20 +153,17 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
 @router.put("/qc_approve", response_model=bool)
 async def approve_qc(
         db: Session = Depends(deps.get_db),
-        aidoc_id: str = Query(..., description = "Internal document id", min_length = 1)
+        aidoc_id: str = Query(..., description = "Internal document id", min_length = 1),
+         _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
     Update the QC status as QC_COMPLETED after api call
     """
     try:
-        # Get current state
-        metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id = aidoc_id)
-        metadata_resource.status = config.QC_COMPLETED_STATUS
-        db.add(metadata_resource)
-        db.commit()
-        db.refresh(metadata_resource)
+        update_status, _ = crud.pd_protocol_metadata.change_status(db, aidoc_id, config.QC_COMPLETED_STATUS)
         logger.info(f'{aidoc_id}: qc_approve completed successfully')
-        return True
+        utils.notification_service(aidoc_id, "QC_COMPLETED",True)
+        return update_status
     except Exception as ex:
         logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Exception occurred in qc_approve {str(ex)}')
