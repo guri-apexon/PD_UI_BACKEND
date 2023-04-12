@@ -71,7 +71,9 @@ class IqvdocumentlinkDb(SchemaBase):
         return IqvdocumentlinkDb(**link_obj)
        
     def get_line_id_for_top_link(session,link_id):
-        """"""
+        """
+        
+        """
         obj_list=session.query(DocumentparagraphsDb.id,DocumentparagraphsDb.SequenceID).filter(and_(DocumentparagraphsDb.link_id == link_id,
                                                         DocumentparagraphsDb.link_id_level2 == '',
                                                         DocumentparagraphsDb.link_id_level3 == '',
@@ -131,7 +133,7 @@ class IqvdocumentlinkDb(SchemaBase):
         para_data.group_type = 'DocumentLinks'
         para_data.LinkType = 'toc'
         para_data.LinkPrefix = data.get('link_prefix', '')
-        para_data.LinkText = data.get('link_text', '')
+        para_data.LinkText = para_data.iqv_standard_term = data.get('link_text', '')
         para_data.LinkLevel = data.get('link_level', para_data.LinkLevel)
         para_data.id = _id
         doc_id = para_data.doc_id

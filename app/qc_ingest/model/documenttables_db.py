@@ -1,10 +1,9 @@
-from sqlalchemy import Column, Index, and_, DateTime
-from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, CurdOp, MissingParamException
+from sqlalchemy import Column, and_, DateTime
+from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, update_attachment_footnote_index, CurdOp, MissingParamException
 from .iqvpage_roi_db import IqvpageroiDb
-from .documentparagraphs_db import DocumentparagraphsDb
+from .iqvkeyvalueset_db import IqvkeyvaluesetDb
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN,FLOAT
 import uuid
-import json
 from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime
@@ -236,7 +235,8 @@ class DocumenttablesDb(SchemaBase):
             print('table id is ', table_id)
         else:
             raise MissingParamException(" or invalid operation type ")
-
+        doc_table_helper.create_footnote(session, data)
+        session.commit()
         return data
 
     @staticmethod
@@ -273,14 +273,19 @@ class DocumenttablesDb(SchemaBase):
         else:
             raise MissingParamException(" or invalid operation type")
 
+        doc_table_helper.update_footnote(session, data)
+        session.commit()
+
     @staticmethod
     def delete(session, data):
         doc_table_helper = DocTableHelper()
         table_id = data.get('id')
         if data['op_type'] == TableOp.DELETE_TABLE:
             doc_table_helper.delete_table(session, table_id)
+            doc_table_helper.delete_footnote(session, data)
         else:
             raise MissingParamException("or invalid operation type")
+        
 
 
 class DocTableHelper():
@@ -312,10 +317,96 @@ class DocTableHelper():
         para_data.SequenceID = prev_data.SequenceID - \
             1 if is_top_elm else prev_data.SequenceID+1
         doc_id = prev_data.doc_id
-        para_data.parent_id = doc_id
+        para_data.parent_id = data['doc_id'] = doc_id
         update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
         session.add(para_data)
         return para_data
+    
+    def create_footnote(self, session, data):
+        cid = None
+        # if at top next element props are taken
+        if data['prev_id']:
+            cid = data['prev_id']
+        else:
+            cid = data['next_id']
+        prev_data = session.query(IqvpageroiDb).filter(
+            and_(IqvpageroiDb.id == cid, IqvpageroiDb.group_type != 'ChildBoxes')).first()
+        if not prev_data:
+            raise MissingParamException(cid)
+        prev_dict = schema_to_dict(prev_data)
+        para_data = DocumenttablesDb(**prev_dict)
+        if data['AttachmentListProperties'] != None:
+            for index, footnote in enumerate(data['AttachmentListProperties']):
+                uid = str(uuid.uuid4())
+                para_data.id = footnote['AttachmentId'] = uid
+                para_data.parent_id = data.get('uuid')
+                para_data.hierarchy = 'table'
+                para_data.group_type = 'Attachments'
+                para_data.DocumentSequenceIndex = index
+                para_data.Value = footnote.get('Text', '')
+                session.add(deepcopy(para_data))
+        return data
+    
+    def update_footnote(self, session, data):
+        if data['AttachmentListProperties'] != None:
+            for footnote in data['AttachmentListProperties']:
+                sequnce_index = None
+                attachment_id = footnote.get("AttachmentId", None)
+                text_value = footnote.get('Text', '')
+                qc_change_type_footnote = footnote.get(
+                    "qc_change_type_footnote", '')
+                table_roi_id = data['id']
+                previous_sequnce_index = footnote.get("PrevousAttachmentIndex")
+                if qc_change_type_footnote == 'add':
+                    uid = str(uuid.uuid4())
+                    if previous_sequnce_index == None:
+                        sequnce_index = 0
+                    else:
+                        sequnce_index = previous_sequnce_index + 1
+                    previous_obj = session.query(DocumenttablesDb).filter(and_(DocumenttablesDb.parent_id ==
+                                                                        table_roi_id, DocumenttablesDb.group_type == 'Attachments', DocumenttablesDb.DocumentSequenceIndex == sequnce_index)).first()
+                    if not previous_obj:
+                        raise MissingParamException("{0} previous footnote in DocumenttablesDb DB".format(table_roi_id))
+                    prev_dict=schema_to_dict(previous_obj)
+                    obj = DocumenttablesDb(**prev_dict)
+                    obj.id = footnote['AttachmentId'] = uid
+                    obj.DocumentSequenceIndex = sequnce_index
+                    obj.Value = text_value
+                    session.add(obj)
+                    update_attachment_footnote_index(
+                        session, table_roi_id, sequnce_index, '+')
+                if qc_change_type_footnote == 'modify':
+                    obj = session.query(DocumenttablesDb).filter(
+                        DocumenttablesDb.id == attachment_id).first()
+                    if not obj:
+                        raise MissingParamException("{0} in DocumenttablesDb DB".format(attachment_id))
+                    obj.Value = text_value
+                    session.add(obj)
+                if qc_change_type_footnote == 'delete':
+                    obj = session.query(DocumenttablesDb).filter(
+                        DocumenttablesDb.id == attachment_id).first()
+                    if not obj:
+                        raise MissingParamException("{0} in DocumenttablesDb DB".format(attachment_id))
+                    sequnce_index = obj.DocumentSequenceIndex
+                    session.delete(obj)
+                    update_attachment_footnote_index(
+                        session, table_roi_id, sequnce_index, '-')
+                    session.query(IqvkeyvaluesetDb).filter(
+                        IqvkeyvaluesetDb.parent_id == attachment_id).delete()
+                session.commit()
+
+    
+    def delete_footnote(self, session, data):
+        try:
+            attachment_ids = session.query(DocumenttablesDb.id).filter(and_(
+                DocumenttablesDb.parent_id == data['id']), DocumenttablesDb.group_type == 'Attachments').all()
+            for attachment_id in attachment_ids:
+                session.query(IqvkeyvaluesetDb).filter(
+                    IqvkeyvaluesetDb.parent_id == attachment_id[0]).delete()
+            session.query(DocumenttablesDb).filter(and_(
+                DocumenttablesDb.parent_id == data['id']), DocumenttablesDb.group_type == 'Attachments').delete()
+        except Exception as ex:
+            raise MissingParamException("{0}{1} in DocumenttablesDb DB".format(data['id'], ex))
 
     def _update_table_row_index(self, session, table_name, row_id_list, op):
         """
@@ -371,6 +462,8 @@ class DocTableHelper():
                 row_id, cell_id = col_data['row_roi_id'], col_data['cell_roi']
                 session.query(DocumenttablesDb).filter(
                     DocumenttablesDb.id == cell_id).delete()
+                session.query(IqvkeyvaluesetDb).filter(
+                    IqvkeyvaluesetDb.parent_id == cell_id).delete()
                 self._update_table_col_index(
                     session, DocumenttablesDb.__tablename__, row_id, col_idx, CurdOp.DELETE)
 
@@ -469,6 +562,11 @@ class DocTableHelper():
         row_ids = session.query(DocumenttablesDb.id).filter(and_(
             DocumenttablesDb.parent_id == table_id, DocumenttablesDb.group_type == 'ChildBoxes')).all()
         for row_id in row_ids:
+            col_ids = session.query(DocumenttablesDb.id).filter(
+                DocumenttablesDb.parent_id == row_id[0]).all()
+            for col_id in col_ids:
+                session.query(IqvkeyvaluesetDb).filter(
+                IqvkeyvaluesetDb.parent_id == col_id[0]).delete()
             session.query(DocumenttablesDb).filter(
                 DocumenttablesDb.parent_id == row_id[0]).delete()
         # delete rows
@@ -488,10 +586,17 @@ class DocTableHelper():
         rows_info = self._get_all_rows_ids(session, table_id)
         for row_idx, row_data in table_data.items():
             row_id = row_data[0]['row_roi_id']
+            obj = session.query(DocumenttablesDb.id).filter(
+                DocumenttablesDb.parent_id == row_id).all()
+            cell_id_list = list()
+            for cell_id in obj:
+                cell_id_list.append(cell_id[0])
             session.query(DocumenttablesDb).filter(
                 DocumenttablesDb.parent_id == row_id).delete()
             session.query(DocumenttablesDb).filter(
                 DocumenttablesDb.id == row_id).delete()
+            session.query(IqvkeyvaluesetDb).filter(
+                IqvkeyvaluesetDb.parent_id.in_(cell_id_list)).delete()
             all_row_ids = []
             for row_id, r_idx in rows_info:
                 if r_idx > row_idx:
@@ -517,6 +622,17 @@ class DocTableHelper():
                 }
             table_data[row_idx] = row_data
         return table_data
+
+    def get_table_footnote_data(self, session, table_id):
+        data = list()
+        obj = session.query(DocumenttablesDb).filter(and_(DocumenttablesDb.parent_id == table_id, DocumenttablesDb.group_type == 'Attachments')).order_by(DocumenttablesDb.DocumentSequenceIndex).all()
+        if not obj:
+            data = list()
+        for row in obj:
+            data.append({"AttachmentId": row.id,
+                    "Text": row.Value}) 
+        return data
+
 
     def _get_cell_roi_id(self, session, row_idx, col_idx):
         cell_id = session.query(DocumenttablesDb.id).filter(
