@@ -9,6 +9,7 @@ from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
 from .model.documenttables_db import DocumenttablesDb
 from .model.iqvfootnoterecord_db import IqvfootnoterecordDb
+from .iqvkeyvalueset_op import IqvkeyvaluesetOp
 from .model.__base__ import MissingParamException
 from .table_payload_wrapper import get_table_props
 from app.db.session import SessionLocal
@@ -37,7 +38,7 @@ class RelationalMapper():
         },
         "table":{
             "name": DocumenttablesDb,
-            "children":[IqvfootnoterecordDb]
+            "children":[IqvfootnoterecordDb, IqvkeyvaluesetOp]
 
         }
 

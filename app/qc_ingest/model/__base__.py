@@ -26,10 +26,41 @@ def schema_to_dict(row):
         data[column.name] = (getattr(row, column.name))
     return data
 
+def get_table_index(session, doc_id, table_roi_id):
+    table_name = 'DocumentTables'
+    sql = f'SELECT id FROM documenttables_db WHERE doc_id = \'{doc_id}\' and group_type = \'{table_name}\' order by \"DocumentSequenceIndex\"'
+    result = session.execute(sql)
+    table_index = None
+    fetched_result = result.fetchall()
+    for i in range(len(fetched_result)):
+        if table_roi_id == fetched_result[i][0]:
+            table_index = i
+    return table_index
+
+
+def update_table_index(session,table_index, doc_id, op_code):
+    """
+
+    """
+    table_name = 'iqvfootnoterecord_db'
+    sql = f'UPDATE {table_name} SET "table_sequence_index" = "table_sequence_index" {op_code} 1 WHERE "doc_id" = \'{doc_id}\' AND \
+                "table_sequence_index" >= {int(table_index)}'
+    session.execute(sql)
+
+def update_attachment_footnote_index(session, table_roi_id, sequnce_index, op_code):
+    """
+
+    """
+    group_type = 'Attachments'
+    table_name = 'documenttables_db'
+    sql = f'UPDATE {table_name} SET "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "parent_id" = \'{table_roi_id}\' AND "group_type" = \'{group_type}\' AND \
+                "DocumentSequenceIndex" >= {sequnce_index}'
+    session.execute(sql)
+
 
 def update_footnote_index(session, table_roi_id, sequnce_index, op_code):
     """
-    
+
     """
     table_name = 'iqvfootnoterecord_db'
     sql = f'UPDATE {table_name} SET "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "table_roi_id" = \'{table_roi_id}\' AND \

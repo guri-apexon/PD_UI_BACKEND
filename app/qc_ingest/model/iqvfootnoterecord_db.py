@@ -1,8 +1,7 @@
-from sqlalchemy import Column, Index, and_
-from .__base__ import SchemaBase, schema_to_dict, MissingParamException, update_footnote_index
-from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN, BIGINT, JSONB, BYTEA
+from sqlalchemy import Column, and_
+from .__base__ import SchemaBase, schema_to_dict, MissingParamException, update_footnote_index, update_table_index, get_table_index
+from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER
 import uuid
-from datetime import datetime
 
 
 class IqvfootnoterecordDb(SchemaBase):
@@ -34,19 +33,33 @@ class IqvfootnoterecordDb(SchemaBase):
         
         """
         if data['AttachmentListProperties'] != None:
+            table_roi_id = data.get('uuid')
+            doc_id = data.get('doc_id', None)
+            if not doc_id or not table_roi_id:
+                raise MissingParamException('doc_id or table_roi_id')
+            table_index = get_table_index(session, doc_id, table_roi_id)
+            if not table_index:
+                raise MissingParamException('table_index')
             for index, footnote in enumerate(data['AttachmentListProperties']):
                 uid = str(uuid.uuid4())
                 footnoterecord = IqvfootnoterecordDb()
                 footnoterecord.id = uid
                 footnoterecord.doc_id = data.get('doc_id')
-                footnoterecord.table_roi_id = data.get('uuid')
+                footnoterecord.roi_id = footnote.get('AttachmentId', None)
+                footnoterecord.table_roi_id = table_roi_id
                 footnoterecord.table_link_text = data.get('TableName', '')
-                footnoterecord.table_sequence_index = data.get('TableIndex', '')
+                footnoterecord.table_sequence_index = table_index
                 footnoterecord.DocumentSequenceIndex = index
-                footnoterecord.footnote_text = footnote.get('footnote_text', '')
-                footnoterecord.footnote_indicator = footnote.get(
-                    'footnote_indicator', '')
+                text_value = footnote.get('Text', '')
+                footnoterecord.footnote_text = text_value
+                splited_text_list = text_value.split(". ")
+                if len(splited_text_list) > 1:
+                    footnote_indicator = splited_text_list[0]
+                else:
+                    footnote_indicator = 'Note'
+                footnoterecord.footnote_indicator = footnote_indicator
                 session.add(footnoterecord)
+            update_table_index(session, table_index, doc_id, '+')
         return data
 
 
@@ -58,11 +71,16 @@ class IqvfootnoterecordDb(SchemaBase):
         if data['AttachmentListProperties'] != None:
             for footnote in data['AttachmentListProperties']:
                 sequnce_index = None
-                footnote_line_id = footnote.get("footnote_line_id", None)
+                footnote_indicator = 'Note'
+                attachment_id = footnote.get("AttachmentId", None)
+                text_value = footnote.get('Text', '')
+                splited_text_list = text_value.split(". ")
+                if len(splited_text_list) > 1:
+                    footnote_indicator = splited_text_list[0]
                 qc_change_type_footnote = footnote.get(
                     "qc_change_type_footnote", '')
                 table_roi_id = data['id']
-                previous_sequnce_index = footnote.get("previous_sequnce_index")
+                previous_sequnce_index = footnote.get("PrevousAttachmentIndex")
                 if qc_change_type_footnote == 'add':
                     uid = str(uuid.uuid4())
                     if previous_sequnce_index == None:
@@ -76,25 +94,26 @@ class IqvfootnoterecordDb(SchemaBase):
                     prev_dict=schema_to_dict(previous_obj)
                     obj = IqvfootnoterecordDb(**prev_dict)
                     obj.id = uid
+                    obj.roi_id = attachment_id
                     obj.DocumentSequenceIndex = sequnce_index
-                    obj.footnote_text = footnote.get('footnote_text', '')
-                    obj.footnote_indicator = footnote.get('footnote_indicator', '')
+                    obj.footnote_text = text_value
+                    obj.footnote_indicator = footnote_indicator
                     session.add(obj)
                     update_footnote_index(
                         session, table_roi_id, sequnce_index, '+')
                 if qc_change_type_footnote == 'modify':
                     obj = session.query(IqvfootnoterecordDb).filter(
-                        IqvfootnoterecordDb.id == footnote_line_id).first()
+                        IqvfootnoterecordDb.roi_id == attachment_id).first()
                     if not obj:
-                        raise MissingParamException("{0} in Iqvfootnoterecord DB".format(footnote_line_id))
-                    obj.footnote_text = footnote.get('footnote_text', '')
-                    obj.footnote_indicator = footnote.get('footnote_indicator', '')
+                        raise MissingParamException("{0} in Iqvfootnoterecord DB".format(attachment_id))
+                    obj.footnote_text = text_value
+                    obj.footnote_indicator = footnote_indicator
                     session.add(obj)
                 if qc_change_type_footnote == 'delete':
                     obj = session.query(IqvfootnoterecordDb).filter(
-                        IqvfootnoterecordDb.id == footnote_line_id).first()
+                        IqvfootnoterecordDb.roi_id == attachment_id).first()
                     if not obj:
-                        raise MissingParamException("{0} in Iqvfootnoterecord DB".format(footnote_line_id))
+                        raise MissingParamException("{0} in Iqvfootnoterecord DB".format(attachment_id))
                     sequnce_index = obj.DocumentSequenceIndex
                     session.delete(obj)
                     update_footnote_index(
@@ -107,8 +126,10 @@ class IqvfootnoterecordDb(SchemaBase):
         """
         
         """
-        try:
-            session.query(IqvfootnoterecordDb).filter(
-                IqvfootnoterecordDb.table_roi_id == data['id']).delete()
-        except Exception as ex:
-            raise MissingParamException("{0}{1} in Iqvfootnoterecord DB".format(data['id'], ex))
+        table_index = data.get('TableIndex', None)
+        table_roi_id = data.get('id', None)
+        if not table_index or not table_roi_id:
+            raise MissingParamException('table_index or table_roi_id')
+        session.query(IqvfootnoterecordDb).filter(
+            IqvfootnoterecordDb.table_roi_id == table_roi_id).delete()
+        update_table_index(session, table_index, data.get('doc_id'), '-')
