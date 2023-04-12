@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Any
-
+from sqlalchemy import desc
 from app.crud.base import CRUDBase
 from app import crud
 from app.models.pd_email_template import PdEmailTemplates
@@ -31,7 +31,7 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
                                           PD_User_Protocols.id == ProtocolAlert.id)) \
             .join(PD_Protocol_Metadata, and_(PD_Protocol_Metadata.id == ProtocolAlert.aidocId,
                                              PD_Protocol_Metadata.protocol == ProtocolAlert.protocol)) \
-            .filter(ProtocolAlert.timeCreated > alert_from_time, ProtocolAlert.notification_delete.is_not(True)).all()
+            .filter(ProtocolAlert.timeCreated > alert_from_time, ProtocolAlert.notification_delete.is_not(True)).order_by(desc(ProtocolAlert.timeCreated)).all()
         
         response = []
         for user_alert, protocol_upload_date, email_template, doc_status in user_alerts:
