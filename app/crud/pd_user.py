@@ -2,6 +2,8 @@ import logging
 from datetime import datetime
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
+
+from app.crud import pd_user_protocols
 from app.crud.base import CRUDBase
 from app.models.pd_user import User
 from app.schemas.pd_user import UserUpdate, UserCreate
@@ -143,13 +145,24 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
         user_options = self.prepare_response(alert_rec, user_id=user_id)
         return user_options
 
-    def follow_protocol_to_update_user_setting(self, db: Session, user_id: str):
+    def follow_protocol_to_update_user_setting(self, db: Session, user_id: str,
+                                               follow: bool):
         """
-        Automatically new document version set true when user decided to follow protocol
+        Automatically new document version set true when user decided to follow
+        protocol, and set false if user doesn't have followed protocol
         """
         alert_rec = self.get_by_user_id(db=db, user_id=user_id)
-        if alert_rec and alert_rec.new_document_version is False:
-            alert_rec.new_document_version = True
+        update_user_setting = False
+        if follow and alert_rec and alert_rec.new_document_version is False:
+            update_user_setting = True
+        if not follow and alert_rec:
+            follow_protocols = pd_user_protocols.get_user_follow_protocols(
+                db=db, userId=user_id)
+            if not follow_protocols:
+                update_user_setting = True
+
+        if update_user_setting:
+            alert_rec.new_document_version = follow
             try:
                 db.add(alert_rec)
                 db.commit()

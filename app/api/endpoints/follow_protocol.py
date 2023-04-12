@@ -21,6 +21,10 @@ def follow_user_protocol(
     push follow protocol data.
     """
     user_protocol = crud.pd_user_protocols.follow_unfollow(db, obj_in=follow_protocol_in)
+    # To update user global setting based on protocol follow/unfollow
+    crud.user.follow_protocol_to_update_user_setting(db=db,
+                                                     user_id=follow_protocol_in.userId,
+                                                     follow=follow_protocol_in.follow)
     return user_protocol
 
 
