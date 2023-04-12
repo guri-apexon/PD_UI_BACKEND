@@ -3,7 +3,7 @@
         "type": "table",
         "qc_change_type": "modify",
         "table_roi_id": "",
-        "doc_id":"4c7ea27b-8a6b-4bf0-a8ed-2c1e49bbdc8c",
+        "doc_id":"377f1140-22e1-4ed9-aad2-1393cfe6560c",
         "line_id": "204e1b2b-a769-40ce-a014-835420abdf99",
         "prev_detail": {
             "line_id": ""
@@ -202,53 +202,45 @@
             "TableName": "Table New",
             "AttachmentListProperties": [
                 {
-                    "footnote_line_id": "",
-                    "footnote_indicator": "n",
-                    "footnote_text": "n. footnote_text",
-                    "previous_sequnce_index": null,
+                    "AttachmentId": "",
+                    "Text": "n. footnote_text",
+                    "PrevousAttachmentIndex": null,
                     "qc_change_type_footnote": "add"
                 },
                 {
-                    "footnote_line_id": "",
-                    "footnote_indicator": "a",
-                    "footnote_text": "a. footnote_text",
+                    "AttachmentId": "",
+                    "Text": "a. footnote_text",
                     "qc_change_type_footnote": ""
                 },
                 {
-                    "footnote_line_id": "",
-                    "footnote_indicator": "b",
-                    "footnote_text": "b. footnote_text mod",
+                    "AttachmentId": "",
+                    "Text": "b. footnote_text mod",
                     "qc_change_type_footnote": "modify"
                 },
                 {
-                    "footnote_line_id": "",
-                    "footnote_indicator": "c",
-                    "footnote_text": "c. footnote_text",
+                    "AttachmentId": "",
+                    "Text": "c. footnote_text",
                     "qc_change_type_footnote": "delete"
                 },
                 {
-                    "footnote_line_id": "",
-                    "footnote_indicator": "d",
-                    "footnote_text": "d. footnote_text mod",
+                    "AttachmentId": "",
+                    "Text": "d. footnote_text mod",
                     "qc_change_type_footnote": "modify"
                 },
                 {
-                    "footnote_line_id": "",
-                    "footnote_indicator": "e",
-                    "footnote_text": "e. footnote_text mod",
+                    "AttachmentId": "",
+                    "Text": "e. footnote_text mod",
                     "qc_change_type_footnote": "modify"
                 },
                 {
-                    "footnote_line_id": "",
-                    "footnote_indicator": "ne",
-                    "footnote_text": "ne. footnote_text",
-                    "previous_sequnce_index": 4,
+                    "AttachmentId": "",
+                    "Text": "ne. footnote_text",
+                    "PrevousAttachmentIndex": 4,
                     "qc_change_type_footnote": "add"
                 },
                 {
-                    "footnote_line_id": "",
-                    "footnote_indicator": "f",
-                    "footnote_text": "f. footnote_text",
+                    "AttachmentId": "",
+                    "Text": "f. footnote_text",
                     "qc_change_type_footnote": ""
                 }
             ]

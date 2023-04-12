@@ -3,13 +3,13 @@ import logging
 import json
 from copy import deepcopy
 from app.utilities.config import settings
-from app.utilities.utils import notification_service
 from .model.documentparagraphs_db import DocumentparagraphsDb
 from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
 from .model.documenttables_db import DocumenttablesDb
 from .model.iqvfootnoterecord_db import IqvfootnoterecordDb
+from .iqvkeyvalueset_op import IqvkeyvaluesetOp
 from .model.__base__ import MissingParamException
 from .table_payload_wrapper import get_table_props
 from app.db.session import SessionLocal
@@ -38,7 +38,7 @@ class RelationalMapper():
         },
         "table":{
             "name": DocumenttablesDb,
-            "children":[IqvfootnoterecordDb]
+            "children":[IqvfootnoterecordDb, IqvkeyvaluesetOp]
 
         }
 
@@ -141,11 +141,5 @@ def process(payload: list):
             uid_list.append({'uuid':data.get('uuid',''),
                              'op_type':data.get('op_type',''),
                              'qc_change_type':data.get('qc_change_type','')})
-    try:
-        doc_id_from_payload = session.query(IqvdocumentlinkDb).filter_by(id=payload[0]['link_id']).first().doc_id
-        notification_service(doc_id_from_payload, "EDITED",False)
-        logger.info(f"Edited event notification records successfully created for link_id {payload[0]['link_id']}, doc_id {doc_id_from_payload}")
-    except Exception as ex:
-        logger.exception(f"exception  occured for payload link id{payload[0]} for edited event notifications")
 
     return uid_list
