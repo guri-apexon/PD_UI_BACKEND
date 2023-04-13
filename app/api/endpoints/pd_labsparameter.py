@@ -30,55 +30,39 @@ async def get_lab_data(
     return lab_data
 
 
-@router.post("/create_labsparameter")
-def create_labsparameter_data(
-        *,
-        db: Session = Depends(deps.get_db),
-        data: schemas.LabDataCreate,
-        _: str = Depends(auth.validate_user_token)
-) -> Any:
-    """
-    Create new labs data records
-    :param db: database session
-    :param data: clinical terms
-    :param _: To validate API token
-    :returns: response with newly create record
-    """
-    lab_data = crud.labdata_content.save_data_to_db(db, data.data)
-    return lab_data
-
-
-@router.post('/update_labsparameter')
-def update_labsparamater_data(
+@router.post('/lab_data_operations')
+def lab_data_operations(
         *,
         db: Session = Depends(deps.get_db),
         data: schemas.LabDataUpdate,
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
     """
-    update new labs data records
+    Method Used for the lab data operations
     :param db: database session
-    :param data: clinical terms
+    :param data: array of lab data opations objects
     :param _: To validate API token
     :returns: response with newly create record
     """
-    lab_data = crud.labdata_content.update_data_db(data.data)
-    return lab_data
+    response = []
 
+    operations = {"create": [], "update": [], "delete": []}
+    for dt in data.data:
+        if dt.request_type:
+            operations[dt.request_type].append(dt)
 
-@router.post('/delete_labsparameter')
-def delete_labsparameter_data(
-        *,
-        db: Session = Depends(deps.get_db),
-        data: schemas.LabData,
-        _: str = Depends(auth.validate_user_token)
-) -> Any:
-    """
-    delete new labs data records
-    :param db: database session
-    :param data: clinical terms
-    :param _: To validate API token
-    :returns: response with deleted record
-    """
-    lab_data = crud.labdata_content.delete_data_db(db, data.data)
-    return lab_data
+    for k, v in operations.items():
+        if k == "create":
+            res = crud.labdata_content.save_data_to_db(db, v)
+            response.append(res)
+        if k == "update":
+            res1 = crud.labdata_content.update_data_db(db, v)
+            response.append(res1)
+        if k == "delete":
+            res2 = crud.labdata_content.delete_data_db(db, v)
+            response.append(res2)
+
+    if all(response):
+        return {"message": "operation completed successfully"}
+    else:
+        return {"message": "operation not completed successfully"}
