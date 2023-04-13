@@ -75,6 +75,7 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
 
             protocol_alert = db.query(ProtocolAlert).filter(and_(ProtocolAlert.aidocId == notification_read_in.aidocId,
                                                                  ProtocolAlert.id == notification_read_in.id,
+                                                                 ProtocolAlert.alert_id == notification_read_in.alert_id,
                                                                  ProtocolAlert.protocol == notification_read_in.protocol)).first()
             if protocol_alert:
                 time_ = datetime.utcnow()
