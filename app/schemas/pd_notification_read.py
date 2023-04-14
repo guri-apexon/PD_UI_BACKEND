@@ -15,3 +15,4 @@ class NotificationRead(NotificationReadBase):
     aidocId: Optional[str] = None
     readFlag: Optional[bool] = False
     notification_delete: Optional[bool] = False
+    alert_id: Optional[str] = None
