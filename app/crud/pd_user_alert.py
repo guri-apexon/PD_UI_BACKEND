@@ -31,7 +31,7 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
                                           PD_User_Protocols.id == ProtocolAlert.id)) \
             .join(PD_Protocol_Metadata, and_(PD_Protocol_Metadata.id == ProtocolAlert.aidocId,
                                              PD_Protocol_Metadata.protocol == ProtocolAlert.protocol)) \
-            .filter(ProtocolAlert.timeCreated > alert_from_time, ProtocolAlert.notification_delete.is_not(True)).order_by(desc(ProtocolAlert.timeCreated)).all()
+            .filter(ProtocolAlert.timeCreated > alert_from_time, ProtocolAlert.notification_delete.is_not(True)).order_by(desc(ProtocolAlert.timeUpdated)).all()
         
         response = []
         for user_alert, protocol_upload_date, email_template, doc_status in user_alerts:
@@ -75,6 +75,7 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
 
             protocol_alert = db.query(ProtocolAlert).filter(and_(ProtocolAlert.aidocId == notification_read_in.aidocId,
                                                                  ProtocolAlert.id == notification_read_in.id,
+                                                                 ProtocolAlert.alert_id == notification_read_in.alert_id,
                                                                  ProtocolAlert.protocol == notification_read_in.protocol)).first()
             if protocol_alert:
                 time_ = datetime.utcnow()
