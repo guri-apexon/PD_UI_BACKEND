@@ -9,7 +9,7 @@ from sqlalchemy.dialects.postgresql import TEXT
 class IqvsectionlockDb(SchemaBase):
     __tablename__ = "iqvsectionlock_db"
     link_id = Column(TEXT, primary_key=True, nullable=False)
-    doc_id = Column(TEXT)
+    doc_id = Column(TEXT, primary_key=True, nullable=False)
     userId = Column(TEXT)
     user_name = Column(TEXT)
     last_updated = Column(DateTime(timezone=True),
@@ -20,8 +20,8 @@ class IqvsectionlockDb(SchemaBase):
         """
         get existing section loked info
         """
-        if not data.get('link_id', None):
-            raise MissingParamException(f'link_id ')
+        if not data.get('link_id', None) and not data.get('doc_id', None):
+            raise MissingParamException(f'link_id or doc_id ')
         
         obj = session.query(IqvsectionlockDb).filter(
             IqvsectionlockDb.link_id == data['link_id']).first()
@@ -43,8 +43,8 @@ class IqvsectionlockDb(SchemaBase):
         """
         update section locked info
         """
-        if not data.get('link_id', None):
-            raise MissingParamException(f'link_id ')
+        if not data.get('link_id', None) and not data.get('doc_id', None):
+            raise MissingParamException(f'link_id or doc_id ')
         
         if data.get('section_lock') == False:
             section_info = IqvsectionlockDb()
@@ -64,5 +64,7 @@ class IqvsectionlockDb(SchemaBase):
                 IqvsectionlockDb.link_id == data['link_id']).first()
             if not obj:
                 raise MissingParamException("{0} in iqv section lock DB".format(data['link_id']))
+            obj.link_id = data['link_id'] = ""
+            obj.last_updated = data['last_updated'] = datetime.utcnow() 
             session.delete(obj)
         return data

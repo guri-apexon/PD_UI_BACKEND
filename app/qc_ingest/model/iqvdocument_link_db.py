@@ -69,7 +69,8 @@ class IqvdocumentlinkDb(SchemaBase):
         if count!=1:
             logging.error("Cant find unique link record with requested payload ")
         return IqvdocumentlinkDb(**link_obj)
-       
+    
+    @staticmethod
     def get_line_id_for_top_link(session,link_id):
         """
         
@@ -102,14 +103,14 @@ class IqvdocumentlinkDb(SchemaBase):
             curr_dict = schema_to_dict(prev_data)
             curr_dict['DocumentSequenceIndex']=curr_dict['DocumentSequenceIndex']+1
             if not data.get('prev_id',None):
-                data['prev_id']=IqvdocumentlinkDb.get_line_id_for_top_link(data['prev_detail']['link_id'])
+                data['prev_id']=IqvdocumentlinkDb.get_line_id_for_top_link(session, data['prev_detail']['link_id'])
             
         else:
             next_data = IqvdocumentlinkDb.get_link_id(session,data['next_detail'])
             curr_dict = schema_to_dict(next_data)
             curr_dict['DocumentSequenceIndex']=curr_dict['DocumentSequenceIndex']-1
             if not data.get('next_id',None):
-                data['next_id']=IqvdocumentlinkDb.get_line_id_for_top_link(session,data['next_detail']['link_id'])
+                data['next_id']=IqvdocumentlinkDb.get_line_id_for_top_link(session, data['next_detail']['link_id'])
         return curr_dict
         
     @staticmethod
