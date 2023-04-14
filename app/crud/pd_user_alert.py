@@ -1,5 +1,4 @@
-from datetime import datetime, timedelta
-import pytz
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from sqlalchemy import desc
 from app.crud.base import CRUDBase
@@ -59,7 +58,7 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
             data = user_alert
             data.event = email_template
             data.status = doc_status
-            data.timeUpdated = data.timeUpdated.astimezone(pytz.timezone('US/Eastern'))
+            data.timeUpdated = data.timeUpdated.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             response.append(data)
         return response
 
