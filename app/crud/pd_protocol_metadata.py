@@ -403,6 +403,33 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             db.rollback()
             return False, f"Exception occured during updating {current_qc_status} to {target_status} in DB [{str(ex)}]"
 
+    def change_status(self, db: Session, doc_id: str, target_status: str,
+                               current_timestamp=datetime.utcnow()) -> Tuple[bool, str]:
+        """
+        Changes status on the given doc_id
+        """
+        prot_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id,
+                                                                  PD_Protocol_Metadata.isActive == True).first()
+
+        if not prot_metadata_doc:
+            return False, "No protocol document found for the requested doc id"
+
+        current_status = prot_metadata_doc.status
+        if current_status == target_status:
+            return True, f"Protocol's Status is already in {target_status}"
+
+        try:
+            prot_metadata_doc.qcStatus = target_status
+            prot_metadata_doc.lastQcUpdated = current_timestamp
+            prot_metadata_doc.source = config.QC_SOURCE
+
+            db.commit()
+            db.refresh(prot_metadata_doc)
+            return True, f"Successfully changed qcStatus from {current_status} to {target_status}"
+        except Exception as ex:
+            db.rollback()
+            return False, f"Exception occured during updating {current_status} to {target_status} in DB [{str(ex)}]"
+
     def get_latest_protocol(self, db: Session, protocol: str, versionNumber: str) -> Optional[PD_Protocol_Metadata]:
         """Retrieves a record based on protocol and versionNumber"""
         if versionNumber is None:
