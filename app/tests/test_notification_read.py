@@ -15,8 +15,8 @@ client = TestClient(app)
 @pytest.mark.parametrize(
     ["id", "protocol", "aidocId", "readFlag", "notification_delete", "insert_flag", "alert_id", "comment"],
     [
-        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, False, 1, 3152, "To be inserted into db as correct id, aidocid and protocol number and alert id combination."),
-        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, True, 1, 3152, "To be inserted into db as correct id, aidocid and protocol number and alert id combination and verifies notification_delete."),
+        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, False, 1, 3303, "To be inserted into db as correct id, aidocid and protocol number and alert id combination."),
+        ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, True, 1, 3303, "To be inserted into db as correct id, aidocid and protocol number and alert id combination and verifies notification_delete."),
         ("610", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, False, 0, 0, "Not to be inserted into db as incorrect id (incorrect id), aidocid and protocol number combination."),
         ("611", "test_compare_0213_K-877-30", "8410e658-074a-4c6e-a45d-010d1663a0ca", True, False, 0, 0, "Not to be inserted into db as incorrect id, aidocid (incorrect aidocid) and protocol number combination."),
         ("611", "test_compare_0213_K-877-302", "8410e658-074a-4c6e-a45d-010d1663a0c", True, False, 0, 0, "Not to be inserted into db as incorrect id, aidocid and protocol number (incorrect aidocid) combination.")
