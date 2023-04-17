@@ -68,3 +68,11 @@ class IqvsectionlockDb(SchemaBase):
             obj.last_updated = data['last_updated'] = datetime.utcnow() 
             session.delete(obj)
         return data
+
+    @staticmethod
+    def get_doc_lock_status(session, data):
+        res = session.query(IqvsectionlockDb).filter(
+            IqvsectionlockDb.userId == data['user_id'],
+            IqvsectionlockDb.doc_id == data['doc_id']).first()
+
+        return res
