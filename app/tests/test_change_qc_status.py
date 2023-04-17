@@ -48,10 +48,10 @@ def test_qc1_qc_notstarted(new_token_on_headers, user_id, protocol, doc_id_1, do
 def test_qcapproved(new_token_on_headers, doc_id, qc_status, response, comments):
 
     # updating status to TEST_STATUS
-    _ , _ = crud.pd_protocol_metadata.change_status(db, doc_id, qc_status)
+    original_status = ""
     metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id = doc_id)
     if metadata_resource:
-        assert metadata_resource.status == qc_status
+        original_status = metadata_resource.status
 
     qc_status_resp = client.put("/api/protocol_metadata/qc_approve", params={"aidoc_id": doc_id}, headers = new_token_on_headers)
     if qc_status_resp.status_code == status.HTTP_200_OK:
@@ -59,5 +59,8 @@ def test_qcapproved(new_token_on_headers, doc_id, qc_status, response, comments)
         if qc_status_resp.json():
             db.refresh(metadata_resource)
             assert crud.pd_protocol_metadata.get_by_id(db, id = doc_id).status == config.QC_COMPLETED_STATUS
+            # updating back to original status
+            _ , _ = crud.pd_protocol_metadata.change_status(db, doc_id, original_status)
+            db.refresh(metadata_resource)
     else:
         assert False

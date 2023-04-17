@@ -22,6 +22,7 @@ class LabDataBase(BaseModel):
     table_link_text : Optional[str] = None
     table_roi_id : Optional[str] = None
     table_sequence_index : Optional[str] = None
+    request_type: Optional[str] = None
 
 
 class LabDataCreate(BaseModel):

@@ -48,6 +48,8 @@ class PD_Protocol_Metadata(Base):
     approvalDate = Column(DateTime(timezone=True), nullable=True)
     isActive = Column(Boolean, default=True)
     nctId = Column(String, nullable=True)
+    source = Column(String, nullable=True)
+    lastQcUpdated = Column(DateTime(timezone=True), nullable=True)
 
     def as_dict(self):
         obj = {col.name: getattr(self, col.name) for col in self.__table__.columns}

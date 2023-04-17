@@ -10,6 +10,7 @@ class UserAlertBase(BaseModel):
     readFlag: Optional[bool] = False
     protocolTitle: Optional[str] = None
     timeCreated: Optional[datetime] = None
+    timeUpdated: Optional[datetime] = None
     alert_id: Optional[str] = None
     event: Optional[str] = None
     status: Optional[str] = None

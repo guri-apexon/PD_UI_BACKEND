@@ -40,4 +40,7 @@ def remove(data: dict):
     _ = requests.post(management_api_url, data=data, headers=settings.MGMT_CRED_HEADERS)
     logger.info(f"workflow request sent to Management service")
 
+def get_document_lock_status(data: dict):
+    with SessionLocal() as session:
+        data = IqvsectionlockDb.get_doc_lock_status(session, data)
     return data

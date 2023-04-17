@@ -162,7 +162,7 @@ async def approve_qc(
     try:
         update_status, _ = crud.pd_protocol_metadata.change_status(db, aidoc_id, config.QC_COMPLETED_STATUS)
         logger.info(f'{aidoc_id}: qc_approve completed successfully')
-        utils.notification_service(aidoc_id, "QC_COMPLETED",True)
+        utils.notification_service(aidoc_id, config.QC_COMPLETED_STATUS,True)
         return update_status
     except Exception as ex:
         logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
