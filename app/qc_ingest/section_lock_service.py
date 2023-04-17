@@ -37,8 +37,9 @@ def remove(data: dict):
 
     # call management service for run work flow
     management_api_url = settings.MANAGEMENT_SERVICE_URL + "run_work_flow"
-    _ = requests.post(management_api_url, data=data, headers=settings.MGMT_CRED_HEADERS)
+    response = requests.post(management_api_url, data=data, headers=settings.MGMT_CRED_HEADERS)
     logger.info(f"workflow request sent to Management service")
+    return response
 
 def get_document_lock_status(data: dict):
     with SessionLocal() as session:

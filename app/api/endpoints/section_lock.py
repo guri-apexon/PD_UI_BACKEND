@@ -41,8 +41,8 @@ async def put_section_lock(
         raise HTTPException(status_code=500,
                             detail=f"Exception occurred section lock PUT method: {str(ex)}")
 
-@router.post("/remove_section_lock")
-async def remove_section_lock(
+@router.post("/submit_protocol_workflow")
+async def SubmitProtocolWorkflow(
         *,
         payload: dict,
         _: str = Depends(auth.validate_user_token)
