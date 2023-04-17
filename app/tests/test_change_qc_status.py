@@ -40,41 +40,27 @@ def test_qc1_qc_notstarted(new_token_on_headers, user_id, protocol, doc_id_1, do
             logger.error(f"test_changeqc[{comments}]: Could not locate active test file [{doc_id_1} or {doc_id_2}] of {user_id}/{protocol}")
             assert False
 
-@pytest.mark.parametrize("user_id, protocol, doc_id, approver_id, expected_response,  comments", [
-# ("1034911", "SSRUT_GEN_00?", "c8278f9e-abf2-464c-a1b3-9ea674d22d8f", "1034911", status.HTTP_200_OK, "QC approved"),
-("1034911", "SSRUT_GEN_00?", "5c59dbc6-bacc-49d9-a9c6-0a43fa96bf", "1034911", status.HTTP_403_FORBIDDEN, "QC approved - failure case")
+@pytest.mark.parametrize("doc_id, qc_status, response, comments", [
+("17e79287-ca4c-47aa-821a-21268ee0dc42", "QC_COMPLETED", True,"doc id exists and change status"),
+("17e79287-ca4c-47aa-821a-21268ee0dc42", "TEST_STATUS", True,"doc id with different status"),
+("17e79287-ca4c-47aa-821a-21268ee0dc42no", "QC_COMPLETED", False, "doc id does not exists"),
 ])
-def test_qcapproved(new_token_on_headers, user_id, protocol, doc_id,  approver_id, expected_response, comments):
-    current_timestamp = datetime.utcnow()
+def test_qcapproved(new_token_on_headers, doc_id, qc_status, response, comments):
 
-    # Rename file
-    _, _ = file_utils.rename_json_file(db, aidoc_id = doc_id, src_prefix=config.QC_APPROVED_FILE_PREFIX, target_prefix=config.QC_WIP_SRC_DB_FILE_PREFIX, feedback_flag=True)
+    # updating status to TEST_STATUS
+    original_status = ""
+    metadata_resource = crud.pd_protocol_metadata.get_by_id(db, id = doc_id)
+    if metadata_resource:
+        original_status = metadata_resource.status
 
-    # Approve
-    qc_status_resp = client.put("/api/protocol_metadata/qc_approve", params={"aidoc_id": doc_id, "approvedBy": approver_id}, headers = new_token_on_headers)
-    assert qc_status_resp.status_code == expected_response
-
-    if expected_response == status.HTTP_200_OK:
-        # Verify qc status
-        protocol_metadata_doc = db.query(PD_Protocol_Metadata).filter(PD_Protocol_Metadata.id == doc_id, PD_Protocol_Metadata.isActive == True).first()
-        
-        if protocol_metadata_doc:
-            assert protocol_metadata_doc.qcStatus == config.QC_APPROVED_STATUS
-        else:
-            logger.error(f"test_qcapproved[{comments}]: Could not locate active test file [{doc_id}] of {user_id}/{protocol}")
-            assert False
-
-        # Verify data
-        protocol_qc_summ_data_doc_id = db.query(PDProtocolQCSummaryData.aidocId, PDProtocolQCSummaryData.qcApprovedBy, PDProtocolQCSummaryData.timeUpdated)\
-                                                .filter(PDProtocolQCSummaryData.aidocId == doc_id, PDProtocolQCSummaryData.source == 'QC').first()
-        
-        if protocol_qc_summ_data_doc_id:
-            assert protocol_qc_summ_data_doc_id.timeUpdated >= current_timestamp
-            assert protocol_qc_summ_data_doc_id.qcApprovedBy == approver_id
-        else:
-            logger.error(f"test_qcapproved[{comments}]: Could not locate SRC record in  [{doc_id}] of {user_id}/{protocol}")
-            assert False
-
-        # Verify QC file
-        _, abs_filename = file_utils.get_json_filename(db, aidoc_id=doc_id, prefix=config.QC_APPROVED_FILE_PREFIX, feedback_flag=True)
-        assert abs_filename.is_file()
+    qc_status_resp = client.put("/api/protocol_metadata/qc_approve", params={"aidoc_id": doc_id}, headers = new_token_on_headers)
+    if qc_status_resp.status_code == status.HTTP_200_OK:
+        assert qc_status_resp.json() == response
+        if qc_status_resp.json():
+            db.refresh(metadata_resource)
+            assert crud.pd_protocol_metadata.get_by_id(db, id = doc_id).status == config.QC_COMPLETED_STATUS
+            # updating back to original status
+            _ , _ = crud.pd_protocol_metadata.change_status(db, doc_id, original_status)
+            db.refresh(metadata_resource)
+    else:
+        assert False
