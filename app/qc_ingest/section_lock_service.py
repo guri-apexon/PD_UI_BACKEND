@@ -23,3 +23,9 @@ def put(data: dict):
         data = IqvsectionlockDb.update_record(session, data)
         session.commit()
     return data
+
+
+def get_document_lock_status(data: dict):
+    with SessionLocal() as session:
+        data = IqvsectionlockDb.get_doc_lock_status(session, data)
+    return data
