@@ -3,6 +3,7 @@ from app.utilities.config import settings
 from .model.iqvsectionlock_db import IqvsectionlockDb
 from app.db.session import SessionLocal
 import requests
+import json
 
 logger = logging.getLogger(settings.LOGGER_NAME)
 
@@ -36,10 +37,12 @@ def remove(data: dict):
         session.commit()
 
     # call management service for run work flow
+    del data['userId']
     management_api_url = settings.MANAGEMENT_SERVICE_URL + "run_work_flow"
-    response = requests.post(management_api_url, data=data, headers=settings.MGMT_CRED_HEADERS)
+    settings.MGMT_CRED_HEADERS.update({'Content-Type': 'application/json'})
+    response = requests.post(management_api_url, data=json.dumps(data), headers=settings.MGMT_CRED_HEADERS)
     logger.info(f"workflow request sent to Management service")
-    return response
+    return response.json()
 
 def get_document_lock_status(data: dict):
     with SessionLocal() as session:
