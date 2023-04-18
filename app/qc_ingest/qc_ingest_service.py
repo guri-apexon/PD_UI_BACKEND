@@ -71,7 +71,20 @@ class RelationalMapper():
             child_table.delete(session, data)
 
 
-def get_content_info(data: dict):
+def get_table_roi_id(session, line_id):
+    col_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == line_id).first()
+    if not col_id:
+        raise MissingParamException('record for line_id in Documenttables DB')
+    row_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == col_id[0]).first()
+    if not row_id:
+        raise MissingParamException('row_id for line_id in Documenttables DB')
+    table_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == row_id[0]).first()
+    if not table_id:
+        raise MissingParamException('table_id for line_id in Documenttables DB')
+    return table_id[0]
+
+    
+def get_content_info(data: dict, session):
     """
     use prev_line id for add ,delete update curr line id used
     """
@@ -80,6 +93,12 @@ def get_content_info(data: dict):
         action_list = list()
         prev_line_id,next_line_id, table_props, footnote_list = None, None, None, None
         if data.get('type') == 'table':
+            if action_type != 'add':
+                line_id = data.get('line_id', '')[0:36]
+                if not line_id:
+                    raise MissingParamException('line_id')
+                data['table_roi_id'] = get_table_roi_id(session, line_id)
+
             table_props, footnote_list = get_table_props(action_type, data)
         if action_type == 'add':
             prev_details = data.get('prev_detail',{})
@@ -114,7 +133,7 @@ def get_content_info(data: dict):
 
 
 def process_data(session, mapper, data: dict):
-    action_name, action_list = get_content_info(data)
+    action_name, action_list = get_content_info(data, session)
     for action_data in action_list:
         if action_name == 'add' and action_data:
             mapper.create(session, action_data)

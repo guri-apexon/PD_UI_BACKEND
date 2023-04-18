@@ -41,6 +41,22 @@ async def put_section_lock(
         raise HTTPException(status_code=500,
                             detail=f"Exception occurred section lock PUT method: {str(ex)}")
 
+@router.post("/submit_protocol_workflow")
+async def SubmitProtocolWorkflow(
+        *,
+        payload: dict,
+        _: str = Depends(auth.validate_user_token)
+) -> Any:
+    """
+    payload for delete of section lock and call workflow run
+    """
+    try:
+        result = section_lock_service.remove(payload)
+        return {"success": True,"info":result}
+    except Exception as ex:
+        raise HTTPException(status_code=500,
+                            detail=f"Exception occurred section lock delete: {str(ex)}")
+
 
 @router.get("/document_lock_status")
 async def get_document_lock_status(
