@@ -32,7 +32,7 @@ class IqvfootnoterecordDb(SchemaBase):
         """
         
         """
-        if data['AttachmentListProperties'] != None:
+        if data.get('AttachmentListProperties'):
             table_roi_id = data.get('uuid')
             doc_id = data.get('doc_id', None)
             if not doc_id or not table_roi_id:
@@ -52,11 +52,14 @@ class IqvfootnoterecordDb(SchemaBase):
                 footnoterecord.DocumentSequenceIndex = index
                 text_value = footnote.get('Text', '')
                 footnoterecord.footnote_text = text_value
-                splited_text_list = text_value.split(". ")
-                if len(splited_text_list) > 1:
-                    footnote_indicator = splited_text_list[0]
+                footnote_indicator = None
+                splited_text = text_value.split(": ")
+                if text_value != splited_text[0] and len(splited_text)>0:
+                    footnote_indicator = splited_text[0]
                 else:
-                    footnote_indicator = 'Note'
+                    splited_text = text_value.split('. ')
+                    if text_value != splited_text[0] and len(splited_text)>0:
+                        footnote_indicator = splited_text[0]
                 footnoterecord.footnote_indicator = footnote_indicator
                 session.add(footnoterecord)
             update_table_index(session, table_index, doc_id, '+')
@@ -68,18 +71,22 @@ class IqvfootnoterecordDb(SchemaBase):
         """
         
         """
-        if data['AttachmentListProperties'] != None:
+        if data.get('AttachmentListProperties'):
             for footnote in data['AttachmentListProperties']:
                 sequnce_index = None
-                footnote_indicator = 'Note'
                 attachment_id = footnote.get("AttachmentId", None)
                 text_value = footnote.get('Text', '')
-                splited_text_list = text_value.split(". ")
-                if len(splited_text_list) > 1:
-                    footnote_indicator = splited_text_list[0]
+                footnote_indicator = None
+                splited_text = text_value.split(": ")
+                if text_value != splited_text[0] and len(splited_text)>0:
+                    footnote_indicator = splited_text[0]
+                else:
+                    splited_text = text_value.split('. ')
+                    if text_value != splited_text[0] and len(splited_text)>0:
+                        footnote_indicator = splited_text[0]
                 qc_change_type_footnote = footnote.get(
                     "qc_change_type_footnote", '')
-                table_roi_id = data['id']
+                table_roi_id = data['table_roi_id']
                 previous_sequnce_index = footnote.get("PrevousAttachmentIndex")
                 if qc_change_type_footnote == 'add':
                     uid = str(uuid.uuid4())
@@ -127,7 +134,7 @@ class IqvfootnoterecordDb(SchemaBase):
         
         """
         table_index = data.get('TableIndex', None)
-        table_roi_id = data.get('id', None)
+        table_roi_id = data.get('table_roi_id', None)
         if not table_index or not table_roi_id:
             raise MissingParamException('table_index or table_roi_id')
         session.query(IqvfootnoterecordDb).filter(
