@@ -419,8 +419,6 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             return True, f"Protocol's Status is already in {target_status}"
 
         try:
-            prot_metadata_doc.status = target_status
-            prot_metadata_doc.lastUpdated = current_timestamp
             prot_metadata_doc.qcStatus = target_status
             prot_metadata_doc.lastQcUpdated = current_timestamp
             prot_metadata_doc.source = config.QC_SOURCE
