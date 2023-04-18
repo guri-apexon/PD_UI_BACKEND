@@ -5,10 +5,11 @@ from app.db.session import SessionLocal
 from app.qc_ingest.model.iqvfootnoterecord_db import IqvfootnoterecordDb
 from app.main import app
 from fastapi.testclient import TestClient
-from app.qc_ingest.model.documenttables_db import DocTableHelper
+from app.qc_ingest.model.documenttables_db import DocTableHelper, DocumenttablesDb
 from app.qc_ingest.model.__base__ import get_table_index
 from copy import deepcopy
 import uuid
+from sqlalchemy import and_
 
 client = TestClient(app)
 db = SessionLocal()
@@ -96,6 +97,13 @@ def get_table_index_value(doc_id, uuid):
         table_index = get_table_index(session, doc_id, uuid)
         return table_index
 
+def get_line_id(uuid):
+    with SessionLocal() as session:
+        row_id = session.query(DocumenttablesDb.id).filter(and_(DocumenttablesDb.parent_id == uuid,DocumenttablesDb.group_type == "ChildBoxes")).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
+        col_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == row_id[0]).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
+        line_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == col_id[0]).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
+        return line_id[0]
+
 def get_table_footnote_data(uuid):
     data = list()
     with SessionLocal() as session:
@@ -129,7 +137,7 @@ def create_table(qc_ingest_test_data, new_token_on_headers):
 def delete_table(uuid, new_token_on_headers):
     qc_ingest_test_data = r"./app/tests/data/qc_ingest_table_delete.json"
     payload = get_payload(qc_ingest_test_data)
-    payload[0]['line_id'] = uuid
+    payload[0]['line_id'] = get_line_id(uuid)
     payload[0]['TableIndex'] = get_table_index_value(payload[0]['doc_id'], uuid)
     response = client.post(
         TEST_END_POINT, json=payload, headers=new_token_on_headers)
@@ -139,7 +147,7 @@ def delete_table(uuid, new_token_on_headers):
 def modify_data_all(uuid, new_token_on_headers):
     qc_ingest_test_data = r"./app/tests/data/qc_ingest_table_data_modify_table.json"
     payload = get_payload(qc_ingest_test_data)
-    payload[0]['line_id'] = uuid
+    payload[0]['line_id'] = get_line_id(uuid)
     table_footnote_data = get_table_footnote_data(uuid)
     footnote_list = payload[0]['content']['AttachmentListProperties']
     payload[0]['content']['TableIndex'] = get_table_index_value(payload[0]['doc_id'], uuid)
@@ -207,7 +215,7 @@ def test_document_table_curd_all_modifiction(new_token_on_headers, qc_ingest_tes
     assert table_footnote_data[4]['Text'] == 'e. footnote_text mod'
     assert table_footnote_data[5]['Text'] == 'ne. footnote_text'
     assert table_footnote_data[6]['Text'] == 'f. footnote_text'
-
+    
     delete_table(uuid, new_token_on_headers)
     data = get_table_data(uuid)
     assert data == {}
