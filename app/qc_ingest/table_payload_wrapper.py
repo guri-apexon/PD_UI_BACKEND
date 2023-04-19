@@ -166,19 +166,23 @@ def get_table_props(action_type: str, data: dict):
             raise MissingParamException('content')
         content = data['content']
         if not content.get('TableProperties', None):
-            raise MissingParamException('.TableProperties.')
-        table_props = content['TableProperties']
-        data['TableIndex'] = content.get('TableIndex')
-        data['TableName'] = content.get('TableName')
-        footnote_list = content.get('AttachmentListProperties')
-        if isinstance(table_props, str):
-            table_props = json.loads(table_props)
-        if action_type == Oprations.ADD:
-            wrapped_table_props = get_add_wrapped_table_props(
-                wrapped_table_props, table_props)
-        if action_type == Oprations.MODIFY:
-            wrapped_table_props = get_modify_wrapped_table_props(
-                wrapped_table_props, table_props)
+            if not content.get('AttachmentListProperties', None):
+                raise MissingParamException('TableProperties and AttachmentListProperties')
+            else:
+                footnote_list = content.get('AttachmentListProperties')
+        else:
+            table_props = content['TableProperties']
+            data['TableIndex'] = content.get('TableIndex')
+            data['TableName'] = content.get('TableName')
+            footnote_list = content.get('AttachmentListProperties')
+            if isinstance(table_props, str):
+                table_props = json.loads(table_props)
+            if action_type == Oprations.ADD:
+                wrapped_table_props = get_add_wrapped_table_props(
+                    wrapped_table_props, table_props)
+            if action_type == Oprations.MODIFY:
+                wrapped_table_props = get_modify_wrapped_table_props(
+                    wrapped_table_props, table_props)
 
     if action_type == Oprations.DELETE:
         wrapped_table_props.append({"op_type": Oprations.DELETE_TABLE,
