@@ -98,7 +98,6 @@ def get_content_info(data: dict, session):
                 if not line_id:
                     raise MissingParamException('line_id')
                 data['table_roi_id'] = get_table_roi_id(session, line_id)
-
             table_props, footnote_list = get_table_props(action_type, data)
         if action_type == 'add':
             prev_details = data.get('prev_detail',{})
@@ -112,6 +111,8 @@ def get_content_info(data: dict, session):
         data['userId'] = audit.get('last_updated_user', None)
 
         if table_props == None:
+            if footnote_list != None:
+                data['AttachmentListProperties'] = footnote_list
             action_list.append(data)
         else:
             for index, table_props_data in enumerate(table_props):

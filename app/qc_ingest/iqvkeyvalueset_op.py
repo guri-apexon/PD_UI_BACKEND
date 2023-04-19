@@ -135,16 +135,17 @@ class PropertiesMaker():
             DocumenttablesDb.id == table_roi_id).first()
         prev_dict = schema_to_dict(table_roi_data)
         link_roi, link_level = self.get_link_details(prev_dict)
-        table_properties_list = self.update_table_properties(
-            session, table_roi_id, table_name, table_index, prev_dict, link_roi, link_level)
-        for table_properties in table_properties_list:
-                session.add(table_properties)  
-        table_data = doc_table_helper.get_table(session, table_roi_id)
-        for row in table_data.values():
-            table_cell_properties_list = self.update_table_cell_properties(
-                row, table_index, table_name, prev_dict, session, link_roi, link_level)
-            for table_cell_properties in table_cell_properties_list:
-                session.add(table_cell_properties)
+        if data.get('op_params'):
+            table_properties_list = self.update_table_properties(
+                session, table_roi_id, table_name, table_index, prev_dict, link_roi, link_level)
+            for table_properties in table_properties_list:
+                    session.add(table_properties)
+            table_data = doc_table_helper.get_table(session, table_roi_id)
+            for row in table_data.values():
+                table_cell_properties_list = self.update_table_cell_properties(
+                    row, table_index, table_name, prev_dict, session, link_roi, link_level)
+                for table_cell_properties in table_cell_properties_list:
+                    session.add(table_cell_properties)
         if data.get('AttachmentListProperties'):
             table_footnote_data = doc_table_helper.get_table_footnote_data(
                 session, table_roi_id)
