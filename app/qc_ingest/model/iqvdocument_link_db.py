@@ -172,15 +172,16 @@ class IqvdocumentlinkDb(SchemaBase):
 
     @staticmethod
     def delete(session, data):
-        obj=IqvdocumentlinkDb.get_link_id(session,data)
-        if not obj:
-            raise Exception(f'unable to find link object ')
-        sequence_id = obj.DocumentSequenceIndex
-        doc_id = obj.doc_id
-        if not data.get('id',None):
-            data['id']=IqvdocumentlinkDb.get_line_id_for_top_link(session,data['link_id'])
-        update_link_index(session, IqvdocumentlinkDb.__tablename__, doc_id,
-                          sequence_id, CurdOp.DELETE)
-        sql_query = f'DELETE FROM {IqvdocumentlinkDb.__tablename__} WHERE "id"=\'{obj.id}\''
-        session.execute(sql_query)
+        if data.get('is_section_header') == False or data.get('delete_section_header') == True:
+            obj=IqvdocumentlinkDb.get_link_id(session,data)
+            if not obj:
+                raise Exception(f'unable to find link object ')
+            sequence_id = obj.DocumentSequenceIndex
+            doc_id = obj.doc_id
+            if not data.get('id',None):
+                data['id']=IqvdocumentlinkDb.get_line_id_for_top_link(session,data['link_id'])
+            update_link_index(session, IqvdocumentlinkDb.__tablename__, doc_id,
+                            sequence_id, CurdOp.DELETE)
+            sql_query = f'DELETE FROM {IqvdocumentlinkDb.__tablename__} WHERE "id"=\'{obj.id}\''
+            session.execute(sql_query)
 
