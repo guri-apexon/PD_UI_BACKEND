@@ -51,8 +51,8 @@ async def SubmitProtocolWorkflow(
     payload for delete of section lock and call workflow run
     """
     try:
-        result = section_lock_service.remove(payload)
-        return {"success": True,"info":result}
+        result, status = section_lock_service.remove(payload)
+        return {"success": status, "info": result.get('message')}
     except Exception as ex:
         raise HTTPException(status_code=500,
                             detail=f"Exception occurred section lock delete: {str(ex)}")
