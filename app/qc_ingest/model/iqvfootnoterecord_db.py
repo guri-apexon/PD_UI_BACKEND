@@ -97,9 +97,20 @@ class IqvfootnoterecordDb(SchemaBase):
                     previous_obj = session.query(IqvfootnoterecordDb).filter(and_(IqvfootnoterecordDb.table_roi_id ==
                                                                         table_roi_id, IqvfootnoterecordDb.DocumentSequenceIndex == sequnce_index)).first()
                     if not previous_obj:
-                        raise MissingParamException("{0} previous footnote in Iqvfootnoterecord DB".format(table_roi_id))
-                    prev_dict=schema_to_dict(previous_obj)
-                    obj = IqvfootnoterecordDb(**prev_dict)
+                        if sequnce_index == 0:
+                            doc_id = data.get('doc_id')
+                            table_index = get_table_index(session, doc_id, table_roi_id)
+                            if not table_index:
+                                raise MissingParamException('table_index')
+                            obj = IqvfootnoterecordDb()
+                            obj.doc_id = doc_id
+                            obj.table_roi_id = table_roi_id
+                            obj.table_sequence_index = table_index
+                        else:   
+                            raise MissingParamException("{0} previous footnote in Iqvfootnoterecord DB".format(table_roi_id))
+                    else:
+                        prev_dict=schema_to_dict(previous_obj)
+                        obj = IqvfootnoterecordDb(**prev_dict)
                     obj.id = uid
                     obj.roi_id = attachment_id
                     obj.DocumentSequenceIndex = sequnce_index
