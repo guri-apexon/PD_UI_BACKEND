@@ -134,8 +134,8 @@ class IqvdocumentlinkDb(SchemaBase):
         para_data.group_type = 'DocumentLinks'
         para_data.LinkType = 'toc'
         para_data.LinkPrefix = data.get('link_prefix', '')
-        para_data.LinkText = link_text = data.get('link_text', '')
-        para_data.iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else link_text
+        para_data.LinkText = data.get('link_text', '')
+        para_data.iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else ""
         para_data.LinkLevel = data.get('link_level', para_data.LinkLevel)
         para_data.id = _id
         doc_id = para_data.doc_id
@@ -159,12 +159,18 @@ class IqvdocumentlinkDb(SchemaBase):
             data['id']=IqvdocumentlinkDb.get_line_id_for_top_link(session,data['link_id'])
         link_text= data['link_text'] if data.get('link_text',None) else obj.LinkText
         link_prefix= data['link_prefix'] if data.get('link_prefix',None) else obj.LinkPrefix
-        iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else link_text
+        iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else obj.iqv_standard_term
+        user_id = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else obj.userId
+        source_system = obj.predicted_term_source_system
+        if iqv_standard_term != obj.iqv_standard_term and source_system != "NLP":
+            source_system = "QC"
         if data.get('content',None):
-            data['content']=link_text
+            data['content'] = link_text
         sql = f'UPDATE {IqvdocumentlinkDb.__tablename__} SET "LinkText" = \'{link_text}\' , \
                     "LinkPrefix" = \'{link_prefix}\' , \
                     "iqv_standard_term" = \'{iqv_standard_term}\' , \
+                    "userId" = \'{user_id}\' , \
+                    "predicted_term_source_system" = \'{source_system}\' , \
                     "last_updated" = \'{datetime.utcnow()}\' , \
                     "num_updates" = "num_updates" + 1  \
                     WHERE  "id" = \'{obj.id}\' '

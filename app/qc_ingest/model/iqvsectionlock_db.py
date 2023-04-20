@@ -51,7 +51,10 @@ class IqvsectionlockDb(SchemaBase):
             raise MissingParamException(f'link_id or doc_id ')
         doc_id = data.get('doc_id')
         if data.get('section_lock') == False:
-            section_info = IqvsectionlockDb()
+            section_info = session.query(IqvsectionlockDb).filter(
+                IqvsectionlockDb.link_id == data['link_id']).first()
+            if not section_info:
+                section_info = IqvsectionlockDb()
             crud_user_search = CRUDUserSearch(User)
             section_info.link_id = data.get('link_id')
             section_info.doc_id = doc_id
