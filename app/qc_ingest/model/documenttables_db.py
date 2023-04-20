@@ -370,9 +370,19 @@ class DocTableHelper():
                     previous_obj = session.query(DocumenttablesDb).filter(and_(DocumenttablesDb.parent_id ==
                                                                         table_roi_id, DocumenttablesDb.group_type == 'Attachments', DocumenttablesDb.DocumentSequenceIndex == sequnce_index)).first()
                     if not previous_obj:
-                        raise MissingParamException("{0} previous footnote in DocumenttablesDb DB".format(table_roi_id))
-                    prev_dict=schema_to_dict(previous_obj)
-                    obj = DocumenttablesDb(**prev_dict)
+                        if sequnce_index == 0:
+                            previous_obj = session.query(IqvpageroiDb).filter(
+                                            and_(IqvpageroiDb.id == table_roi_id, IqvpageroiDb.group_type != 'ChildBoxes')).first()
+                            prev_dict=schema_to_dict(previous_obj)
+                            obj = DocumenttablesDb(**prev_dict)
+                            obj.hierarchy = 'table'
+                            obj.group_type = 'Attachments'
+                            obj.parent_id = table_roi_id
+                        else:   
+                            raise MissingParamException("{0} previous footnote in Iqvfootnoterecord DB".format(table_roi_id))
+                    else:
+                        prev_dict=schema_to_dict(previous_obj)
+                        obj = DocumenttablesDb(**prev_dict)
                     obj.id = footnote['AttachmentId'] = uid
                     obj.DocumentSequenceIndex = sequnce_index
                     obj.Value = text_value
