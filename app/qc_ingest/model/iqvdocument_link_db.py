@@ -160,10 +160,17 @@ class IqvdocumentlinkDb(SchemaBase):
         link_text= data['link_text'] if data.get('link_text',None) else obj.LinkText
         link_prefix= data['link_prefix'] if data.get('link_prefix',None) else obj.LinkPrefix
         iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else obj.iqv_standard_term
+<<<<<<< HEAD
         user_id = data['userId'] if data.get('userId',None) else obj.userId
         source_system = obj.predicted_term_source_system
         if iqv_standard_term != obj.iqv_standard_term:
             source_system = "QC2"
+=======
+        user_id = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else obj.userId
+        source_system = obj.predicted_term_source_system
+        if iqv_standard_term != obj.iqv_standard_term and source_system != "NLP":
+            source_system = "QC"
+>>>>>>> origin/develop
         if data.get('content',None):
             data['content'] = link_text
         sql = f'UPDATE {IqvdocumentlinkDb.__tablename__} SET "LinkText" = \'{link_text}\' , \
