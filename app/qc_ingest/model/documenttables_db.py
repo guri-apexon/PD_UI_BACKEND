@@ -1,5 +1,5 @@
 from sqlalchemy import Column, and_, DateTime
-from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, update_attachment_footnote_index, CurdOp, MissingParamException
+from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, update_attachment_footnote_index, CurdOp, MissingParamException, update_link_update_details
 from .iqvpage_roi_db import IqvpageroiDb
 from .iqvkeyvalueset_db import IqvkeyvaluesetDb
 from .documentparagraphs_db import DocumentparagraphsDb
@@ -245,11 +245,11 @@ class DocumenttablesDb(SchemaBase):
     def update(session, data):
         """
         """
+        table_roi_id = data.get('table_roi_id')
+        if not table_roi_id:
+            raise MissingParamException('line_id')
         op_params = data.get('op_params')
         if op_params != None:
-            table_roi_id = data.get('table_roi_id')
-            if not table_roi_id:
-                raise MissingParamException('line_id')
             doc_table_helper = DocTableHelper()
             table_data = doc_table_helper.get_table(session, table_roi_id)
             userid = data.get('userId')
@@ -277,6 +277,10 @@ class DocumenttablesDb(SchemaBase):
                 raise MissingParamException(" or invalid operation type")
 
         doc_table_helper.update_footnote(session, data)
+        obj = session.query(DocumenttablesDb).filter(DocumenttablesDb.id == table_roi_id).first()
+        if not obj:
+            raise MissingParamException("{table_roi_id} in Documenttables DB")
+        update_link_update_details(session, obj.link_id, data.get('userId'), datetime.utcnow())
         session.commit()
 
     @staticmethod
@@ -284,7 +288,7 @@ class DocumenttablesDb(SchemaBase):
         doc_table_helper = DocTableHelper()
         table_id = data.get('table_roi_id')
         if data['op_type'] == TableOp.DELETE_TABLE:
-            doc_table_helper.delete_table(session, table_id)
+            doc_table_helper.delete_table(session, table_id, data.get('userId'))
             doc_table_helper.delete_footnote(session, data)
         else:
             raise MissingParamException("or invalid operation type")
@@ -322,6 +326,7 @@ class DocTableHelper():
         doc_id = prev_data.doc_id
         para_data.parent_id = data['doc_id'] = doc_id
         update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
+        update_link_update_details(session, para_data.link_id, para_data.userId, para_data.last_updated)
         session.add(para_data)
         return para_data
     
@@ -627,7 +632,7 @@ class DocTableHelper():
                 self.add_col(session, row_dict, col_idx, col_val['val'], sequence_index, sequence_id)
         return table_entry.id
 
-    def delete_table(self, session, table_id):
+    def delete_table(self, session, table_id, user_id):
         """
         get all rows and delete ,get all cols and delete at last delete all entries.
         """
@@ -662,6 +667,7 @@ class DocTableHelper():
             DocumenttablesDb.id == table_id).first()
         doc_id = obj.doc_id
         sequence_id = obj.SequenceID
+        update_link_update_details(session, obj.link_id, user_id, datetime.utcnow())
         session.delete(obj)
         # update roi index
         update_roi_index(session, doc_id, sequence_id, CurdOp.DELETE)
