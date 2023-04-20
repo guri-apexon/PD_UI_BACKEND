@@ -20,6 +20,7 @@ router = APIRouter()
 async def qc_ingest(
         *,
         doc_id: str = "",
+        user_id: str = "",
         payload: list,
         _: str = Depends(auth.validate_user_token)
 ) -> Any:
@@ -31,7 +32,7 @@ async def qc_ingest(
 
         # adding edited notification service function call
         try:
-            notification_service(doc_id, "EDITED",False)
+            notification_service(doc_id, "EDITED", False, user_id)
             logger.info(f"Edited event notification records successfully created for doc_id {doc_id}")
         except Exception as ex:
             logger.exception(f"exception occured for doc_id {doc_id} to edited event notifications : {str(ex)}")

@@ -153,6 +153,7 @@ async def change_qc_status(*, db: Session = Depends(deps.get_db),
 @router.put("/qc_approve", response_model=bool)
 async def approve_qc(
         db: Session = Depends(deps.get_db),
+        user_id: str = "",
         aidoc_id: str = Query(..., description = "Internal document id", min_length = 1),
          _: str = Depends(auth.validate_user_token)
 ) -> Any:
@@ -162,7 +163,7 @@ async def approve_qc(
     try:
         update_status, _ = crud.pd_protocol_metadata.change_status(db, aidoc_id, config.QC_COMPLETED_STATUS)
         logger.info(f'{aidoc_id}: qc_approve completed successfully')
-        utils.notification_service(aidoc_id, config.QC_COMPLETED_STATUS,True)
+        utils.notification_service(aidoc_id, config.QC_COMPLETED_STATUS,True, user_id)
         return update_status
     except Exception as ex:
         logger.exception(f'{aidoc_id}: Exception occurred in qc_approve {str(ex)}')
