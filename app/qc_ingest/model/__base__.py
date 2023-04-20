@@ -29,7 +29,7 @@ def schema_to_dict(row):
 def update_link_update_details(session, link_id, user_id, last_updated):
     
     table_name = 'iqvdocumentlink_db'
-    sql = f'UPDATE {table_name} SET "userId" = \'{user_id}\', "last_updated" = \'{last_updated}\', "num_updates" = "num_updates" + 1 WHERE "link_id" = \'{link_id}\''
+    sql = f'UPDATE {table_name} SET "userId" = \'{user_id}\', "last_updated" = \'{last_updated}\', "num_updates" = "num_updates" + 1 WHERE "id" = \'{link_id}\''
     session.execute(sql)
 
 
