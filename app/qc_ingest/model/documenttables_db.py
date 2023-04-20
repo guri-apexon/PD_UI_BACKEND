@@ -228,14 +228,15 @@ class DocumenttablesDb(SchemaBase):
         """
         doc_table_helper = DocTableHelper()
         table_props = data.get('op_params')
-        parse_table = ParseTable()
-        num_rows, num_cols, table_data = parse_table.parse(table_props)
-        if data['op_type'] == TableOp.CREATE_TABLE:
-            table_id = doc_table_helper.create_table(
-                session, data, num_rows, num_cols, table_data)
-            print('table id is ', table_id)
-        else:
-            raise MissingParamException(" or invalid operation type ")
+        if table_props != None:
+            parse_table = ParseTable()
+            num_rows, num_cols, table_data = parse_table.parse(table_props)
+            if data['op_type'] == TableOp.CREATE_TABLE:
+                table_id = doc_table_helper.create_table(
+                    session, data, num_rows, num_cols, table_data)
+                print('table id is ', table_id)
+            else:
+                raise MissingParamException(" or invalid operation type ")
         doc_table_helper.create_footnote(session, data)
         session.commit()
         return data
@@ -244,35 +245,36 @@ class DocumenttablesDb(SchemaBase):
     def update(session, data):
         """
         """
-        table_roi_id = data.get('table_roi_id')
-        if not table_roi_id:
-            raise MissingParamException('line_id')
-        doc_table_helper = DocTableHelper()
-        table_data = doc_table_helper.get_table(session, table_roi_id)
-        userid = data.get('userId')
         op_params = data.get('op_params')
-        op_type = data.get('op_type', None)
-        parse_table = ParseTable()
-        op_params = parse_table.get_op_params(op_type, op_params, table_data)
-        _, _, table_data = parse_table.parse(op_params)
-        if op_type == TableOp.UPDATE_TABLE:
-            doc_table_helper.update_table(session, table_data, userid)
-        elif op_type == TableOp.INSERT_ROW:
-            for row_idx, row_data in table_data.items():
-                doc_table_helper.insert_row(
-                    session, table_roi_id, row_idx, row_data, userid)
+        if op_params != None:
+            table_roi_id = data.get('table_roi_id')
+            if not table_roi_id:
+                raise MissingParamException('line_id')
+            doc_table_helper = DocTableHelper()
+            table_data = doc_table_helper.get_table(session, table_roi_id)
+            userid = data.get('userId')
+            op_type = data.get('op_type', None)
+            parse_table = ParseTable()
+            op_params = parse_table.get_op_params(op_type, op_params, table_data)
+            _, _, table_data = parse_table.parse(op_params)
+            if op_type == TableOp.UPDATE_TABLE:
+                doc_table_helper.update_table(session, table_data, userid)
+            elif op_type == TableOp.INSERT_ROW:
+                for row_idx, row_data in table_data.items():
+                    doc_table_helper.insert_row(
+                        session, table_roi_id, row_idx, row_data, userid)
 
-        elif op_type == TableOp.INSERT_COLUMN:
-            doc_table_helper.insert_col(
-                session, table_roi_id, table_data, userid)
+            elif op_type == TableOp.INSERT_COLUMN:
+                doc_table_helper.insert_col(
+                    session, table_roi_id, table_data, userid)
 
-        elif op_type == TableOp.DELETE_ROW:
-            doc_table_helper.delete_row(session, table_roi_id, table_data)
+            elif op_type == TableOp.DELETE_ROW:
+                doc_table_helper.delete_row(session, table_roi_id, table_data)
 
-        elif op_type == TableOp.DELETE_COLUMN:
-            doc_table_helper.delete_column(session, table_data)
-        else:
-            raise MissingParamException(" or invalid operation type")
+            elif op_type == TableOp.DELETE_COLUMN:
+                doc_table_helper.delete_column(session, table_data)
+            else:
+                raise MissingParamException(" or invalid operation type")
 
         doc_table_helper.update_footnote(session, data)
         session.commit()
@@ -324,19 +326,20 @@ class DocTableHelper():
         return para_data
     
     def create_footnote(self, session, data):
-        cid = None
-        # if at top next element props are taken
-        if data['prev_id']:
-            cid = data['prev_id']
-        else:
-            cid = data['next_id']
-        prev_data = session.query(IqvpageroiDb).filter(
-            and_(IqvpageroiDb.id == cid, IqvpageroiDb.group_type != 'ChildBoxes')).first()
-        if not prev_data:
-            raise MissingParamException(cid)
-        prev_dict = schema_to_dict(prev_data)
-        para_data = DocumenttablesDb(**prev_dict)
+        
         if data.get('AttachmentListProperties'):
+            cid = None
+            # if at top next element props are taken
+            if data['prev_id']:
+                cid = data['prev_id']
+            else:
+                cid = data['next_id']
+            prev_data = session.query(IqvpageroiDb).filter(
+                and_(IqvpageroiDb.id == cid, IqvpageroiDb.group_type != 'ChildBoxes')).first()
+            if not prev_data:
+                raise MissingParamException(cid)
+            prev_dict = schema_to_dict(prev_data)
+            para_data = DocumenttablesDb(**prev_dict)
             for index, footnote in enumerate(data['AttachmentListProperties']):
                 uid = str(uuid.uuid4())
                 para_data.id = footnote['AttachmentId'] = uid
