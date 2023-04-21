@@ -79,7 +79,7 @@ def remove(data: dict):
     settings.MGMT_CRED_HEADERS.update({'Content-Type': 'application/json'})
     response = requests.post(management_api_url, data=json.dumps(data), headers=settings.MGMT_CRED_HEADERS)
     logger.info(f"workflow request sent to Management service")
-    return response.json(), True if response.json().get('status_code') == 200 else False
+    return {"message":response.json()}, True if response.status_code == 200 else False
 
 
 def get_document_lock_status(data: dict):

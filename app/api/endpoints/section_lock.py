@@ -52,6 +52,9 @@ async def SubmitProtocolWorkflow(
     """
     try:
         result, status = section_lock_service.remove(payload)
+        if isinstance(result.get('message'), dict):
+            result.get('message').update({"success":True})
+            return result.get('message')
         return {"success": status, "info": result.get('message')}
     except Exception as ex:
         raise HTTPException(status_code=500,
