@@ -91,11 +91,11 @@ class IqvfootnoterecordDb(SchemaBase):
                 if qc_change_type_footnote == 'add':
                     uid = str(uuid.uuid4())
                     if previous_sequnce_index == None:
-                        sequnce_index = 0
+                        sequnce_index = previous_sequnce_index = 0
                     else:
                         sequnce_index = previous_sequnce_index + 1
                     previous_obj = session.query(IqvfootnoterecordDb).filter(and_(IqvfootnoterecordDb.table_roi_id ==
-                                                                        table_roi_id, IqvfootnoterecordDb.DocumentSequenceIndex == sequnce_index)).first()
+                                                                        table_roi_id, IqvfootnoterecordDb.DocumentSequenceIndex == previous_sequnce_index)).first()
                     if not previous_obj:
                         if sequnce_index == 0:
                             doc_id = data.get('doc_id')
