@@ -2,7 +2,8 @@ from sqlalchemy import Column,and_, DateTime
 from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP,FLOAT
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from .documentparagraphs_db import DocumentparagraphsDb
 import logging
 
@@ -135,7 +136,11 @@ class IqvdocumentlinkDb(SchemaBase):
         para_data.LinkType = 'toc'
         para_data.LinkPrefix = data.get('link_prefix', '')
         para_data.LinkText = data.get('link_text', '')
-        para_data.iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else ""
+        para_data.iqv_standard_term = iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else ""
+        source_system = ""
+        if iqv_standard_term != "":
+            source_system = "QC2"
+        para_data.predicted_term_source_system = source_system
         para_data.LinkLevel = data.get('link_level', para_data.LinkLevel)
         para_data.id = _id
         doc_id = para_data.doc_id
@@ -161,8 +166,17 @@ class IqvdocumentlinkDb(SchemaBase):
         link_prefix= data['link_prefix'] if data.get('link_prefix',None) else obj.LinkPrefix
         iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else obj.iqv_standard_term
         user_id = data['userId'] if data.get('userId',None) else obj.userId
+        last_updated = datetime.now(timezone.utc)
         source_system = obj.predicted_term_source_system
         if iqv_standard_term != obj.iqv_standard_term:
+            if source_system.startswith('NLP'):
+                category = 'header'
+                if data.get('link_level') >1:
+                    if iqv_standard_term.startswith('cpt_assessments'):
+                        category = 'assessments'
+                    else:
+                        category = 'subheader'
+                insert_meta_entity(session, category, link_text, iqv_standard_term)
             source_system = "QC2"
         if data.get('content',None):
             data['content'] = link_text
@@ -171,7 +185,7 @@ class IqvdocumentlinkDb(SchemaBase):
                     "iqv_standard_term" = \'{iqv_standard_term}\' , \
                     "userId" = \'{user_id}\' , \
                     "predicted_term_source_system" = \'{source_system}\' , \
-                    "last_updated" = \'{datetime.utcnow()}\' , \
+                    "last_updated" = \'{last_updated}\' , \
                     "num_updates" = "num_updates" + 1  \
                     WHERE  "id" = \'{obj.id}\' '
         session.execute(sql)

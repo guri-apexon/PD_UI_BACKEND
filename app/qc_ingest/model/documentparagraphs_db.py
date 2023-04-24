@@ -2,7 +2,7 @@ from sqlalchemy import Column, Index, DateTime
 from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props, MissingParamException
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN, BIGINT, JSONB, BYTEA,FLOAT
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from .iqvpage_roi_db import IqvpageroiDb
 
 
@@ -135,8 +135,8 @@ class DocumentparagraphsDb(SchemaBase):
         if not data['content'] and data['is_link']:
             data['content'] = data['link_text']
 
-        prev_data = session.query(DocumentparagraphsDb).filter(
-            DocumentparagraphsDb.id == cid).first()
+        prev_data = session.query(IqvpageroiDb).filter(
+            IqvpageroiDb.id == cid).first()
         if not prev_data:
             raise MissingParamException(cid)
         prev_dict = schema_to_dict(prev_data)
@@ -169,7 +169,7 @@ class DocumentparagraphsDb(SchemaBase):
             _id = data['id']
             raise MissingParamException(f'{_id} in document paragraph db ')
         update_existing_props(obj, data)
-        obj.last_updated = datetime.utcnow()
+        obj.last_updated = datetime.now(timezone.utc)
         obj.num_updates = obj.num_updates + 1
         if data.get('content', None):
             obj.Value = data['content']

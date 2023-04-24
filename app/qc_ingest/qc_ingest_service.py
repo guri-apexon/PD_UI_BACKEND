@@ -110,8 +110,8 @@ def get_content_info(data: dict, session):
         audit = data.get('audit', {})
         data['userId'] = audit.get('last_updated_user', None)
 
-        if table_props == None:
-            if footnote_list != None:
+        if table_props == None or len(table_props) == 0:
+            if footnote_list != None and len(footnote_list) > 0:
                 data['AttachmentListProperties'] = footnote_list
             action_list.append(data)
         else:

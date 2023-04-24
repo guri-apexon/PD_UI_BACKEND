@@ -165,6 +165,8 @@ def get_table_props(action_type: str, data: dict):
         if not data.get('content', None):
             raise MissingParamException('content')
         content = data['content']
+        data['TableIndex'] = content.get('TableIndex')
+        data['TableName'] = content.get('TableName')
         if not content.get('TableProperties', None):
             if not content.get('AttachmentListProperties', None):
                 raise MissingParamException('TableProperties and AttachmentListProperties')
@@ -172,8 +174,6 @@ def get_table_props(action_type: str, data: dict):
                 footnote_list = content.get('AttachmentListProperties')
         else:
             table_props = content['TableProperties']
-            data['TableIndex'] = content.get('TableIndex')
-            data['TableName'] = content.get('TableName')
             footnote_list = content.get('AttachmentListProperties')
             if isinstance(table_props, str):
                 table_props = json.loads(table_props)
