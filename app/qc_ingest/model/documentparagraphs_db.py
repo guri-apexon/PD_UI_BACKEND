@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Index, DateTime
-from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props, MissingParamException
+from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props, MissingParamException, get_utc_datetime
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN, BIGINT, JSONB, BYTEA,FLOAT
 import uuid
 from datetime import datetime, timezone
@@ -169,7 +169,7 @@ class DocumentparagraphsDb(SchemaBase):
             _id = data['id']
             raise MissingParamException(f'{_id} in document paragraph db ')
         update_existing_props(obj, data)
-        obj.last_updated = datetime.now(timezone.utc)
+        obj.last_updated = get_utc_datetime()
         obj.num_updates = obj.num_updates + 1
         if data.get('content', None):
             obj.Value = data['content']
