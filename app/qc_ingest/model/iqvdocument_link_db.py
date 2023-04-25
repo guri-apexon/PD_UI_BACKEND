@@ -1,8 +1,8 @@
 from sqlalchemy import Column,and_, DateTime
-from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException
+from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException, get_utc_datetime
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP,FLOAT
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from .documentparagraphs_db import DocumentparagraphsDb
 import logging
@@ -166,7 +166,7 @@ class IqvdocumentlinkDb(SchemaBase):
         link_prefix= data['link_prefix'] if data.get('link_prefix',None) else obj.LinkPrefix
         iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else obj.iqv_standard_term
         user_id = data['userId'] if data.get('userId',None) else obj.userId
-        last_updated = datetime.now(timezone.utc)
+        last_updated = get_utc_datetime()
         source_system = obj.predicted_term_source_system
         if iqv_standard_term != obj.iqv_standard_term:
             if source_system.startswith('NLP'):
@@ -180,15 +180,15 @@ class IqvdocumentlinkDb(SchemaBase):
             source_system = "QC2"
         if data.get('content',None):
             data['content'] = link_text
-        sql = f'UPDATE {IqvdocumentlinkDb.__tablename__} SET "LinkText" = \'{link_text}\' , \
-                    "LinkPrefix" = \'{link_prefix}\' , \
-                    "iqv_standard_term" = \'{iqv_standard_term}\' , \
-                    "userId" = \'{user_id}\' , \
-                    "predicted_term_source_system" = \'{source_system}\' , \
-                    "last_updated" = \'{last_updated}\' , \
-                    "num_updates" = "num_updates" + 1  \
-                    WHERE  "id" = \'{obj.id}\' '
-        session.execute(sql)
+        link_obj = session.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == obj.id).first()
+        link_obj.LinkText = link_text
+        link_obj.LinkPrefix = link_prefix
+        link_obj.iqv_standard_term = iqv_standard_term
+        link_obj.userId = user_id
+        link_obj.predicted_term_source_system = source_system
+        link_obj.last_updated = last_updated
+        link_obj.num_updates = link_obj.num_updates + 1
+        session.add(link_obj)
 
     @staticmethod
     def delete(session, data):

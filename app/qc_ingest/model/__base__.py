@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import and_
+from datetime import datetime, timezone
 
 SchemaBase = declarative_base()
 
@@ -18,6 +19,9 @@ class CurdOp:
     UPDATE = "update"
     READ = "read"
     DELETE = 'delete'
+
+def get_utc_datetime():
+    return datetime.now(timezone.utc)
 
 
 def schema_to_dict(row):

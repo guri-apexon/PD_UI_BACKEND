@@ -14,8 +14,8 @@ logger = logging.getLogger("unit-test")
 @pytest.mark.parametrize(
     "doc_id, user_id ,status_code",
     [
-        ("12b745f9-f1b7-47cd-a165-2a09932e47f1", "u1123897", status.HTTP_200_OK),  #Positive Case
-        ("3b44c1d5-f5f7-44ab-901a-3f53c2ba751d", "", status.HTTP_200_OK)  #Negetive Case
+        ("3b44c1d5-f5f7-44ab-901a-3f53c2ba751d", "u1123897", status.HTTP_200_OK),  #Positive Case
+        ("12b745f9-f1b7-47cd-a165-2a09932e47f0", "", status.HTTP_200_OK)  #Negetive Case
     ]
 )
 def test_create_labdata(doc_id, user_id,status_code, new_token_on_headers):

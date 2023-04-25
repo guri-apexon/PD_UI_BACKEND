@@ -1,6 +1,7 @@
 from sqlalchemy import Column, and_
 from .__base__ import SchemaBase, schema_to_dict, MissingParamException, update_footnote_index, update_table_index, get_table_index
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER
+from .documenttables_db import TableOp
 import uuid
 
 
@@ -88,7 +89,7 @@ class IqvfootnoterecordDb(SchemaBase):
                     "qc_change_type_footnote", '')
                 table_roi_id = data['table_roi_id']
                 previous_sequnce_index = footnote.get("PrevousAttachmentIndex")
-                if qc_change_type_footnote == 'add':
+                if qc_change_type_footnote == TableOp.ADD:
                     uid = str(uuid.uuid4())
                     if previous_sequnce_index == None:
                         sequnce_index = previous_sequnce_index = 0
@@ -119,7 +120,7 @@ class IqvfootnoterecordDb(SchemaBase):
                     session.add(obj)
                     update_footnote_index(
                         session, table_roi_id, sequnce_index, '+')
-                if qc_change_type_footnote == 'modify':
+                if qc_change_type_footnote == TableOp.MODIFY:
                     obj = session.query(IqvfootnoterecordDb).filter(
                         IqvfootnoterecordDb.roi_id == attachment_id).first()
                     if not obj:
@@ -127,7 +128,7 @@ class IqvfootnoterecordDb(SchemaBase):
                     obj.footnote_text = text_value
                     obj.footnote_indicator = footnote_indicator
                     session.add(obj)
-                if qc_change_type_footnote == 'delete':
+                if qc_change_type_footnote == TableOp.DELETE:
                     obj = session.query(IqvfootnoterecordDb).filter(
                         IqvfootnoterecordDb.roi_id == attachment_id).first()
                     if not obj:

@@ -2,7 +2,7 @@ import logging
 from app.utilities.config import settings
 from .model.iqvsectionlock_db import IqvsectionlockDb
 from app.db.session import SessionLocal
-from datetime import datetime, timedelta, timezone
+from .model.__base__ import get_utc_datetime
 from sqlalchemy import extract
 import requests
 import json
@@ -34,7 +34,7 @@ def get_section_loc_records(doc_id: str):
     To get section loc records based on document
     """
     with SessionLocal() as session:
-        current_timestamp = datetime.now(timezone.utc)
+        current_timestamp = get_utc_datetime()
         today_date = current_timestamp.date()
         # current day check is there section locks exits or not =>
         # sent validation error
@@ -84,7 +84,7 @@ def remove(data: dict):
 
 def get_document_lock_status(data: dict):
     doc_id = data.get('doc_id')
-    current_timestamp = datetime.now(timezone.utc)
+    current_timestamp = get_utc_datetime()
     today_date = current_timestamp.date()
     with SessionLocal() as session:
         # current day check is there section locks exits or not

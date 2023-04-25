@@ -1,7 +1,6 @@
 from sqlalchemy import Column
-from .__base__ import SchemaBase
+from .__base__ import SchemaBase, get_utc_datetime
 from sqlalchemy.dialects.postgresql import TIMESTAMP,VARCHAR,INTEGER,BOOLEAN
-from datetime import datetime, date, timezone
 
 class PdMetaEntityMappingLookup(SchemaBase):
    __tablename__ = "pd_meta_entity_mapping_lookup"
@@ -20,7 +19,7 @@ def insert_meta_entity(session, category, input_text, iqv_standard_term):
    meta_entity.category = category
    meta_entity.input_text = input_text
    meta_entity.iqv_standard_term = iqv_standard_term
-   meta_entity.startdate = datetime.now(timezone.utc)
+   meta_entity.startdate = get_utc_datetime()
    meta_entity.isvalid = True
    meta_entity.version = "EM_" + str(meta_entity.startdate.strftime("%Y-%m-%d"))
    session.add(meta_entity)

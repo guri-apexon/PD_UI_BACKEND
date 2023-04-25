@@ -1,6 +1,6 @@
 from sqlalchemy import Column, DateTime, and_
 from datetime import datetime, timezone
-from .__base__ import SchemaBase, schema_to_dict, MissingParamException
+from .__base__ import SchemaBase, schema_to_dict, MissingParamException, get_utc_datetime
 from ...crud.pd_user import CRUDUserSearch
 from ...models.pd_user import User
 from sqlalchemy.dialects.postgresql import TEXT
@@ -64,7 +64,7 @@ class IqvsectionlockDb(SchemaBase):
                 raise MissingParamException("{0} user_id in User DB".format(user_id))
             user_name = user_name_obj.first_name + ' ' + user_name_obj.last_name
             section_info.user_name = user_name
-            section_info.last_updated = data['last_updated'] = datetime.now(timezone.utc)
+            section_info.last_updated = data['last_updated'] = get_utc_datetime()
             session.add(section_info)
         else:
             obj = session.query(IqvsectionlockDb).filter(
@@ -78,7 +78,7 @@ class IqvsectionlockDb(SchemaBase):
                 obj.link_id = data['link_id'] = ''
                 obj.userId = data['userId'] = ''
                 obj.user_name = data['user_name'] = ''
-                obj.last_updated = data['last_updated']  = datetime.now(timezone.utc)
+                obj.last_updated = data['last_updated']  = get_utc_datetime()
                 try:
                     session.add(obj)
                 except IntegrityError as ex:
