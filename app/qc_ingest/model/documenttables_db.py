@@ -1,13 +1,14 @@
 from sqlalchemy import Column, and_, DateTime
-from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, update_attachment_footnote_index, CurdOp, MissingParamException, update_link_update_details
+from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, update_attachment_footnote_index, CurdOp, MissingParamException, update_link_update_details, get_utc_datetime
 from .iqvpage_roi_db import IqvpageroiDb
 from .iqvkeyvalueset_db import IqvkeyvaluesetDb
 from .documentparagraphs_db import DocumentparagraphsDb
+from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN,FLOAT
 import uuid
 from copy import deepcopy
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class ParseTable():
@@ -106,6 +107,9 @@ class TableOp:
     INSERT_COLUMN = 'insert_column'
     DELETE_ROW = 'delete_row'
     DELETE_COLUMN = 'delete_column'
+    ADD = 'add'
+    MODIFY = 'modify'
+    DELETE = 'delete'
 
 
 class DocumenttablesDb(SchemaBase):
@@ -245,12 +249,12 @@ class DocumenttablesDb(SchemaBase):
     def update(session, data):
         """
         """
+        doc_table_helper = DocTableHelper()
         table_roi_id = data.get('table_roi_id')
         if not table_roi_id:
             raise MissingParamException('line_id')
         op_params = data.get('op_params')
         if op_params != None:
-            doc_table_helper = DocTableHelper()
             table_data = doc_table_helper.get_table(session, table_roi_id)
             userid = data.get('userId')
             op_type = data.get('op_type', None)
@@ -277,10 +281,19 @@ class DocumenttablesDb(SchemaBase):
                 raise MissingParamException(" or invalid operation type")
 
         doc_table_helper.update_footnote(session, data)
+        
+        iqv_standard_term  = data.get('iqv_standard_term')
         obj = session.query(DocumenttablesDb).filter(DocumenttablesDb.id == table_roi_id).first()
         if not obj:
             raise MissingParamException("{table_roi_id} in Documenttables DB")
-        update_link_update_details(session, obj.link_id, data.get('userId'), datetime.utcnow())
+        update_link_update_details(session, obj.link_id, data.get('userId'), get_utc_datetime())
+        if iqv_standard_term and iqv_standard_term != obj.iqv_standard_term:
+            source_system = obj.predicted_term_source_system
+            if source_system.startswith('NLP'):
+                insert_meta_entity(session, 'table', data.get('TableName'), iqv_standard_term)
+            obj.predicted_term_source_system = "QC2"
+            obj.iqv_standard_term = iqv_standard_term
+            session.add(obj)
         session.commit()
 
     @staticmethod
@@ -319,6 +332,11 @@ class DocTableHelper():
         para_data.group_type = 'DocumentTables'
         para_data.id = _id
         para_data.Value = ''
+        para_data.iqv_standard_term = iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else ""
+        source_system = ""
+        if iqv_standard_term != "":
+            source_system = "QC2"
+        para_data.predicted_term_source_system = source_system
         para_data.DocumentSequenceIndex = prev_data.DocumentSequenceIndex - \
             1 if is_top_elm else prev_data.DocumentSequenceIndex+1
         para_data.SequenceID = prev_data.SequenceID - \
@@ -366,14 +384,14 @@ class DocTableHelper():
                     "qc_change_type_footnote", '')
                 table_roi_id = data['table_roi_id']
                 previous_sequnce_index = footnote.get("PrevousAttachmentIndex")
-                if qc_change_type_footnote == 'add':
+                if qc_change_type_footnote == TableOp.ADD:
                     uid = str(uuid.uuid4())
                     if previous_sequnce_index == None:
-                        sequnce_index = 0
+                        sequnce_index = previous_sequnce_index = 0
                     else:
                         sequnce_index = previous_sequnce_index + 1
                     previous_obj = session.query(DocumenttablesDb).filter(and_(DocumenttablesDb.parent_id ==
-                                                                        table_roi_id, DocumenttablesDb.group_type == 'Attachments', DocumenttablesDb.DocumentSequenceIndex == sequnce_index)).first()
+                                                                        table_roi_id, DocumenttablesDb.group_type == 'Attachments', DocumenttablesDb.DocumentSequenceIndex == previous_sequnce_index)).first()
                     if not previous_obj:
                         if sequnce_index == 0:
                             previous_obj = session.query(IqvpageroiDb).filter(
@@ -394,14 +412,14 @@ class DocTableHelper():
                     session.add(obj)
                     update_attachment_footnote_index(
                         session, table_roi_id, sequnce_index, '+')
-                if qc_change_type_footnote == 'modify':
+                if qc_change_type_footnote == TableOp.MODIFY:
                     obj = session.query(DocumenttablesDb).filter(
                         DocumenttablesDb.id == attachment_id).first()
                     if not obj:
                         raise MissingParamException("{0} in DocumenttablesDb DB".format(attachment_id))
                     obj.Value = text_value
                     session.add(obj)
-                if qc_change_type_footnote == 'delete':
+                if qc_change_type_footnote == TableOp.DELETE:
                     obj = session.query(DocumenttablesDb).filter(
                         DocumenttablesDb.id == attachment_id).first()
                     if not obj:
@@ -588,8 +606,9 @@ class DocTableHelper():
         for row_id, r_idx in rows_info:
             if r_idx >= row_idx:
                 all_row_ids.append(row_id)
-        self._update_table_row_index(session, DocumenttablesDb.__tablename__,
-                                     all_row_ids, CurdOp.CREATE)
+        if len(all_row_ids) > 0:
+            self._update_table_row_index(session, DocumenttablesDb.__tablename__,
+                                        all_row_ids, CurdOp.CREATE)
 
         table_obj = self._get_table_obj(session, table_roi_id)
         sequence_index = table_obj.DocumentSequenceIndex
@@ -608,10 +627,17 @@ class DocTableHelper():
     def update_cell_info(self, session, content, col_uid, userid, table_name):
         if not col_uid:
             raise MissingParamException('col_uid')
-        sql_query = f'UPDATE {table_name} SET "Value" = \'{content}\',"userId" =  \'{userid}\', "last_updated" = \'{datetime.utcnow()}\' , "num_updates" = "num_updates" + 1  WHERE "id" = \'{col_uid}\''
-        session.execute(sql_query)
-        child_sql_query = f'UPDATE {table_name} SET "strText" = \'{content}\',"userId" =  \'{userid}\', "last_updated" = \'{datetime.utcnow()}\' , "num_updates" = "num_updates" + 1  WHERE "parent_id" = \'{col_uid}\''
-        session.execute(child_sql_query)
+        obj = session.query(table_name).filter(table_name.id == col_uid).first()
+        child_obj = session.query(table_name).filter(table_name.parent_id == col_uid).first()
+        if not obj or not child_obj:
+            raise MissingParamException(f'{col_uid} in {table_name}')
+        obj.Value = child_obj.strText = content
+        obj.userId = child_obj.userId = userid
+        obj.last_updated = child_obj.last_updated = get_utc_datetime()
+        obj.num_updates = obj.num_updates + 1
+        child_obj.num_updates = child_obj.num_updates + 1
+        session.add(obj)
+        session.add(child_obj)
 
 
     def create_table(self, session, data, num_rows, num_cols, rows_data):
@@ -667,7 +693,7 @@ class DocTableHelper():
             DocumenttablesDb.id == table_id).first()
         doc_id = obj.doc_id
         sequence_id = obj.SequenceID
-        update_link_update_details(session, obj.link_id, user_id, datetime.utcnow())
+        update_link_update_details(session, obj.link_id, user_id, get_utc_datetime())
         session.delete(obj)
         # update roi index
         update_roi_index(session, doc_id, sequence_id, CurdOp.DELETE)
@@ -758,7 +784,7 @@ class DocTableHelper():
                     col_data['cell_roi'] = self._get_cell_roi_id(
                         session, row_idx, col_idx)
                 self.update_cell_info(
-                    session, col_data['val'], col_data['cell_roi'], userid, DocumenttablesDb.__tablename__)
+                    session, col_data['val'], col_data['cell_roi'], userid, DocumenttablesDb)
                 child_cell_id = self._get_child_cell_roi_id(session, col_data['cell_roi'])
                 self.update_cell_info(
-                    session, col_data['val'], child_cell_id, userid, DocumentparagraphsDb.__tablename__) 
+                    session, col_data['val'], child_cell_id, userid, DocumentparagraphsDb) 

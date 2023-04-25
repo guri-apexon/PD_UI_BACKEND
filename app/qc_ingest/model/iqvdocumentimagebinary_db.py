@@ -1,8 +1,9 @@
 from sqlalchemy import Column, DateTime
-from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props,MissingParamException
+from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, update_existing_props,MissingParamException, get_utc_datetime
 from . import DocumentparagraphsDb
+from .iqvpage_roi_db import IqvpageroiDb
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER, BYTEA
 import base64
 
@@ -48,8 +49,8 @@ class IqvdocumentimagebinaryDb(SchemaBase):
          cid = data['next_id']
          is_next_elm = True
 
-      prev_data = session.query(DocumentparagraphsDb).filter(
-          DocumentparagraphsDb.id == cid).first()
+      prev_data = session.query(IqvpageroiDb).filter(
+          IqvpageroiDb.id == cid).first()
       if not prev_data:
          raise MissingParamException(f'{cid} is missing from paragraph db')
       prev_dict = schema_to_dict(prev_data)
@@ -59,6 +60,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data.hierarchy = 'paragraph'
       para_data.group_type = 'DocumentParagraphs'
       para_data.m_ROI_TYPEVal=100 #image
+      para_data.Value = para_data.strText = ''
       para_data.id = _id
       para_data.DocumentSequenceIndex = prev_data.DocumentSequenceIndex-1 if is_next_elm else prev_data.DocumentSequenceIndex+1
       para_data.SequenceID = prev_data.SequenceID-1 if is_next_elm else prev_data.SequenceID+1
@@ -95,7 +97,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
          _id = data['id']
          raise MissingParamException(f'{_id} is missing from paragraph db')
       para_obj.userId = data.get('userId', None)
-      para_obj.last_updated = datetime.utcnow()
+      para_obj.last_updated = get_utc_datetime()
       para_obj.num_updates = para_obj.num_updates + 1
 
       obj = session.query(IqvdocumentimagebinaryDb).filter(
@@ -110,7 +112,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       obj.img = base64.b64decode(org_content)
       obj.image_format = img_format
       obj.userId = data.get('userId', None)
-      obj.last_updated = datetime.utcnow()
+      obj.last_updated = get_utc_datetime()
       obj.num_updates = obj.num_updates + 1
       session.add(para_obj)
       session.add(obj)

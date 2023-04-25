@@ -1,7 +1,8 @@
-from sqlalchemy import Column,Index, DateTime
-from .__base__ import SchemaBase,schema_to_dict,update_partlist_index,CurdOp,update_existing_props,MissingParamException, update_link_update_details
+from sqlalchemy import Column,Index, DateTime, and_
+from .__base__ import SchemaBase,schema_to_dict,update_partlist_index,CurdOp,update_existing_props,MissingParamException, update_link_update_details, get_utc_datetime
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER
 import uuid
+from .iqvpage_roi_db import IqvpageroiDb
 from datetime import datetime
 
 
@@ -48,7 +49,13 @@ class DocumentpartslistDb(SchemaBase):
         
         prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()
         if not prev_data:
-            raise MissingParamException(f'{cid} in document partlist db ')
+            prev_data = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == cid).first()
+            if prev_data.hierarchy == 'table':
+                while prev_data.hierarchy == 'table':
+                    prev_data = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == prev_data.doc_id, IqvpageroiDb.DocumentSequenceIndex == prev_data.DocumentSequenceIndex - 1)).first()
+                prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == prev_data.id).first()
+            else:
+                raise MissingParamException(f'{cid} in document partlist db ')
         prev_dict=schema_to_dict(prev_data)
         para_data = DocumentpartslistDb(**prev_dict)
         _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
@@ -76,7 +83,7 @@ class DocumentpartslistDb(SchemaBase):
             raise MissingParamException(f'{_id} in document partlist db ')     
         update_existing_props(obj,data)
         obj.userId = data.get('userId')
-        obj.last_updated = datetime.utcnow()
+        obj.last_updated = get_utc_datetime()
         obj.num_updates = obj.num_updates + 1
         session.add(obj)
         if data.get('type') != 'header' and data.get('link_level') != '1':
@@ -92,7 +99,7 @@ class DocumentpartslistDb(SchemaBase):
         sequence_id = obj.sequence_id
         doc_id=obj.doc_id
         if data.get('type') != 'header' and data.get('link_level') != '1':
-            update_link_update_details(session, obj.link_id, data.get('userId'), datetime.utcnow())
+            update_link_update_details(session, obj.link_id, data.get('userId'), get_utc_datetime())
         session.delete(obj)
         update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,
                         sequence_id, CurdOp.DELETE)
