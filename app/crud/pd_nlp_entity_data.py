@@ -59,7 +59,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                  link_id_subsection1=data.link_id_subsection1,
                                  link_id_subsection2=data.link_id_subsection2,
                                  link_id_subsection3=data.link_id_subsection3,
-                                 hierarchy=data.hierarchy,
+                                 hierarchy="paragraph",
                                  iqv_standard_term=preferred_term,
                                  parent_id=data.parent_id,
                                  group_type=data.group_type,
