@@ -30,46 +30,98 @@ class PropertiesMaker():
         keyvalueset.rawScore = 0
         return keyvalueset
 
-    def update_table_properties(self, row, table_index, table_name, prev_dict, session):
+    def update_table_cell_properties(self, row, table_index, table_name, prev_dict, session, link_roi, link_level):
         """
 
         """
-        table_properties_list = list()
+        table_cell_properties_list = list()
         for col in row:
-            table_properties_dict = {'TableIndex': table_index, 'RowIndex': int(table_index)*1000+col['row_idx']+1,
-                                     'ColIndex': col['col_idx']+1, 'FootNoteLink': '', 'TableName': table_name, 'FullText': col['val']}
+            header = 0.0
+            if col['row_idx'] == 0:
+                header = 1.0
+            table_cell_properties_dict = {'TableIndex': table_index, 'RowIndex': float(int(table_index)*1000+col['row_idx']+1), 'IsHeaderCell': header,
+                                          'ColIndex': [col['col_idx']+1], 'FootNoteLink': '', 'TableName': table_name, 'FullText': col['val'], 'LinkROI': link_roi, 'LinkLevel': link_level}
+            para_properties_dict = {
+                'TableIndex': table_index, 'LinkText': table_name, 'LinkROI': link_roi, 'LinkLevel': link_level}
             col_id = col['datacell_roi_id']
-            for key, val in table_properties_dict.items():
-                obj = session.query(IqvkeyvaluesetDb).filter(and_(
-                    IqvkeyvaluesetDb.parent_id == col_id, IqvkeyvaluesetDb.key == key)).first()
-                if not obj:
-                    keyvalueset = self.get_keyvalueset(
-                        key, val, prev_dict, col_id, 'table')
-                    table_properties_list.append(keyvalueset)
-                else:
-                    obj.value = val
-                    session.add(obj)
-        return table_properties_list
+            doc_table_helper = DocTableHelper()
+            child_col_id = doc_table_helper._get_child_cell_roi_id(
+                session, col_id)
+            for property_dict,  hierarchy in [(table_cell_properties_dict, 'table'), (para_properties_dict, 'paragraph')]:
+                for key, val in property_dict.items():
+                    obj = session.query(IqvkeyvaluesetDb).filter(and_(
+                        IqvkeyvaluesetDb.parent_id == child_col_id, IqvkeyvaluesetDb.key == key, IqvkeyvaluesetDb.hierarchy == hierarchy)).first()
+                    if not obj:
+                        keyvalueset = self.get_keyvalueset(
+                            key, val, prev_dict, child_col_id, hierarchy)
+                        table_cell_properties_list.append(keyvalueset)
+                    else:
+                        obj.value = val
+                        session.add(obj)
+        return table_cell_properties_list
 
-    def update_footnote_properties(self, footnote, table_index, prev_dict, session):
+    def update_footnote_properties(self, footnote, table_index, prev_dict, session, link_roi, link_level, table_roi_id, indx):
         """
 
         """
         footnote_properties_list = list()
         attachment_id = footnote['AttachmentId']
+        footnote_text = footnote['Text']
+        splited_text = footnote_text.split(': ')
+        footnote = None
+        if footnote_text != splited_text[0]:
+            footnote = splited_text[0]
+        else:
+            splited_text = footnote_text.split('. ')
+            if footnote_text != splited_text[0]:
+                footnote = splited_text[0]
+
         footnote_properties_dict = {'TableIndex': table_index, 'AttachmentId': attachment_id,
-                                    'IsFootnote': '', 'FootnoteText': footnote['Text']}
-        for key, val in footnote_properties_dict.items():
+                                    'IsFootnote': '', 'FootnoteText': footnote_text, 'LinkROI': link_roi, 'LinkLevel': link_level}
+        table_footnote_properties_dict = {'Footnote_'+str(indx): footnote,
+                                'AttachmentId_'+str(indx): str({'TableId': table_roi_id, 'AttachmentIndex': float(indx), 'AttachmentId': attachment_id, 'Key': footnote, 'Text': footnote_text}),
+                                 'FootnoteText_'+str(indx): footnote_text}
+        for property_dict, hierarchy, parent_id in [(table_footnote_properties_dict, 'table', table_roi_id), (footnote_properties_dict, 'paragraph', attachment_id)]:
+            for key, val in property_dict.items():
+                obj = session.query(IqvkeyvaluesetDb).filter(and_(
+                    IqvkeyvaluesetDb.parent_id == parent_id, IqvkeyvaluesetDb.key == key)).first()
+                if not obj:
+                    keyvalueset = self.get_keyvalueset(
+                        key, val, prev_dict, parent_id, hierarchy)
+                    footnote_properties_list.append(keyvalueset)
+                else:
+                    obj.value = val
+                    session.add(obj)
+        return footnote_properties_list
+
+    def get_link_details(self, prev_dict):
+        link_roi, link_level = None, None
+        link_name_list = ['link_id_subsection3', 'link_id_subsection2', 'link_id_subsection1',
+                          'link_id_level6', 'link_id_level5', 'link_id_level4', 'link_id_level3', 'link_id_level2', 'link_id']
+        for idx, link_name in enumerate(link_name_list):
+            if prev_dict.get(link_name):
+                link_roi = prev_dict.get(link_name)
+                link_level = len(link_name_list) - idx
+        return link_roi, link_level
+
+    def update_table_properties(self, session, table_roi_id, table_name, table_index, prev_dict, link_roi, link_level):
+        """
+
+        """
+        table_properties_list = list()
+        table_properties_dict = {'TableIndex': table_index, 'TableName': table_name,
+                                 'LinkText': table_name, 'LinkROI': link_roi, 'LinkLevel': link_level}
+        for key, val in table_properties_dict.items():
             obj = session.query(IqvkeyvaluesetDb).filter(and_(
-                IqvkeyvaluesetDb.parent_id == attachment_id, IqvkeyvaluesetDb.key == key)).first()
+                IqvkeyvaluesetDb.parent_id == table_roi_id, IqvkeyvaluesetDb.key == key, IqvkeyvaluesetDb.hierarchy == 'table')).first()
             if not obj:
                 keyvalueset = self.get_keyvalueset(
-                    key, val, prev_dict, attachment_id, 'paragraph')
-                footnote_properties_list.append(keyvalueset)
+                    key, val, prev_dict, table_roi_id, 'table')
+                table_properties_list.append(keyvalueset)
             else:
                 obj.value = val
                 session.add(obj)
-        return footnote_properties_list
+        return table_properties_list
 
     def update_keyvalueset_db(self, session, data, table_roi_id, table_index):
         """
@@ -82,18 +134,24 @@ class PropertiesMaker():
         table_roi_data = session.query(DocumenttablesDb).filter(
             DocumenttablesDb.id == table_roi_id).first()
         prev_dict = schema_to_dict(table_roi_data)
-        table_data = doc_table_helper.get_table(session, table_roi_id)
-        for row in table_data.values():
+        link_roi, link_level = self.get_link_details(prev_dict)
+        if data.get('op_params'):
             table_properties_list = self.update_table_properties(
-                row, table_index, table_name, prev_dict, session)
+                session, table_roi_id, table_name, table_index, prev_dict, link_roi, link_level)
             for table_properties in table_properties_list:
-                session.add(table_properties)
-        if data['AttachmentListProperties'] != None:
+                    session.add(table_properties)
+            table_data = doc_table_helper.get_table(session, table_roi_id)
+            for row in table_data.values():
+                table_cell_properties_list = self.update_table_cell_properties(
+                    row, table_index, table_name, prev_dict, session, link_roi, link_level)
+                for table_cell_properties in table_cell_properties_list:
+                    session.add(table_cell_properties)
+        if data.get('AttachmentListProperties'):
             table_footnote_data = doc_table_helper.get_table_footnote_data(
                 session, table_roi_id)
-            for footnote in table_footnote_data:
+            for indx, footnote in enumerate(table_footnote_data):
                 footnote_properties_list = self.update_footnote_properties(
-                    footnote, table_index, prev_dict, session)
+                    footnote, table_index, prev_dict, session, link_roi, link_level, table_roi_id, indx)
                 for footnote_properties in footnote_properties_list:
                     session.add(footnote_properties)
         return table_index
@@ -130,14 +188,12 @@ class IqvkeyvaluesetOp():
         """
 
         """
-        op_type = data.get('op_type', None)
-        if op_type in ['modify', 'insert_row', 'insert_column']:
-            table_roi_id = data.get('id')
-            table_index = data.get('TableIndex', None)
-            properties_maker = PropertiesMaker()
-            properties_maker.update_keyvalueset_db(
-                session, data, table_roi_id, table_index)
-            session.commit()
+        table_roi_id = data.get('table_roi_id')
+        table_index = data.get('TableIndex', None)
+        properties_maker = PropertiesMaker()
+        properties_maker.update_keyvalueset_db(
+            session, data, table_roi_id, table_index)
+        session.commit()
 
     @staticmethod
     def delete(session, data):
@@ -145,7 +201,7 @@ class IqvkeyvaluesetOp():
 
         """
         table_index = data.get('TableIndex', None)
-        table_roi_id = data.get('id', None)
+        table_roi_id = data.get('table_roi_id', None)
         if not table_index or not table_roi_id:
             raise MissingParamException('table_index or table_roi_id')
         obj = session.query(IqvkeyvaluesetDb).filter(and_(IqvkeyvaluesetDb.doc_id == data.get(

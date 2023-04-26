@@ -7,7 +7,7 @@ from .model.documentparagraphs_db import DocumentparagraphsDb
 from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
-from .model.documenttables_db import DocumenttablesDb
+from .model.documenttables_db import DocumenttablesDb, TableOp
 from .model.iqvfootnoterecord_db import IqvfootnoterecordDb
 from .iqvkeyvalueset_op import IqvkeyvaluesetOp
 from .model.__base__ import MissingParamException
@@ -71,7 +71,20 @@ class RelationalMapper():
             child_table.delete(session, data)
 
 
-def get_content_info(data: dict):
+def get_table_roi_id(session, line_id):
+    col_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == line_id).first()
+    if not col_id:
+        raise MissingParamException('record for line_id in Documenttables DB')
+    row_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == col_id[0]).first()
+    if not row_id:
+        raise MissingParamException('row_id for line_id in Documenttables DB')
+    table_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == row_id[0]).first()
+    if not table_id:
+        raise MissingParamException('table_id for line_id in Documenttables DB')
+    return table_id[0]
+
+    
+def get_content_info(data: dict, session):
     """
     use prev_line id for add ,delete update curr line id used
     """
@@ -80,8 +93,13 @@ def get_content_info(data: dict):
         action_list = list()
         prev_line_id,next_line_id, table_props, footnote_list = None, None, None, None
         if data.get('type') == 'table':
+            if action_type != TableOp.ADD:
+                line_id = data.get('line_id', '')[0:36]
+                if not line_id:
+                    raise MissingParamException('line_id')
+                data['table_roi_id'] = get_table_roi_id(session, line_id)
             table_props, footnote_list = get_table_props(action_type, data)
-        if action_type == 'add':
+        if action_type == TableOp.ADD:
             prev_details = data.get('prev_detail',{})
             prev_line_id = prev_details.get('line_id', '')[0:36]
             next_details=data.get('next_detail',{})
@@ -92,7 +110,9 @@ def get_content_info(data: dict):
         audit = data.get('audit', {})
         data['userId'] = audit.get('last_updated_user', None)
 
-        if table_props == None:
+        if table_props == None or len(table_props) == 0:
+            if footnote_list != None and len(footnote_list) > 0:
+                data['AttachmentListProperties'] = footnote_list
             action_list.append(data)
         else:
             for index, table_props_data in enumerate(table_props):
@@ -114,13 +134,13 @@ def get_content_info(data: dict):
 
 
 def process_data(session, mapper, data: dict):
-    action_name, action_list = get_content_info(data)
+    action_name, action_list = get_content_info(data, session)
     for action_data in action_list:
-        if action_name == 'add' and action_data:
+        if action_name == TableOp.ADD and action_data:
             mapper.create(session, action_data)
-        elif action_name == 'modify' and action_data:
+        elif action_name == TableOp.MODIFY and action_data:
             mapper.update(session, action_data)
-        elif action_name == 'delete' and action_data:
+        elif action_name == TableOp.DELETE and action_data:
             mapper.delete(session, action_data)
         session.commit()
     return data

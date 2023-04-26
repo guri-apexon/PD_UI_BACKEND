@@ -3,10 +3,11 @@
         "type": "table",
         "qc_change_type": "add",
         "line_id": "",
+        "iqv_standard_term":"",
         "doc_id":"377f1140-22e1-4ed9-aad2-1393cfe6560c",
         "uuid": "294e1b2b-a769-40ce-a014-835420abdf99",
         "prev_detail": {
-            "line_id": "8dcc536e-7f2a-44e8-a286-c9e4f0887571"
+            "line_id": "5b9f3efb-8ac2-436a-8f60-03c09ead6055"
         },
         "audit": {
             "last_updated_user": "1072234"

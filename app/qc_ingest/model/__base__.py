@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import and_
+from datetime import datetime, timezone
 
 SchemaBase = declarative_base()
 
@@ -19,12 +20,22 @@ class CurdOp:
     READ = "read"
     DELETE = 'delete'
 
+def get_utc_datetime():
+    return datetime.now(timezone.utc)
+
 
 def schema_to_dict(row):
     data = {}
     for column in row.__table__.columns:
         data[column.name] = (getattr(row, column.name))
     return data
+
+def update_link_update_details(session, link_id, user_id, last_updated):
+    
+    table_name = 'iqvdocumentlink_db'
+    sql = f'UPDATE {table_name} SET "userId" = \'{user_id}\', "last_updated" = \'{last_updated}\', "num_updates" = "num_updates" + 1 WHERE "id" = \'{link_id}\''
+    session.execute(sql)
+
 
 def get_table_index(session, doc_id, table_roi_id):
     table_name = 'DocumentTables'
