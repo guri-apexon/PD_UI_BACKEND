@@ -82,7 +82,6 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
                 protocol_alert.readFlag = True
                 protocol_alert.notification_delete = notification_read_in.notification_delete
                 protocol_alert.readTime = time_
-                protocol_alert.timeUpdated = time_
                 db.add(protocol_alert)
                 db.commit()
                 res = {'ResponseCode': HTTPStatus.OK, 'Message': 'Success'}
