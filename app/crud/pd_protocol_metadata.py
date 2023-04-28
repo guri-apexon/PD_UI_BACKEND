@@ -421,7 +421,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
         try:
             prot_metadata_doc.qcStatus = target_status
             prot_metadata_doc.lastQcUpdated = current_timestamp
-            prot_metadata_doc.source = config.QC_SOURCE
+            prot_metadata_doc.source = config.SOURCE
 
             db.commit()
             db.refresh(prot_metadata_doc)
