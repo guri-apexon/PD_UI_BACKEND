@@ -45,7 +45,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         preferred_term = data.iqv_standard_term or ""
         classification = data.entity_class or ""
         ontology = data.ontology or ""
-        clinical_terms = data.text or ""
+        clinical_terms = data.clinical_terms or ""
 
         data = entity_obj if entity_obj else data
 
@@ -114,7 +114,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                         entity_obj.standard_entity_name = data.standard_entity_name
                         entity_obj.ontology = data.ontology
                         entity_obj.iqv_standard_term = data.iqv_standard_term
-                        entity_obj.text = data.text
+                        entity_obj.text = data.clinical_terms
                         db.add(entity_obj)
 
                     db_obj = db_record if db_record else entity_obj
