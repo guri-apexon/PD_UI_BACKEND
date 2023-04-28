@@ -45,6 +45,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         preferred_term = data.iqv_standard_term or ""
         classification = data.entity_class or ""
         ontology = data.ontology or ""
+        clinical_terms = data.text or ""
 
         data = entity_obj if entity_obj else data
 
@@ -64,7 +65,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                  parent_id=data.parent_id,
                                  group_type=data.group_type,
                                  process_source=data.process_source,
-                                 text=data.text,
+                                 text=clinical_terms,
                                  user_id=data.user_id,
                                  entity_class=classification,
                                  entity_xref=synonyms,
@@ -113,6 +114,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                         entity_obj.standard_entity_name = data.standard_entity_name
                         entity_obj.ontology = data.ontology
                         entity_obj.iqv_standard_term = data.iqv_standard_term
+                        entity_obj.text = data.text
                         db.add(entity_obj)
 
                     db_obj = db_record if db_record else entity_obj
