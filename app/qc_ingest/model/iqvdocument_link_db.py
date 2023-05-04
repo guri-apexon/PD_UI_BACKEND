@@ -48,6 +48,7 @@ class IqvdocumentlinkDb(SchemaBase):
     predicted_term_confidence = Column(FLOAT,default=0.0)
     predicted_term_source_system = Column(TEXT,default='')
     predicted_term_system_version = Column(TEXT,default='')
+    para_id = Column(TEXT,default='')
 
 
     @staticmethod
