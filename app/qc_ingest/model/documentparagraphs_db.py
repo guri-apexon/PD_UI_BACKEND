@@ -154,6 +154,8 @@ class DocumentparagraphsDb(SchemaBase):
             para_data.Value = data['content']
         doc_id = prev_data.doc_id
         para_data.parent_id = doc_id
+        para_data.last_updated = get_utc_datetime()
+        para_data.num_updates = 1
         update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
         session.add(para_data)
         return data
