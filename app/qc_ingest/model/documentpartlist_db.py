@@ -67,6 +67,8 @@ class DocumentpartslistDb(SchemaBase):
         para_data.sequence_id=prev_data.sequence_id-1 if is_next_elm else prev_data.sequence_id+1
         doc_id=prev_data.doc_id
         para_data.parent_id = doc_id
+        para_data.last_updated = get_utc_datetime()
+        para_data.num_updates = 1
         update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,para_data.sequence_id, CurdOp.CREATE) 
         if data.get('type') != 'header' and data.get('link_level') != '1':
             update_link_update_details(session, para_data.link_id, para_data.userId, para_data.last_updated) 

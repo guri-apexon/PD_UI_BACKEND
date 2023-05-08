@@ -34,9 +34,12 @@ class ParseTable():
         """
         num_rows = len(table_data)
         rows_data = {}
+        num_cols = 0
         for row in table_data:
             row_idx, row_data = self.parse_row(row)
-            num_cols = len(row['row_props'])
+            num_col = len(row['row_props'])
+            if num_col > num_cols:
+                num_cols = num_col
             rows_data[row_idx] = row_data
         return num_rows, num_cols, rows_data
 
@@ -238,7 +241,6 @@ class DocumenttablesDb(SchemaBase):
             if data['op_type'] == TableOp.CREATE_TABLE:
                 table_id = doc_table_helper.create_table(
                     session, data, num_rows, num_cols, table_data)
-                print('table id is ', table_id)
             else:
                 raise MissingParamException(" or invalid operation type ")
         doc_table_helper.create_footnote(session, data)
@@ -343,6 +345,8 @@ class DocTableHelper():
             1 if is_top_elm else prev_data.SequenceID+1
         doc_id = prev_data.doc_id
         para_data.parent_id = data['doc_id'] = doc_id
+        para_data.last_updated = get_utc_datetime()
+        para_data.num_updates = 1
         update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
         update_link_update_details(session, para_data.link_id, para_data.userId, para_data.last_updated)
         session.add(para_data)
@@ -371,6 +375,8 @@ class DocTableHelper():
                 para_data.group_type = 'Attachments'
                 para_data.DocumentSequenceIndex = index
                 para_data.Value = footnote.get('Text', '')
+                para_data.last_updated = get_utc_datetime()
+                para_data.num_updates = 1
                 session.add(deepcopy(para_data))
         return data
     
@@ -548,6 +554,8 @@ class DocTableHelper():
         row_data.tableCell_colIndex = -1
         row_data.DocumentSequenceIndex = int(row_idx)
         row_data.Value = ''
+        row_data.last_updated = get_utc_datetime()
+        row_data.num_updates = 1
         session.add(row_data)
         return row_data
 
@@ -567,6 +575,8 @@ class DocTableHelper():
             col_data.tableCell_rowIndex = int(row_idx)
             col_data.tableCell_colIndex = int(col_idx)
             col_data.DocumentSequenceIndex = int(col_idx)
+            col_data.last_updated = get_utc_datetime()
+            col_data.num_updates = 1
             if i == 0 :
                 col_data.Value = content
             else:
@@ -594,6 +604,8 @@ class DocTableHelper():
                 para_data.DocumentSequenceIndex = int(col_idx)
                 para_data.SequenceID = 0
             parent_id = _id
+            para_data.last_updated = get_utc_datetime()
+            para_data.num_updates = 1
             session.add(para_data)
                     
 
