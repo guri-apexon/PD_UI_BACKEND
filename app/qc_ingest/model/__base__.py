@@ -38,8 +38,8 @@ def update_link_update_details(session, link_id, user_id, last_updated):
 
 
 def get_table_index(session, doc_id, table_roi_id):
-    table_name = 'DocumentTables'
-    sql = f'SELECT id FROM documenttables_db WHERE doc_id = \'{doc_id}\' and group_type = \'{table_name}\' order by \"DocumentSequenceIndex\"'
+    group_type = 'DocumentTables'
+    sql = f'SELECT id FROM documenttables_db WHERE doc_id = \'{doc_id}\' and group_type = \'{group_type}\' order by \"DocumentSequenceIndex\"'
     result = session.execute(sql)
     table_index = None
     fetched_result = result.fetchall()
