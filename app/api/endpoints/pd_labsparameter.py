@@ -30,6 +30,24 @@ async def get_lab_data(
     return lab_data
 
 
+@router.post('/lab_data_table_create')
+def create_lab_data_table(
+        *,
+        db: Session = Depends(deps.get_db),
+        data: schemas.LabDataTableCreate,
+        _: str = Depends(auth.validate_user_token)
+) -> Any:
+    """
+    create lab data table
+    :param db: database session
+    :param data: clinical terms
+    :param _: To validate API token
+    :returns: response with newly create record
+    """
+    lab_data = crud.labdata_content.create_lab_data_table(db, data.data)
+    return lab_data
+
+
 @router.post('/lab_data_operations')
 def lab_data_operations(
         *,
