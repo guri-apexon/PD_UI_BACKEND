@@ -105,12 +105,11 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                            "ontology": db_record.ontology,
                            'id': [db_record.id]}
             else:
+                db_record = None
+                if operation_type == "delete":
+                    db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
                 for entity_obj in entity_objs:
-                    db_record = None
-
-                    if operation_type == "delete":
-                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
-                    else:
+                    if not operation_type == "delete":
                         entity_obj.standard_entity_name = data.standard_entity_name
                         entity_obj.ontology = data.ontology
                         entity_obj.iqv_standard_term = data.iqv_standard_term
