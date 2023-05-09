@@ -106,27 +106,30 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                            'id': [db_record.id]}
             else:
                 db_record = None
-                if entity_objs and len(entity_objs) >= 1:
-                    if operation_type == "delete":
-                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
-                    else:
-                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
-
-                    if db_record:
-                        if 'id' in results:
-                            results.get('id').append(db_record.id)
+                para_ids = []
+                for entity_obj in entity_objs:
+                    para_id = entity_obj.parent_id
+                    if para_id not in para_ids:
+                        if operation_type == "delete":
+                            db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
                         else:
-                            results = {'doc_id': db_record.doc_id,
-                                       'link_id': db_record.link_id,
-                                       "standard_entity_name": db_record.standard_entity_name,
-                                       "iqv_standard_term": db_record.iqv_standard_term,
-                                       "entity_class": db_record.entity_class,
-                                       "entity_xref": db_record.entity_xref,
-                                       "ontology": db_record.ontology,
-                                       'id': [db_record.id]}
-                    else:
-                        results = {}
-                    db.commit()
+                            db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
+
+                        db_obj = db_record if db_record else entity_obj
+
+                        if 'id' in results:
+                            results.get('id').append(db_obj.id)
+                        else:
+                            results = {'doc_id': db_obj.doc_id,
+                                       'link_id': db_obj.link_id,
+                                       "standard_entity_name": db_obj.standard_entity_name,
+                                       "iqv_standard_term": db_obj.iqv_standard_term,
+                                       "entity_class": db_obj.entity_class,
+                                       "entity_xref": db_obj.entity_xref,
+                                       "ontology": db_obj.ontology,
+                                       'id': [db_obj.id]}
+                        para_ids.append(para_id)
+                db.commit()
             return results
         except Exception as ex:
             raise HTTPException(status_code=401, detail=f"Exception in Saving JSON data to DB {str(ex)}")
