@@ -1,3 +1,4 @@
+import datetime
 import logging
 import uuid
 from app.utilities.config import settings
@@ -48,7 +49,6 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         clinical_terms = data.clinical_terms or ""
 
         data = entity_obj if entity_obj else data
-
         new_entity = NlpEntityDb(id=str(uuid.uuid1()),
                                  doc_id=doc_id,
                                  link_id=link_id,
@@ -75,7 +75,8 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                  standard_entity_name=data.standard_entity_name,
                                  confidence=data.confidence,
                                  start=data.start,
-                                 text_len=len(data.standard_entity_name))
+                                 text_len=len(data.standard_entity_name),
+                                 dts=datetime.datetime.utcnow())
         try:
             db.add(new_entity)
             db.commit()
@@ -93,7 +94,6 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
             entity_text = data.standard_entity_name
             entity_objs = self.get_records(db, aidoc_id, link_id, entity_text)
             results = {}
-
             if not entity_objs:
                 db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
                 results = {'doc_id': db_record.doc_id,
