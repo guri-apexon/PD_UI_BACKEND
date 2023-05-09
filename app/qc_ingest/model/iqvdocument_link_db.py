@@ -48,6 +48,7 @@ class IqvdocumentlinkDb(SchemaBase):
     predicted_term_confidence = Column(FLOAT,default=0.0)
     predicted_term_source_system = Column(TEXT,default='')
     predicted_term_system_version = Column(TEXT,default='')
+    para_id = Column(TEXT,default='')
 
 
     @staticmethod
@@ -109,7 +110,6 @@ class IqvdocumentlinkDb(SchemaBase):
         else:
             next_data = IqvdocumentlinkDb.get_link_id(session,data['next_detail'])
             curr_dict = schema_to_dict(next_data)
-            curr_dict['DocumentSequenceIndex']=curr_dict['DocumentSequenceIndex']
             if not data.get('next_id',None):
                 data['next_id']=IqvdocumentlinkDb.get_line_id_for_top_link(session, data['next_detail']['link_id'])
         return curr_dict
@@ -145,6 +145,8 @@ class IqvdocumentlinkDb(SchemaBase):
         para_data.id = _id
         doc_id = para_data.doc_id
         para_data.parent_id=doc_id
+        para_data.last_updated = get_utc_datetime()
+        para_data.num_updates = 1
         update_link_index(session, IqvdocumentlinkDb.__tablename__,
                           doc_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         session.add(para_data)
