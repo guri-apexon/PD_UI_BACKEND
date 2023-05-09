@@ -33,7 +33,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                 NlpEntityDb.doc_id == doc_id).filter(
                 NlpEntityDb.link_id == link_id).filter(
                 NlpEntityDb.standard_entity_name == entity_text
-            ).all()
+            ).distinct(NlpEntityDb.parent_id)
         except Exception as ex:
             logger.exception("Exception in retrieval of data from table", ex)
         return entity_rec
@@ -60,7 +60,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                  link_id_subsection1=data.link_id_subsection1,
                                  link_id_subsection2=data.link_id_subsection2,
                                  link_id_subsection3=data.link_id_subsection3,
-                                 hierarchy="paragraph",
+                                 hierarchy=data.hierarchy,
                                  iqv_standard_term=preferred_term,
                                  parent_id=data.parent_id,
                                  group_type=data.group_type,
@@ -106,29 +106,24 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                            'id': [db_record.id]}
             else:
                 db_record = None
-                para_ids = []
                 for entity_obj in entity_objs:
-                    para_id = entity_obj.parent_id
-                    if para_id not in para_ids:
-                        if operation_type == "delete":
-                            db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
-                        else:
-                            db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
+                    if operation_type == "delete":
+                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
+                    else:
+                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
 
-                        db_obj = db_record if db_record else entity_obj
-
-                        if 'id' in results:
-                            results.get('id').append(db_obj.id)
-                        else:
-                            results = {'doc_id': db_obj.doc_id,
-                                       'link_id': db_obj.link_id,
-                                       "standard_entity_name": db_obj.standard_entity_name,
-                                       "iqv_standard_term": db_obj.iqv_standard_term,
-                                       "entity_class": db_obj.entity_class,
-                                       "entity_xref": db_obj.entity_xref,
-                                       "ontology": db_obj.ontology,
-                                       'id': [db_obj.id]}
-                        para_ids.append(para_id)
+                    db_obj = db_record if db_record else entity_obj
+                    if 'id' in results:
+                        results.get('id').append(db_obj.id)
+                    else:
+                        results = {'doc_id': db_obj.doc_id,
+                                   'link_id': db_obj.link_id,
+                                   "standard_entity_name": db_obj.standard_entity_name,
+                                   "iqv_standard_term": db_obj.iqv_standard_term,
+                                   "entity_class": db_obj.entity_class,
+                                   "entity_xref": db_obj.entity_xref,
+                                   "ontology": db_obj.ontology,
+                                   'id': [db_obj.id]}
                 db.commit()
             return results
         except Exception as ex:
