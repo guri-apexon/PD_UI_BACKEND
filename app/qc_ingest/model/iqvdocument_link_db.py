@@ -145,6 +145,8 @@ class IqvdocumentlinkDb(SchemaBase):
         para_data.id = _id
         doc_id = para_data.doc_id
         para_data.parent_id=doc_id
+        para_data.last_updated = get_utc_datetime()
+        para_data.num_updates = 1
         update_link_index(session, IqvdocumentlinkDb.__tablename__,
                           doc_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         session.add(para_data)
