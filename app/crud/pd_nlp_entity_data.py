@@ -76,7 +76,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                  confidence=data.confidence,
                                  start=data.start,
                                  text_len=len(data.standard_entity_name),
-                                 dts=datetime.now(datetime.timezone.utc).strftime("%Y%m%d%H%M%S"))
+                                 dts=datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S"))
         try:
             db.add(new_entity)
             db.commit()
