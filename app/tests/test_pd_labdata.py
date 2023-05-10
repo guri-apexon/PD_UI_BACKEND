@@ -91,3 +91,20 @@ def test_delete_labdata(doc_id, roi_id, table_roi_id, status_code, new_token_on_
         if not table_roi_id:
             assert delete_labdata.json().get("message") == "operation not completed successfully"
 
+
+@pytest.mark.parametrize("doc_id, status_code", [
+    ("3b44c1d5-f5f7-44ab-901a-3f53c2ba751d", status.HTTP_200_OK)
+])
+def test_create_lab_data_table(doc_id, status_code, new_token_on_headers):
+    create_labdata_table = client.post("api/lab_data/lab_data_table_create",
+                                 json={"data": {"doc_id": doc_id}},
+                                 headers=new_token_on_headers)
+
+    assert create_labdata_table.status_code == status_code
+    
+    # created record cleaning up with roi_id
+    roi_id = create_labdata_table.json()[0].get('roi_id')
+    if db.query(IqvlabparameterrecordDb).filter(IqvlabparameterrecordDb.roi_id==roi_id).delete(): 
+        assert True
+    else:
+        assert False
