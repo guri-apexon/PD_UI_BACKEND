@@ -135,6 +135,7 @@ def create_enriched_data(
         db: Session = Depends(deps.get_db),
         doc_id: str = "",
         link_id: str = "",
+        header_link_id: str = "",
         operation_type: str = "",
         data: schemas.NlpEntityData,
         _: str = Depends(auth.validate_user_token)
@@ -149,7 +150,7 @@ def create_enriched_data(
     :returns: response with newly create record
     """
     enriched_data = crud.nlp_entity_content.save_data_to_db(db, doc_id, link_id,operation_type,
-                                                            data.data)
+                                                            data.data, header_link_id)
     return enriched_data
 
 @router.get("/get_section_data_configurable_parameter")

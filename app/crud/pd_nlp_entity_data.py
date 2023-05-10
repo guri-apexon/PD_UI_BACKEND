@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import logging
 import uuid
+from app.models.pd_iqvdocumentlink_db import IqvdocumentlinkDb
 from app.utilities.config import settings
 from app.models.pd_nlp_entity_db import NlpEntityDb
 from app.schemas.pd_nlp_entity_db import NlpEntityCreate, NlpEntityUpdate
@@ -87,10 +88,14 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                 detail=f"Exception to create entity data {str(ex)}")
         return new_entity
 
-    def save_data_to_db(self, db: Session, aidoc_id: str, link_id: str, operation_type: str, data):
+    def save_data_to_db(self, db: Session, aidoc_id: str, link_id: str, operation_type: str, data, header_link_id: str=""):
         """ To create new record with updated clinical terms based on enriched
         text, apart from keep existing record data """
         try:
+            if len(header_link_id) > 1:
+                db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).update({IqvdocumentlinkDb.iqv_standard_term : data.iqv_standard_term })
+                db.commit()
+                                
             entity_text = data.standard_entity_name
             entity_objs = self.get_records(db, aidoc_id, link_id, entity_text)
             results = {}
