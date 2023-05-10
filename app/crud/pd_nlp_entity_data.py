@@ -19,7 +19,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         try:
             all_term_data = db.query(NlpEntityDb).filter(
                 NlpEntityDb.doc_id == doc_id).filter(
-                NlpEntityDb.link_id == link_id).all()
+                NlpEntityDb.link_id == link_id).distinct(NlpEntityDb.parent_id).all()
         except Exception as ex:
             all_term_data = []
             logger.exception("Exception in retrieval of data from table", ex)
@@ -34,7 +34,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                 NlpEntityDb.doc_id == doc_id).filter(
                 NlpEntityDb.link_id == link_id).filter(
                 NlpEntityDb.standard_entity_name == entity_text
-            ).distinct(NlpEntityDb.parent_id)
+            ).distinct(NlpEntityDb.parent_id).all()
         except Exception as ex:
             logger.exception("Exception in retrieval of data from table", ex)
         return entity_rec
@@ -76,7 +76,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                  confidence=data.confidence,
                                  start=data.start,
                                  text_len=len(data.standard_entity_name),
-                                 dts=datetime.datetime.utcnow())
+                                 dts=datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S"))
         try:
             db.add(new_entity)
             db.commit()
