@@ -29,5 +29,4 @@ def test_create_labdata(doc_id, user_id,status_code, new_token_on_headers):
             assert get_doc_status.json()["document_lock_status"] == True
         else:
             assert get_doc_status.json()["document_lock_status"] == False
-
-
+            
