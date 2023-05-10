@@ -71,10 +71,8 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
     def update_data_db(db, arr_data):
         try:
             for dt in arr_data:
-                doc_id = dt.doc_id
-                roi_id = dt.roi_id
+                column_id = dt.id
                 table_link_text = dt.table_link_text
-                table_roi_id = dt.table_roi_id
                 assessment = dt.assessment
                 procedure_panel = dt.procedure_panel
                 procedure_panel_text = dt.procedure_panel_text
@@ -85,9 +83,7 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
                 dts = '{:04d}{:02d}{:02d}{:02d}{:02d}{:02d}'.format(
                     date.year, date.month, date.day, date.hour, date.minute, date.second)
                 entity_rec = db.query(IqvlabparameterrecordDb).filter(
-                    IqvlabparameterrecordDb.doc_id == doc_id,
-                    IqvlabparameterrecordDb.table_roi_id == table_roi_id,
-                    IqvlabparameterrecordDb.roi_id == roi_id
+                    IqvlabparameterrecordDb.id == column_id
                 ).update({
                     'table_link_text': table_link_text,
                     'assessment': assessment,
