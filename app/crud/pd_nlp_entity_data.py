@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import logging
 import uuid
 from app.utilities.config import settings
