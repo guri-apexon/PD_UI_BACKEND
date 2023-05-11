@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import logging
 import uuid
 from app.models.pd_iqvdocumentlink_db import IqvdocumentlinkDb
@@ -19,7 +20,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         try:
             all_term_data = db.query(NlpEntityDb).filter(
                 NlpEntityDb.doc_id == doc_id).filter(
-                NlpEntityDb.link_id == link_id).all()
+                NlpEntityDb.link_id == link_id).distinct(NlpEntityDb.parent_id).all()
         except Exception as ex:
             all_term_data = []
             logger.exception("Exception in retrieval of data from table", ex)
@@ -34,7 +35,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                 NlpEntityDb.doc_id == doc_id).filter(
                 NlpEntityDb.link_id == link_id).filter(
                 NlpEntityDb.standard_entity_name == entity_text
-            ).all()
+            ).distinct(NlpEntityDb.parent_id).all()
         except Exception as ex:
             logger.exception("Exception in retrieval of data from table", ex)
         return entity_rec
@@ -49,7 +50,6 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         clinical_terms = data.clinical_terms or ""
 
         data = entity_obj if entity_obj else data
-
         new_entity = NlpEntityDb(id=str(uuid.uuid1()),
                                  doc_id=doc_id,
                                  link_id=link_id,
@@ -76,7 +76,8 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                  standard_entity_name=data.standard_entity_name,
                                  confidence=data.confidence,
                                  start=data.start,
-                                 text_len=len(data.standard_entity_name))
+                                 text_len=len(data.standard_entity_name),
+                                 dts=datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S"))
         try:
             db.add(new_entity)
             db.commit()
@@ -98,7 +99,6 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
             entity_text = data.standard_entity_name
             entity_objs = self.get_records(db, aidoc_id, link_id, entity_text)
             results = {}
-
             if not entity_objs:
                 db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
                 results = {'doc_id': db_record.doc_id,
@@ -110,20 +110,14 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                            "ontology": db_record.ontology,
                            'id': [db_record.id]}
             else:
+                db_record = None
                 for entity_obj in entity_objs:
-                    db_record = None
-
                     if operation_type == "delete":
                         db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
                     else:
-                        entity_obj.standard_entity_name = data.standard_entity_name
-                        entity_obj.ontology = data.ontology
-                        entity_obj.iqv_standard_term = data.iqv_standard_term
-                        entity_obj.text = data.clinical_terms
-                        db.add(entity_obj)
+                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
 
                     db_obj = db_record if db_record else entity_obj
-
                     if 'id' in results:
                         results.get('id').append(db_obj.id)
                     else:
