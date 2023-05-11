@@ -35,6 +35,6 @@ class NlpEntityDb(Base):
     confidence = Column(String, nullable=True)
     start = Column(String, nullable=True)
     text_len = Column(String, nullable=True)
-
+    dts = Column(String, nullable=True)
     
 
