@@ -107,8 +107,8 @@ class IqvpageroiDb(SchemaBase):
    GT_ImageFilename = Column(TEXT)
    userId = Column(VARCHAR(100))
    last_updated = Column(DateTime(timezone=True),
-                          default=datetime.utcnow, nullable=False)
-   num_updates = Column(INTEGER, default=1)
+                          default='', nullable=True)
+   num_updates = Column(INTEGER, default=0)
    references=Column(TEXT)
    predicted_term = Column(TEXT,default='')
    predicted_term_confidence = Column(FLOAT,default=0.0)
