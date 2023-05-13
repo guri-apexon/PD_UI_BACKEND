@@ -95,12 +95,22 @@ def get_sorted_wrapped_table_props(wrapped_table_props: dict):
     get sorted table properties based on priority opertion list
     """
     sorted_wrapped_table_props = list()
+    table_props_dict = dict()
     op_priority = [Oprations.DELETE_ROW, Oprations.DELETE_COLUMN,
                    Oprations.UPDATE_TABLE, Oprations.INSERT_COLUMN, Oprations.INSERT_ROW]
+    for table_props in wrapped_table_props:
+        if table_props['op_type'] in table_props_dict.keys():
+            table_props_dict[table_props['op_type']].append(table_props['op_params'])
+        else:
+            table_props_dict[table_props['op_type']] = [table_props['op_params']]
     for op in op_priority:
-        for table_props in wrapped_table_props:
-            if table_props['op_type'] == op and table_props not in sorted_wrapped_table_props:
-                sorted_wrapped_table_props.append(table_props)
+        for op_type, op_params in table_props_dict.items():
+            if op_type == op:
+                if op_type in [Oprations.INSERT_COLUMN, Oprations.INSERT_ROW]:
+                    for op_param in op_params:
+                        sorted_wrapped_table_props.append({'op_type':op_type,'op_params':[op_param]})
+                else:
+                    sorted_wrapped_table_props.append({'op_type':op_type,'op_params':op_params})
     return sorted_wrapped_table_props
 
 
