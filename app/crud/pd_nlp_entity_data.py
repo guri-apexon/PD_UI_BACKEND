@@ -112,10 +112,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
             else:
                 db_record = None
                 for entity_obj in entity_objs:
-                    if operation_type == "delete":
-                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
-                    else:
-                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
+                    db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
 
                     db_obj = db_record if db_record else entity_obj
                     if 'id' in results:

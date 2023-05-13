@@ -137,13 +137,6 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
                 connection = psqlengine.raw_connection()
                 doc_id = dt.doc_id
                 source_roi_id = roi_id
-                table_link_text = "" if not dt.table_link_text else dt.table_link_text
-                table_roi_id = table_roi_id
-                assessment = "" if not dt.assessment else dt.assessment
-                procedure_panel = "" if not dt.procedure_panel else dt.procedure_panel
-                procedure_panel_text = "" if not dt.procedure_panel_text else dt.procedure_panel_text
-                parameter = "" if not dt.parameter else dt.parameter
-                parameter_text = "" if not dt.parameter_text else dt.parameter_text
                 code_version = 'UI.labs.1.1'
                 date = datetime.now(timezone.utc)
                 dts = '{:04d}{:02d}{:02d}{:02d}{:02d}{:02d}'.format(
@@ -152,13 +145,13 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
                     connection,
                     doc_id,
                     source_roi_id=source_roi_id,
-                    table_link_text=table_link_text,
+                    table_link_text="" if not dt.table_link_text else dt.table_link_text,
                     table_roi_id=table_roi_id,
-                    assessment=assessment,
-                    procedure_panel=procedure_panel,
-                    procedure_panel_text=procedure_panel_text,
-                    parameter=parameter,
-                    parameter_text=parameter_text,
+                    assessment="" if not dt.assessment else dt.assessment,
+                    procedure_panel="" if not dt.procedure_panel else dt.procedure_panel,
+                    procedure_panel_text="" if not dt.procedure_panel_text else dt.procedure_panel_text,
+                    parameter="" if not dt.parameter else dt.parameter,
+                    parameter_text="" if not dt.parameter_text else dt.parameter_text,
                     code_version=code_version,
                     dts=dts
                 )
