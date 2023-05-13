@@ -37,9 +37,8 @@ class ParseTable():
         num_cols = 0
         for row in table_data:
             row_idx, row_data = self.parse_row(row)
-            num_col = len(row['row_props'])
-            if num_col > num_cols:
-                num_cols = num_col
+            if len(row['row_props']) > num_cols:
+                num_cols = len(row['row_props'])
             rows_data[row_idx] = row_data
         return num_rows, num_cols, rows_data
 
@@ -218,8 +217,8 @@ class DocumenttablesDb(SchemaBase):
     GT_ImageFilename = Column(TEXT)
     userId = Column(VARCHAR(100))
     last_updated = Column(DateTime(timezone=True),
-                          default=datetime.utcnow, nullable=False)
-    num_updates = Column(INTEGER, default=1)
+                          default='', nullable=True)
+    num_updates = Column(INTEGER, default=0)
     predicted_term = Column(TEXT,default='')
     predicted_term_confidence = Column(FLOAT,default=0.0)
     predicted_term_source_system = Column(TEXT,default='')
@@ -255,32 +254,33 @@ class DocumenttablesDb(SchemaBase):
         table_roi_id = data.get('table_roi_id')
         if not table_roi_id:
             raise MissingParamException('line_id')
-        op_params = data.get('op_params')
-        if op_params != None:
-            table_data = doc_table_helper.get_table(session, table_roi_id)
+        op_parameter = data.get('op_params')
+        if op_parameter != None and len(op_parameter)>0:
+            table_datail = doc_table_helper.get_table(session, table_roi_id)
             userid = data.get('userId')
             op_type = data.get('op_type', None)
             parse_table = ParseTable()
-            op_params = parse_table.get_op_params(op_type, op_params, table_data)
-            _, _, table_data = parse_table.parse(op_params)
-            if op_type == TableOp.UPDATE_TABLE:
-                doc_table_helper.update_table(session, table_data, userid)
-            elif op_type == TableOp.INSERT_ROW:
-                for row_idx, row_data in table_data.items():
-                    doc_table_helper.insert_row(
-                        session, table_roi_id, row_idx, row_data, userid)
+            for op_param in op_parameter:
+                op_params = parse_table.get_op_params(op_type, op_param, table_datail)
+                _, _, table_data = parse_table.parse(op_params)
+                if op_type == TableOp.UPDATE_TABLE:
+                    doc_table_helper.update_table(session, table_data, userid)
+                elif op_type == TableOp.INSERT_ROW:
+                    for row_idx, row_data in table_data.items():
+                        doc_table_helper.insert_row(
+                            session, table_roi_id, row_idx, row_data, userid)
 
-            elif op_type == TableOp.INSERT_COLUMN:
-                doc_table_helper.insert_col(
-                    session, table_roi_id, table_data, userid)
+                elif op_type == TableOp.INSERT_COLUMN:
+                    doc_table_helper.insert_col(
+                        session, table_roi_id, table_data, userid)
 
-            elif op_type == TableOp.DELETE_ROW:
-                doc_table_helper.delete_row(session, table_roi_id, table_data)
+                elif op_type == TableOp.DELETE_ROW:
+                    doc_table_helper.delete_row(session, table_roi_id, table_data)
 
-            elif op_type == TableOp.DELETE_COLUMN:
-                doc_table_helper.delete_column(session, table_data)
-            else:
-                raise MissingParamException(" or invalid operation type")
+                elif op_type == TableOp.DELETE_COLUMN:
+                    doc_table_helper.delete_column(session, table_data)
+                else:
+                    raise MissingParamException(" or invalid operation type")
 
         doc_table_helper.update_footnote(session, data)
         
