@@ -138,7 +138,6 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
                 doc_id = dt.doc_id
                 source_roi_id = roi_id
                 table_link_text = "" if not dt.table_link_text else dt.table_link_text
-                table_roi_id = table_roi_id
                 assessment = "" if not dt.assessment else dt.assessment
                 procedure_panel = "" if not dt.procedure_panel else dt.procedure_panel
                 procedure_panel_text = "" if not dt.procedure_panel_text else dt.procedure_panel_text
@@ -197,4 +196,3 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
 
 
 labdata_content = LabDataCrud(IqvlabparameterrecordDb)
-
