@@ -129,7 +129,7 @@ class PropertiesMaker():
         """
         doc_table_helper = DocTableHelper()
         table_name = data.get('TableName', "")
-        if not table_index or not table_roi_id:
+        if table_index == None or not table_roi_id:
             raise MissingParamException('table_index or table_roi_id')
         table_roi_data = session.query(DocumenttablesDb).filter(
             DocumenttablesDb.id == table_roi_id).first()
@@ -168,7 +168,7 @@ class IqvkeyvaluesetOp():
         table_roi_id = data.get('uuid')
         doc_id = data.get('doc_id')
         properties_maker = PropertiesMaker()
-        table_index = get_table_index(session, doc_id, table_roi_id)
+        table_index = get_table_index(session, doc_id, table_roi_id, DocumenttablesDb)
         properties_maker.update_keyvalueset_db(
             session, data, table_roi_id, table_index)
         obj = session.query(IqvkeyvaluesetDb).filter(and_(
@@ -202,7 +202,7 @@ class IqvkeyvaluesetOp():
         """
         table_index = data.get('TableIndex', None)
         table_roi_id = data.get('table_roi_id', None)
-        if not table_index or not table_roi_id:
+        if table_index == None or not table_roi_id:
             raise MissingParamException('table_index or table_roi_id')
         obj = session.query(IqvkeyvaluesetDb).filter(and_(IqvkeyvaluesetDb.doc_id == data.get(
             'doc_id'), IqvkeyvaluesetDb.key == 'TableIndex')).all()

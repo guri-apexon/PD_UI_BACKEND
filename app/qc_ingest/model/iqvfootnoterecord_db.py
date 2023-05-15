@@ -1,7 +1,7 @@
 from sqlalchemy import Column, and_
 from .__base__ import SchemaBase, schema_to_dict, MissingParamException, update_footnote_index, update_table_index, get_table_index
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER
-from .documenttables_db import TableOp
+from .documenttables_db import TableOp, DocumenttablesDb
 import uuid
 
 
@@ -38,8 +38,8 @@ class IqvfootnoterecordDb(SchemaBase):
             doc_id = data.get('doc_id', None)
             if not doc_id or not table_roi_id:
                 raise MissingParamException('doc_id or table_roi_id')
-            table_index = get_table_index(session, doc_id, table_roi_id)
-            if not table_index:
+            table_index = get_table_index(session, doc_id, table_roi_id, DocumenttablesDb)
+            if table_index == None:
                 raise MissingParamException('table_index')
             for index, footnote in enumerate(data['AttachmentListProperties']):
                 uid = str(uuid.uuid4())
@@ -100,8 +100,8 @@ class IqvfootnoterecordDb(SchemaBase):
                     if not previous_obj:
                         if sequnce_index == 0:
                             doc_id = data.get('doc_id')
-                            table_index = get_table_index(session, doc_id, table_roi_id)
-                            if not table_index:
+                            table_index = get_table_index(session, doc_id, table_roi_id, DocumenttablesDb)
+                            if table_index == None:
                                 raise MissingParamException('table_index')
                             obj = IqvfootnoterecordDb()
                             obj.doc_id = doc_id
@@ -147,7 +147,7 @@ class IqvfootnoterecordDb(SchemaBase):
         """
         table_index = data.get('TableIndex', None)
         table_roi_id = data.get('table_roi_id', None)
-        if not table_index or not table_roi_id:
+        if table_index == None or not table_roi_id:
             raise MissingParamException('table_index or table_roi_id')
         session.query(IqvfootnoterecordDb).filter(
             IqvfootnoterecordDb.table_roi_id == table_roi_id).delete()
