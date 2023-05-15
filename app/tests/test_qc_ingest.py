@@ -94,7 +94,7 @@ def get_table_data(uuid):
 
 def get_table_index_value(doc_id, uuid):
     with SessionLocal() as session:
-        table_index = get_table_index(session, doc_id, uuid)
+        table_index = get_table_index(session, doc_id, uuid, DocumenttablesDb)
         return table_index
 
 def get_line_id(uuid):

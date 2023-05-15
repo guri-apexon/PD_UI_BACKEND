@@ -16,6 +16,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
     """
     NLP Entity crud operation to get entity object with clinical terms.
     """
+
     def get(self, db: Session, doc_id: str, link_id: str):
         try:
             all_term_data = db.query(NlpEntityDb).filter(
@@ -88,14 +89,16 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                                 detail=f"Exception to create entity data {str(ex)}")
         return new_entity
 
-    def save_data_to_db(self, db: Session, aidoc_id: str, link_id: str, operation_type: str, data, header_link_id: str=""):
+    def save_data_to_db(self, db: Session, aidoc_id: str, link_id: str, operation_type: str, data,
+                        header_link_id: str = ""):
         """ To create new record with updated clinical terms based on enriched
         text, apart from keep existing record data """
         try:
             if len(header_link_id) > 1:
-                db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).update({IqvdocumentlinkDb.iqv_standard_term : data.iqv_standard_term })
+                db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).update(
+                    {IqvdocumentlinkDb.iqv_standard_term: data.iqv_standard_term})
                 db.commit()
-                                
+
             entity_text = data.standard_entity_name
             entity_objs = self.get_records(db, aidoc_id, link_id, entity_text)
             results = {}
@@ -112,10 +115,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
             else:
                 db_record = None
                 for entity_obj in entity_objs:
-                    if operation_type == "delete":
-                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
-                    else:
-                        db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
+                    db_record = self.insert_nlp_data(db, aidoc_id, link_id, data)
 
                     db_obj = db_record if db_record else entity_obj
                     if 'id' in results:
