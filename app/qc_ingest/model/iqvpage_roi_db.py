@@ -106,8 +106,7 @@ class IqvpageroiDb(SchemaBase):
    GT_ScoreMatch = Column(DOUBLE_PRECISION,nullable=False)
    GT_ImageFilename = Column(TEXT)
    userId = Column(VARCHAR(100))
-   last_updated = Column(DateTime(timezone=True),
-                          default='', nullable=True)
+   last_updated = Column(DateTime(timezone=True), nullable=True)
    num_updates = Column(INTEGER, default=0)
    references=Column(TEXT)
    predicted_term = Column(TEXT,default='')

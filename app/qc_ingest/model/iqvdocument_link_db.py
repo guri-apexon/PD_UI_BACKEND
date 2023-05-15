@@ -22,11 +22,11 @@ class IqvdocumentlinkDb(SchemaBase):
     id = Column(VARCHAR(128), primary_key=True, nullable=False)
     doc_id = Column(TEXT)
     link_id = Column(TEXT)
-    link_id_level2 = Column(TEXT)
-    link_id_level3 = Column(TEXT)
-    link_id_level4 = Column(TEXT)
-    link_id_level5 = Column(TEXT)
-    link_id_level6 = Column(TEXT)
+    link_id_level2 = Column(TEXT, default='')
+    link_id_level3 = Column(TEXT, default='')
+    link_id_level4 = Column(TEXT, default='')
+    link_id_level5 = Column(TEXT, default='')
+    link_id_level6 = Column(TEXT, default='')
     link_id_subsection1 = Column(TEXT)
     link_id_subsection2 = Column(TEXT)
     link_id_subsection3 = Column(TEXT)
@@ -36,13 +36,12 @@ class IqvdocumentlinkDb(SchemaBase):
     group_type = Column(TEXT)
     LinkType = Column(TEXT)
     DocumentSequenceIndex = Column(INTEGER, nullable=False)
-    LinkPage = Column(INTEGER, nullable=False)
+    LinkPage = Column(INTEGER, nullable=False, default=1)
     LinkLevel = Column(INTEGER, nullable=False)
     LinkText = Column(TEXT)
     LinkPrefix = Column(TEXT)
     userId = Column(VARCHAR(100))
-    last_updated = Column(DateTime(timezone=True),
-                          default='', nullable=True)
+    last_updated = Column(DateTime(timezone=True), nullable=True)
     num_updates = Column(INTEGER, default=0)
     predicted_term = Column(TEXT,default='')
     predicted_term_confidence = Column(FLOAT,default=0.0)
@@ -121,16 +120,31 @@ class IqvdocumentlinkDb(SchemaBase):
         data : prev data
 
         """
-        curr_dict=IqvdocumentlinkDb.get_curr_segment_info(session,data)
-        para_data = IqvdocumentlinkDb(**curr_dict)
-        _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
-        data['uuid'] = _id
-        #if link level not mentioned add at same level of 
-        link_level= data['link_level'] if data.get("link_level",None) else para_data.LinkLevel
-        link_str=LINKS_INFO[int(link_level)-1]
-        setattr(para_data,link_str,_id)
-        data[link_str]=_id
-        update_existing_props(para_data, data)
+        if data.get('is_section_completely_new') == True:
+            para_data = IqvdocumentlinkDb()
+            _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
+            data['uuid'] = para_data.id = para_data.link_id = _id
+            para_data.DocumentSequenceIndex = 0
+            para_data.LinkLevel = 1
+            para_data.doc_id = para_data.parent_id = data.get('doc_id')
+            para_data.userId = data.get('userId')
+        else:
+            curr_dict=IqvdocumentlinkDb.get_curr_segment_info(session,data)
+            para_data = IqvdocumentlinkDb(**curr_dict)
+            _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
+            data['uuid'] = _id
+            #if link level not mentioned add at same level of 
+            link_level= data['link_level'] if data.get("link_level",None) else para_data.LinkLevel
+            link_str=LINKS_INFO[int(link_level)-1]
+            setattr(para_data,link_str,_id)
+            data[link_str]=_id
+            update_existing_props(para_data, data)
+            para_data.LinkLevel = data.get('link_level', para_data.LinkLevel)
+            para_data.id = _id
+            doc_id = para_data.doc_id
+            para_data.parent_id=doc_id
+            update_link_index(session, IqvdocumentlinkDb.__tablename__,
+                            doc_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         para_data.hierarchy = 'document'
         para_data.group_type = 'DocumentLinks'
         para_data.LinkType = 'toc'
@@ -141,14 +155,8 @@ class IqvdocumentlinkDb(SchemaBase):
         if iqv_standard_term != "":
             source_system = "QC2"
         para_data.predicted_term_source_system = source_system
-        para_data.LinkLevel = data.get('link_level', para_data.LinkLevel)
-        para_data.id = _id
-        doc_id = para_data.doc_id
-        para_data.parent_id=doc_id
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 1
-        update_link_index(session, IqvdocumentlinkDb.__tablename__,
-                          doc_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         session.add(para_data)
         data['is_link']=True
         if not data['content']:

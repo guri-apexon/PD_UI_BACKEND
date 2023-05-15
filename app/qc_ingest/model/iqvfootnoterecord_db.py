@@ -1,7 +1,7 @@
 from sqlalchemy import Column, and_
-from .__base__ import SchemaBase, schema_to_dict, MissingParamException, update_footnote_index, update_table_index, get_table_index
+from .__base__ import SchemaBase, schema_to_dict, MissingParamException, update_footnote_index, update_table_index
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER
-from .documenttables_db import TableOp, DocumenttablesDb
+from .documenttables_db import TableOp, DocTableHelper
 import uuid
 
 
@@ -38,7 +38,8 @@ class IqvfootnoterecordDb(SchemaBase):
             doc_id = data.get('doc_id', None)
             if not doc_id or not table_roi_id:
                 raise MissingParamException('doc_id or table_roi_id')
-            table_index = get_table_index(session, doc_id, table_roi_id, DocumenttablesDb)
+            doc_table_helper = DocTableHelper()
+            table_index = doc_table_helper.get_table_index(session, doc_id, table_roi_id)
             if table_index == None:
                 raise MissingParamException('table_index')
             for index, footnote in enumerate(data['AttachmentListProperties']):
@@ -100,7 +101,8 @@ class IqvfootnoterecordDb(SchemaBase):
                     if not previous_obj:
                         if sequnce_index == 0:
                             doc_id = data.get('doc_id')
-                            table_index = get_table_index(session, doc_id, table_roi_id, DocumenttablesDb)
+                            doc_table_helper = DocTableHelper()
+                            table_index = doc_table_helper.get_table_index(session, doc_id, table_roi_id)
                             if table_index == None:
                                 raise MissingParamException('table_index')
                             obj = IqvfootnoterecordDb()

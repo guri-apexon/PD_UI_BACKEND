@@ -30,8 +30,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
    img = Column(BYTEA)
    image_format = Column(TEXT)
    userId = Column(VARCHAR(100))
-   last_updated = Column(DateTime(timezone=True),
-                          default='', nullable=True)
+   last_updated = Column(DateTime(timezone=True), nullable=True)
    num_updates = Column(INTEGER, default=0)
 
    @staticmethod
