@@ -11,11 +11,11 @@ class DocumentpartslistDb(SchemaBase):
     id = Column(VARCHAR(128),primary_key=True,nullable=False)
     doc_id = Column(TEXT)
     link_id = Column(TEXT)
-    link_id_level2 = Column(TEXT)
-    link_id_level3 = Column(TEXT)
-    link_id_level4 = Column(TEXT)
-    link_id_level5 = Column(TEXT)
-    link_id_level6 = Column(TEXT)
+    link_id_level2 = Column(TEXT, default='')
+    link_id_level3 = Column(TEXT, default='')
+    link_id_level4 = Column(TEXT, default='')
+    link_id_level5 = Column(TEXT, default='')
+    link_id_level6 = Column(TEXT, default='')
     link_id_subsection1 = Column(TEXT)
     link_id_subsection2 = Column(TEXT)
     link_id_subsection3 = Column(TEXT)
@@ -25,8 +25,7 @@ class DocumentpartslistDb(SchemaBase):
     group_type = Column(TEXT)
     sequence_id = Column(INTEGER,nullable=False)
     userId = Column(VARCHAR(100))
-    last_updated = Column(DateTime(timezone=True),
-                          default='', nullable=True)
+    last_updated = Column(DateTime(timezone=True), nullable=True)
     num_updates = Column(INTEGER, default=0)
    
     @staticmethod
@@ -37,41 +36,49 @@ class DocumentpartslistDb(SchemaBase):
 
         return : updated data that may be used in next stage update
         """
-        cid,is_next_elm=None,False
-
-        if data['prev_id']:
-            cid=data['prev_id']
+        if data.get('is_section_completely_new') == True:
+            para_data = DocumentpartslistDb()
+            _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
+            data['uuid'] = para_data.id = para_data.link_id = _id
+            para_data.sequence_id = 0
+            para_data.doc_id = para_data.parent_id = data.get('doc_id')
+            para_data.userId = data.get('userId')
         else:
-            cid=data.get('next_id','')
-            is_next_elm=True
-        if not cid and data['is_link']:
-            return data
-        
-        prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()
-        if not prev_data:
-            prev_data = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == cid).first()
-            if prev_data.hierarchy == 'table':
-                while prev_data.hierarchy == 'table':
-                    prev_data = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == prev_data.doc_id, IqvpageroiDb.DocumentSequenceIndex == prev_data.DocumentSequenceIndex - 1)).first()
-                prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == prev_data.id).first()
+            cid,is_next_elm=None,False
+
+            if data['prev_id']:
+                cid=data['prev_id']
             else:
-                raise MissingParamException(f'{cid} in document partlist db ')
-        prev_dict=schema_to_dict(prev_data)
-        para_data = DocumentpartslistDb(**prev_dict)
-        _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
-        data['uuid']=_id
-        update_existing_props(para_data,data)
+                cid=data.get('next_id','')
+                is_next_elm=True
+            if not cid and data['is_link']:
+                return data
+            
+            prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()
+            if not prev_data:
+                prev_data = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == cid).first()
+                if prev_data.hierarchy == 'table':
+                    while prev_data.hierarchy == 'table':
+                        prev_data = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == prev_data.doc_id, IqvpageroiDb.DocumentSequenceIndex == prev_data.DocumentSequenceIndex - 1)).first()
+                    prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == prev_data.id).first()
+                else:
+                    raise MissingParamException(f'{cid} in document partlist db ')
+            prev_dict=schema_to_dict(prev_data)
+            para_data = DocumentpartslistDb(**prev_dict)
+            _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
+            data['uuid']=_id
+            update_existing_props(para_data,data)
+            para_data.id = _id
+            para_data.sequence_id=prev_data.sequence_id-1 if is_next_elm else prev_data.sequence_id+1
+            doc_id=prev_data.doc_id
+            para_data.parent_id = doc_id
+            update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,para_data.sequence_id, CurdOp.CREATE) 
+            if data.get('type') != 'header' and data.get('link_level') != '1':
+                update_link_update_details(session, para_data.link_id, para_data.userId, para_data.last_updated) 
         para_data.hierarchy = 'document'
-        para_data.group_type = 'DocumentPartsList'
-        para_data.id = _id
-        para_data.sequence_id=prev_data.sequence_id-1 if is_next_elm else prev_data.sequence_id+1
-        doc_id=prev_data.doc_id
-        para_data.parent_id = doc_id
+        para_data.group_type = 'DocumentPartsList' 
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 1
-        update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,para_data.sequence_id, CurdOp.CREATE) 
-        if data.get('type') != 'header' and data.get('link_level') != '1':
-            update_link_update_details(session, para_data.link_id, para_data.userId, para_data.last_updated) 
         session.add(para_data)
         return data
     

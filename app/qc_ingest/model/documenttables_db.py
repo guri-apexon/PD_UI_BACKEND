@@ -216,8 +216,7 @@ class DocumenttablesDb(SchemaBase):
     GT_ScoreMatch = Column(DOUBLE_PRECISION, nullable=False)
     GT_ImageFilename = Column(TEXT)
     userId = Column(VARCHAR(100))
-    last_updated = Column(DateTime(timezone=True),
-                          default='', nullable=True)
+    last_updated = Column(DateTime(timezone=True), nullable=True)
     num_updates = Column(INTEGER, default=0)
     predicted_term = Column(TEXT,default='')
     predicted_term_confidence = Column(FLOAT,default=0.0)
