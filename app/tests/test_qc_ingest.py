@@ -6,7 +6,6 @@ from app.qc_ingest.model.iqvfootnoterecord_db import IqvfootnoterecordDb
 from app.main import app
 from fastapi.testclient import TestClient
 from app.qc_ingest.model.documenttables_db import DocTableHelper, DocumenttablesDb
-from app.qc_ingest.model.__base__ import get_table_index
 from copy import deepcopy
 import uuid
 from sqlalchemy import and_
@@ -93,8 +92,9 @@ def get_table_data(uuid):
         return data
 
 def get_table_index_value(doc_id, uuid):
+    doc_table_helper = DocTableHelper()
     with SessionLocal() as session:
-        table_index = get_table_index(session, doc_id, uuid, DocumenttablesDb)
+        table_index = doc_table_helper.get_table_index(session, doc_id, uuid)
         return table_index
 
 def get_line_id(uuid):

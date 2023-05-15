@@ -37,17 +37,6 @@ def update_link_update_details(session, link_id, user_id, last_updated):
     session.execute(sql)
 
 
-def get_table_index(session, doc_id, table_roi_id, table_object):
-    group_type = 'DocumentTables'
-    obj = session.query(table_object.id).filter(and_(table_object.doc_id == doc_id, table_object.group_type == group_type)).order_by(table_object.DocumentSequenceIndex).all()
-    table_index = None
-    for i in range(len(obj)):
-        if table_roi_id == obj[i][0]:
-            table_index = i
-            break
-    return table_index
-
-
 def update_table_index(session,table_index, doc_id, op_code):
     """
 
