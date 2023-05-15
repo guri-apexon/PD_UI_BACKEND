@@ -71,11 +71,27 @@ def test_create_new_entity(doc_id, link_id, enriched_text,
     """ To verify newly created entity with updated clinical terms """
     create_entity = client.post("/api/cpt_data/update_enriched_data",
                                 params={"doc_id": doc_id, "link_id": link_id},
-                                json={"data": {
-                                    "standard_entity_name": enriched_text,
-                                    "iqv_standard_term": "", "entity_class": "",
-                                    "entity_xref": "test1, test2",
-                                    "ontology": ""}},
+                                json={
+                                    "data" : {
+                                        "standard_entity_name": "emicizumab",
+                                        "iqv_standard_term": "emicizumab_Prefer",
+                                        "clinical_terms": "emicizumab_clci_n    ew_last",
+                                        "ontology": "emicizumab_ont",
+                                        "confidence": "100",
+                                        "start": "0",
+                                        "text_len": "10",
+                                        "parent_id": "1ae04d41-3c52-4e56-8ada-2006c2290c50",
+                                        "doc_id": "5a5db927-74b3-4b5a-8d2b-ad022d01c967",
+                                        "link_id": "5d5e6dd2-7b35-4c1d-b3d8-98b0bc914f5a",
+                                        "synonyms": "",
+                                        "classification": "",
+                                        "preferred_term": "test_new_1",
+                                        "entity_class": "",
+                                        "entity_xref": "",
+                                        "user_id": "1156301",
+                                        "hierarchy": "paragraph"
+                                    }
+                                },
                                 headers=new_token_on_headers)
     if create_entity.status_code == status.HTTP_200_OK:
         response = json.loads(create_entity.text)
@@ -83,7 +99,4 @@ def test_create_new_entity(doc_id, link_id, enriched_text,
         _ = db.query(NlpEntityDb).filter(NlpEntityDb.id.in_(ids)).delete()
         db.commit()
 
-    if create_entity.status_code == status.HTTP_200_OK:
-        create_entity.status_code == status.HTTP_200_OK
-    else:
-        create_entity.status_code == status.HTTP_401_UNAUTHORIZED
+    assert create_entity.status_code == status.HTTP_200_OK
