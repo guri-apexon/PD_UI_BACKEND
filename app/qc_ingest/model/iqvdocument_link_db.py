@@ -160,7 +160,7 @@ class IqvdocumentlinkDb(SchemaBase):
         session.add(para_data)
         data['is_link']=True
         if not data['content']:
-            data['content']=para_data.LinkPrefix+' '+para_data.LinkText
+            data['content']=para_data.LinkPrefix+''+para_data.LinkText
         return data
 
     @staticmethod
