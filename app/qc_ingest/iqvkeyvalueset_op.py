@@ -1,5 +1,5 @@
 from sqlalchemy import and_
-from .model.__base__ import schema_to_dict, MissingParamException, get_table_index
+from .model.__base__ import schema_to_dict, MissingParamException
 from .model.documenttables_db import DocumenttablesDb, DocTableHelper
 from .model.iqvkeyvalueset_db import IqvkeyvaluesetDb
 import uuid
@@ -168,7 +168,8 @@ class IqvkeyvaluesetOp():
         table_roi_id = data.get('uuid')
         doc_id = data.get('doc_id')
         properties_maker = PropertiesMaker()
-        table_index = get_table_index(session, doc_id, table_roi_id, DocumenttablesDb)
+        doc_table_helper = DocTableHelper()
+        table_index = doc_table_helper.get_table_index(session, doc_id, table_roi_id)
         properties_maker.update_keyvalueset_db(
             session, data, table_roi_id, table_index)
         obj = session.query(IqvkeyvaluesetDb).filter(and_(

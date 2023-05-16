@@ -216,8 +216,7 @@ class DocumenttablesDb(SchemaBase):
     GT_ScoreMatch = Column(DOUBLE_PRECISION, nullable=False)
     GT_ImageFilename = Column(TEXT)
     userId = Column(VARCHAR(100))
-    last_updated = Column(DateTime(timezone=True),
-                          default='', nullable=True)
+    last_updated = Column(DateTime(timezone=True), nullable=True)
     num_updates = Column(INTEGER, default=0)
     predicted_term = Column(TEXT,default='')
     predicted_term_confidence = Column(FLOAT,default=0.0)
@@ -763,6 +762,16 @@ class DocTableHelper():
                 }
             table_data[row_idx] = row_data
         return table_data
+
+    def get_table_index(self, session, doc_id, table_roi_id):
+        group_type = 'DocumentTables'
+        obj = session.query(DocumenttablesDb.id).filter(and_(DocumenttablesDb.doc_id == doc_id, DocumenttablesDb.group_type == group_type)).order_by(DocumenttablesDb.DocumentSequenceIndex).all()
+        table_index = None
+        for i in range(len(obj)):
+            if table_roi_id == obj[i][0]:
+                table_index = i
+                break
+        return table_index
 
     def get_table_footnote_data(self, session, table_id):
         data = list()
