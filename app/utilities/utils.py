@@ -33,6 +33,8 @@ async def update_qc_fields(pd_attributes_for_dashboard: dict, db: Session, get_q
 
 def notification_service(doc_id: str, event: str, send_mail: bool, user_id: str = '') -> bool:
     params = {"doc_id": doc_id, "event": event, "send_mail":send_mail, "user_id":user_id}
-    _ = requests.get(url=settings.MANAGEMENT_SERVICE_URL+"notifications/send/email", params=params, headers=settings.MGMT_CRED_HEADERS)
+    settings.MGMT_CRED_HEADERS.update({'Content-Type': 'application/json'})
+    response = requests.get(url=settings.MANAGEMENT_SERVICE_URL+"notifications/send/email", params=params, headers=settings.MGMT_CRED_HEADERS)
     logger.info(f"for doc id {doc_id} event {event} records create")
+    logger.info(f"response from notification endpoint {response.json()} and status code {response.status_code}")
     return True
