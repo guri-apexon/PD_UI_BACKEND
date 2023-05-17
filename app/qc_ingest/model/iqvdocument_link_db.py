@@ -179,9 +179,9 @@ class IqvdocumentlinkDb(SchemaBase):
         last_updated = get_utc_datetime()
         source_system = obj.predicted_term_source_system
         if iqv_standard_term != obj.iqv_standard_term:
-            if source_system.startswith('NLP'):
+            if source_system.startswith('NLP') or source_system in ['',None]:
                 category = 'header'
-                if data.get('link_level') >1:
+                if int(data.get('link_level')) >1:
                     if iqv_standard_term.startswith('cpt_assessments'):
                         category = 'assessments'
                     else:
