@@ -290,7 +290,7 @@ class DocumenttablesDb(SchemaBase):
         update_link_update_details(session, obj.link_id, data.get('userId'), get_utc_datetime())
         if iqv_standard_term and iqv_standard_term != obj.iqv_standard_term:
             source_system = obj.predicted_term_source_system
-            if source_system.startswith('NLP'):
+            if source_system.startswith('NLP') or source_system in ['',None]:
                 insert_meta_entity(session, 'table', data.get('TableName'), iqv_standard_term)
             obj.predicted_term_source_system = "QC2"
             obj.iqv_standard_term = iqv_standard_term
