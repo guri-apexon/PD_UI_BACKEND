@@ -181,7 +181,7 @@ class IqvdocumentlinkDb(SchemaBase):
         if iqv_standard_term != obj.iqv_standard_term:
             if source_system.startswith('NLP') or source_system in ['',None]:
                 category = 'header'
-                if data.get('link_level') >1:
+                if int(data.get('link_level')) >1:
                     if iqv_standard_term.startswith('cpt_assessments'):
                         category = 'assessments'
                     else:
