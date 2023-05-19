@@ -96,7 +96,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         try:
             if len(header_link_id) > 1:
                 db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).update(
-                    {IqvdocumentlinkDb.iqv_standard_term: data.iqv_standard_term, IqvdocumentlinkDb.userId: data.user_id, IqvdocumentlinkDb.last_updated: datetime.now(timezone.utc), IqvdocumentlinkDb.predicted_term_source_system: 'QC2'})
+                    {IqvdocumentlinkDb.iqv_standard_term: data.iqv_standard_term, IqvdocumentlinkDb.userId: data.user_id, IqvdocumentlinkDb.last_updated: datetime.now(timezone.utc), IqvdocumentlinkDb.predicted_term_source_system: 'QC1'})
                 db.commit()
 
             entity_text = data.standard_entity_name
