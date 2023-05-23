@@ -259,6 +259,7 @@ class DocumenttablesDb(SchemaBase):
             userid = data.get('userId')
             op_type = data.get('op_type', None)
             parse_table = ParseTable()
+            count = 1
             for op_param in op_parameter:
                 op_params = parse_table.get_op_params(op_type, op_param, table_datail)
                 _, _, table_data = parse_table.parse(op_params)
@@ -275,9 +276,15 @@ class DocumenttablesDb(SchemaBase):
 
                 elif op_type == TableOp.DELETE_ROW:
                     doc_table_helper.delete_row(session, table_roi_id, table_data)
+                    if len(op_parameter) == count:
+                        doc_table_helper._update_table_row_index(session, DocumenttablesDb.__tablename__, table_roi_id, 0, CurdOp.DELETE)
+                    count +=1
 
                 elif op_type == TableOp.DELETE_COLUMN:
                     doc_table_helper.delete_column(session, table_data)
+                    if len(op_parameter) == count:
+                        doc_table_helper._update_table_col_index(session, DocumenttablesDb.__tablename__, table_roi_id, 0, CurdOp.DELETE)
+                    count +=1
                 else:
                     raise MissingParamException(" or invalid operation type")
 
@@ -451,38 +458,59 @@ class DocTableHelper():
         except Exception as ex:
             raise MissingParamException("{0}{1} in DocumenttablesDb DB".format(table_roi_id, ex))
 
-    def _update_table_row_index(self, session, table_name, row_id_list, op):
+    def _update_table_row_index(self, session, table_name, parent_id, row_sequence_id, op):
         """
         parent_id is table_id
         row_sequence_id: update existing row index as well ,here we considering exact row idx
         """
-        op_code = '+' if op == CurdOp.CREATE else '-'
-        row_id_str = ''
-        for row_id in row_id_list:
-            row_id_str += f"'{row_id}',"
-        row_id_str = row_id_str[0:-1]
-        sql_query = f'UPDATE {table_name} SET "tableCell_rowIndex" = "tableCell_rowIndex" {op_code} 1 ,\
-         "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE \
-         "parent_id" IN ({row_id_str}) OR "id" IN ({row_id_str})'
-        session.execute(sql_query)
+        row_ids = self._get_all_rows_ids(session, parent_id, row_sequence_id)
+        if op == CurdOp.CREATE:
+            op_code = '+'
+            row_id_str = ''
+            for row_id in row_ids:
+                row_id_str += f"'{row_id[0]}',"
+            if len(row_ids) > 0:
+                row_id_str = row_id_str[0:-1]
+                sql_query = f'UPDATE {table_name} SET "tableCell_rowIndex" = "tableCell_rowIndex" {op_code} 1 WHERE "parent_id" IN ({row_id_str}) AND "group_type"= \'ChildBoxes\' '
+                session.execute(sql_query)
+                sql_query1 = f'UPDATE {table_name} SET "tableCell_rowIndex" = "tableCell_rowIndex" {op_code} 1 ,\
+                    "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "DocumentSequenceIndex" >= \'{row_sequence_id}\' \
+                        AND "parent_id" = \'{parent_id}\' AND "group_type"= \'ChildBoxes\' '
+                session.execute(sql_query1)
+        else:
+            for index, row_id in enumerate(row_ids):
+                sql_query = f'UPDATE {table_name} SET "tableCell_rowIndex" = {index} ,\
+                    "DocumentSequenceIndex" = {index} WHERE "id" = \'{row_id[0]}\' AND "group_type"= \'ChildBoxes\''
+                session.execute(sql_query)
+                sql_query1 = f'UPDATE {table_name} SET "tableCell_rowIndex" = {index} WHERE "parent_id" = \'{row_id[0]}\' AND "group_type"= \'ChildBoxes\''
+                session.execute(sql_query1)
 
     def _update_table_col_index(self, session, table_name, parent_id, col_sequence_id, op):
         """
         parent_id = row_id
         row_sequence_id: update existing row index as well ,here we considering exact row idx
         """
-        op_code = '+' if op == CurdOp.CREATE else '-'
-        sql_query = f'UPDATE {table_name} SET "tableCell_colIndex" = "tableCell_colIndex" {op_code} 1 ,\
-         "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "tableCell_colIndex" >= \'{col_sequence_id}\' \
-            AND "parent_id" = \'{parent_id}\' AND "group_type"= \'ChildBoxes\' '
-        session.execute(sql_query)
+        if op == CurdOp.CREATE:
+            op_code = '+'
+            sql_query = f'UPDATE {table_name} SET "tableCell_colIndex" = "tableCell_colIndex" {op_code} 1 ,\
+            "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "tableCell_colIndex" >= \'{col_sequence_id}\' \
+                AND "parent_id" = \'{parent_id}\' AND "group_type"= \'ChildBoxes\' '
+            session.execute(sql_query)
+        else:
+            row_ids = self._get_all_rows_ids(session, parent_id, 0)
+            for index, row_id in enumerate(row_ids):
+                col_ids = self._get_all_cols_ids(session, row_id[0])
+                for index, col_id in enumerate(col_ids):
+                    sql_query = f'UPDATE {table_name} SET "tableCell_colIndex" = {index} ,\
+                        "DocumentSequenceIndex" = {index} WHERE "id" = \'{col_id[0]}\' AND "group_type"= \'ChildBoxes\''
+                    session.execute(sql_query)
 
     def insert_col(self, session, table_id, data, userid):
         """
         table_id is parent id for all rows 
         first all rows ids must be fetched then crossponding col can be updated.
         """
-        rows_info = self._get_all_rows_ids(session, table_id)
+        rows_info = self._get_all_rows_ids(session, table_id, 0)
         row_obj = self._get_table_obj(session, table_id)
         sequence_index = row_obj.DocumentSequenceIndex
         sequence_id = row_obj.SequenceID
@@ -522,8 +550,6 @@ class DocTableHelper():
                     DocumenttablesDb.id == cell_id).delete()
                 session.query(DocumenttablesDb).filter(
                     DocumenttablesDb.parent_id == cell_id).delete()
-                self._update_table_col_index(
-                    session, DocumenttablesDb.__tablename__, row_id, col_idx, CurdOp.DELETE)
         session.query(IqvkeyvaluesetDb).filter(
                     IqvkeyvaluesetDb.parent_id.in_(child_cell_id_list)).delete()
 
@@ -532,10 +558,15 @@ class DocTableHelper():
                                                            DocumenttablesDb.group_type == 'ChildBoxes')).all()
         return rows
 
-    def _get_all_rows_ids(self, session, table_id):
+    def _get_all_rows_ids(self, session, table_id, row_sequence_id):
         row_obj = session.query(DocumenttablesDb.id, DocumenttablesDb.tableCell_rowIndex).filter(and_(DocumenttablesDb.parent_id == table_id,
-                                                                                                      DocumenttablesDb.group_type == 'ChildBoxes')).all()
+                                                                                                      DocumenttablesDb.group_type == 'ChildBoxes', DocumenttablesDb.DocumentSequenceIndex>=int(row_sequence_id))).order_by(DocumenttablesDb.DocumentSequenceIndex).all()
         return row_obj
+
+    def _get_all_cols_ids(self, session, row_id):
+        col_obj = session.query(DocumenttablesDb.id, DocumenttablesDb.tableCell_colIndex).filter(and_(DocumenttablesDb.parent_id == row_id,
+                                                                                                      DocumenttablesDb.group_type == 'ChildBoxes')).order_by(DocumenttablesDb.DocumentSequenceIndex).all()
+        return col_obj
 
     def _get_table_obj(self, session, table_id):
         obj = session.query(DocumenttablesDb).filter(DocumenttablesDb.id == table_id,
@@ -612,14 +643,8 @@ class DocTableHelper():
         """
         table_id: is parent id for row
         """
-        rows_info = self._get_all_rows_ids(session, table_roi_id)
-        all_row_ids = []
-        for row_id, r_idx in rows_info:
-            if r_idx >= row_idx:
-                all_row_ids.append(row_id)
-        if len(all_row_ids) > 0:
-            self._update_table_row_index(session, DocumenttablesDb.__tablename__,
-                                        all_row_ids, CurdOp.CREATE)
+        self._update_table_row_index(session, DocumenttablesDb.__tablename__, table_roi_id,
+                                        row_idx, CurdOp.CREATE)
 
         table_obj = self._get_table_obj(session, table_roi_id)
         sequence_index = table_obj.DocumentSequenceIndex
@@ -711,7 +736,6 @@ class DocTableHelper():
 
     def delete_row(self, session, table_id, table_data):
 
-        rows_info = self._get_all_rows_ids(session, table_id)
         for row_idx, row_data in table_data.items():
             row_id = row_data[0]['row_roi_id']
             obj = session.query(DocumenttablesDb).filter(
@@ -737,13 +761,6 @@ class DocTableHelper():
                 DocumenttablesDb.id == row_id).delete()
             session.query(IqvkeyvaluesetDb).filter(
                 IqvkeyvaluesetDb.parent_id.in_(child_cell_id_list)).delete()
-            all_row_ids = []
-            for row_id, r_idx in rows_info:
-                if r_idx > row_idx:
-                    all_row_ids.append(row_id)
-            if len(all_row_ids) != 0:
-                self._update_table_row_index(
-                    session, DocumenttablesDb.__tablename__, all_row_ids, CurdOp.DELETE)
 
     def get_table(self, session, table_id):
         row_ids = session.query(DocumenttablesDb.id).filter(and_(

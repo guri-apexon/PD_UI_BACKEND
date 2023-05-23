@@ -97,7 +97,7 @@ def get_sorted_wrapped_table_props(wrapped_table_props: dict):
     sorted_wrapped_table_props = list()
     table_props_dict = dict()
     op_priority = [Oprations.DELETE_ROW, Oprations.DELETE_COLUMN,
-                   Oprations.UPDATE_TABLE, Oprations.INSERT_COLUMN, Oprations.INSERT_ROW]
+                    Oprations.INSERT_COLUMN, Oprations.INSERT_ROW, Oprations.UPDATE_TABLE]
     for table_props in wrapped_table_props:
         if table_props['op_type'] in table_props_dict.keys():
             table_props_dict[table_props['op_type']].append(table_props['op_params'])
@@ -119,6 +119,7 @@ def get_modify_wrapped_table_props(wrapped_table_props: dict, table_props: list)
     get modify table properties 
     """
     column_props = {Oprations.UPDATE_TABLE: [], Oprations.INSERT_COLUMN: [], Oprations.DELETE_COLUMN: []}
+    row_seq = 0
     for column_data in table_props:
         op_params = list()
         row_props = dict()
@@ -142,11 +143,12 @@ def get_modify_wrapped_table_props(wrapped_table_props: dict, table_props: list)
                     else:
                         new_op_type = Oprations.DELETE_COLUMN
                     column_props[new_op_type].append(
-                        {row_idx: {str(column['col_indx']): get_prop_dict(column)}})
+                        {str(row_seq): {str(column['col_indx']): get_prop_dict(column)}})
 
                 elif column.get('op_type') == Oprations.MODIFY:
                     column_props[Oprations.UPDATE_TABLE].append(
                         {row_idx: {str(column['col_indx']): get_prop_dict(column)}})
+            row_seq += 1
 
         else:
             raise MissingParamException(" or invalid operation type ")
