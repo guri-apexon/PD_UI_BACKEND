@@ -156,15 +156,19 @@ def process(payload: list):
         return []
     mapper = RelationalMapper()
     uid_list=[]
-    link_id, user_id = None, None
+    link_id, user_id, is_section_header = None, None, False
     with SessionLocal() as session:
         for data in payload:  
             data = process_data(session, mapper, data)
             uid_list.append({'uuid':data.get('uuid',''),
                              'op_type':data.get('op_type',''),
                              'qc_change_type':data.get('qc_change_type','')})
+
+            if data.get('type') == 'header' and data.get('link_level') in ['1',1]:
+                link_id = None
+                is_section_header = True
             
-            if data.get('type') != 'header' and data.get('link_level') not in ['1',1]:
+            if is_section_header == False:
                 if link_id == None and data.get('link_id') in ['', None]:
                     _id = data.get('line_id', '')[0:36] if data.get("line_id") not in ['', None] else data.get('uuid')
                     obj = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == _id).first()
