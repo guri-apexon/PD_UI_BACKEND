@@ -54,7 +54,7 @@ def test_verify_audit_log_curd(new_token_on_headers, qc_ingest_test_data, audit_
         assert put_audit_info.status_code == 200
         audit_info = json.loads(put_audit_info.text)
         assert audit_info['info']['audit_info']['last_reviewed_by'] == payload['audit']['last_updated_user']
-        assert audit_info['info']['audit_info']['total_no_review'] == i+1
+        assert audit_info['info']['audit_info']['total_no_review'] == i
 
 @pytest.mark.parametrize("audit_info_test_data", [(r"./app/tests/data/audit_info_curd_data.json")])
 def test_audit_info_get_curd(new_token_on_headers, audit_info_test_data):

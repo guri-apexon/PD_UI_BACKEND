@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from .documentparagraphs_db import DocumentparagraphsDb
+from app.config import SOURCE
 import logging
 
 LINKS_INFO = ["link_id",
@@ -153,10 +154,10 @@ class IqvdocumentlinkDb(SchemaBase):
         para_data.iqv_standard_term = iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else ""
         source_system = ""
         if iqv_standard_term != "":
-            source_system = "QC2"
+            source_system = SOURCE
         para_data.predicted_term_source_system = source_system
         para_data.last_updated = get_utc_datetime()
-        para_data.num_updates = 1
+        para_data.num_updates = 0
         session.add(para_data)
         data['is_link']=True
         if not data['content']:
@@ -187,7 +188,7 @@ class IqvdocumentlinkDb(SchemaBase):
                     else:
                         category = 'subheader'
                 insert_meta_entity(session, category, link_text, iqv_standard_term)
-            source_system = "QC2"
+            source_system = SOURCE
         if data.get('content',None):
             data['content'] = link_text
         link_obj = session.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == obj.id).first()
