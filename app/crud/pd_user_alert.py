@@ -27,7 +27,6 @@ class CRUDUserAlert(CRUDBase[ProtocolAlert, schemas.UserAlertInput, schemas.User
         user_alerts = db.query(ProtocolAlert, PD_Protocol_Metadata.uploadDate, PdEmailTemplates.event, PD_Protocol_Metadata.documentStatus) \
             .join(PdEmailTemplates, and_(ProtocolAlert.email_template_id == PdEmailTemplates.id)) \
             .join(PD_User_Protocols, and_(PD_User_Protocols.userId == user_id,
-                                          PD_User_Protocols.follow == True,
                                           PD_User_Protocols.id == ProtocolAlert.id)) \
             .join(PD_Protocol_Metadata, and_(PD_Protocol_Metadata.id == ProtocolAlert.aidocId,
                                              PD_Protocol_Metadata.protocol == ProtocolAlert.protocol)) \
