@@ -1,11 +1,12 @@
 from sqlalchemy import Column, and_, DateTime
-from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, update_attachment_footnote_index, CurdOp, MissingParamException, update_link_update_details, get_utc_datetime
+from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, update_attachment_footnote_index, CurdOp, MissingParamException, get_utc_datetime
 from .iqvpage_roi_db import IqvpageroiDb
 from .iqvkeyvalueset_db import IqvkeyvaluesetDb
 from .documentparagraphs_db import DocumentparagraphsDb
 from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN,FLOAT
 import uuid
+from app.config import SOURCE
 from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -294,12 +295,11 @@ class DocumenttablesDb(SchemaBase):
         obj = session.query(DocumenttablesDb).filter(DocumenttablesDb.id == table_roi_id).first()
         if not obj:
             raise MissingParamException("{table_roi_id} in Documenttables DB")
-        update_link_update_details(session, obj.link_id, data.get('userId'), get_utc_datetime())
         if iqv_standard_term and iqv_standard_term != obj.iqv_standard_term:
             source_system = obj.predicted_term_source_system
             if source_system.startswith('NLP') or source_system in ['',None]:
                 insert_meta_entity(session, 'table', data.get('TableName'), iqv_standard_term)
-            obj.predicted_term_source_system = "QC2"
+            obj.predicted_term_source_system = SOURCE
             obj.iqv_standard_term = iqv_standard_term
             session.add(obj)
         session.commit()
@@ -309,7 +309,7 @@ class DocumenttablesDb(SchemaBase):
         doc_table_helper = DocTableHelper()
         table_id = data.get('table_roi_id')
         if data['op_type'] == TableOp.DELETE_TABLE:
-            doc_table_helper.delete_table(session, table_id, data.get('userId'))
+            doc_table_helper.delete_table(session, table_id)
             doc_table_helper.delete_footnote(session, data)
         else:
             raise MissingParamException("or invalid operation type")
@@ -343,7 +343,7 @@ class DocTableHelper():
         para_data.iqv_standard_term = iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else ""
         source_system = ""
         if iqv_standard_term != "":
-            source_system = "QC2"
+            source_system = SOURCE
         para_data.predicted_term_source_system = source_system
         para_data.DocumentSequenceIndex = prev_data.DocumentSequenceIndex - \
             1 if is_top_elm else prev_data.DocumentSequenceIndex+1
@@ -352,9 +352,8 @@ class DocTableHelper():
         doc_id = prev_data.doc_id
         para_data.parent_id = data['doc_id'] = doc_id
         para_data.last_updated = get_utc_datetime()
-        para_data.num_updates = 1
+        para_data.num_updates = 0
         update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
-        update_link_update_details(session, para_data.link_id, para_data.userId, para_data.last_updated)
         session.add(para_data)
         return para_data
     
@@ -585,7 +584,7 @@ class DocTableHelper():
         row_data.DocumentSequenceIndex = int(row_idx)
         row_data.Value = ''
         row_data.last_updated = get_utc_datetime()
-        row_data.num_updates = 1
+        row_data.num_updates = 0
         session.add(row_data)
         return row_data
 
@@ -606,7 +605,7 @@ class DocTableHelper():
             col_data.tableCell_colIndex = int(col_idx)
             col_data.DocumentSequenceIndex = int(col_idx)
             col_data.last_updated = get_utc_datetime()
-            col_data.num_updates = 1
+            col_data.num_updates = 0
             if i == 0 :
                 col_data.Value = content
             else:
@@ -635,7 +634,7 @@ class DocTableHelper():
                 para_data.SequenceID = 0
             parent_id = _id
             para_data.last_updated = get_utc_datetime()
-            para_data.num_updates = 1
+            para_data.num_updates = 0
             session.add(para_data)
                     
 
@@ -694,7 +693,7 @@ class DocTableHelper():
                 self.add_col(session, row_dict, col_idx, col_val['val'], sequence_index, sequence_id)
         return table_entry.id
 
-    def delete_table(self, session, table_id, user_id):
+    def delete_table(self, session, table_id):
         """
         get all rows and delete ,get all cols and delete at last delete all entries.
         """
@@ -729,7 +728,6 @@ class DocTableHelper():
             DocumenttablesDb.id == table_id).first()
         doc_id = obj.doc_id
         sequence_id = obj.SequenceID
-        update_link_update_details(session, obj.link_id, user_id, get_utc_datetime())
         session.delete(obj)
         # update roi index
         update_roi_index(session, doc_id, sequence_id, CurdOp.DELETE)

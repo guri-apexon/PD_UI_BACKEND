@@ -66,7 +66,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       doc_id = prev_data.doc_id
       para_data.parent_id = doc_id
       para_data.last_updated = get_utc_datetime()
-      para_data.num_updates = 1
+      para_data.num_updates = 0
       update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
 
       binary_obj = IqvdocumentimagebinaryDb()
@@ -84,7 +84,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       binary_obj.childbox_id = para_data.id
       binary_obj.userId = data.get('userId', None)
       binary_obj.last_updated = get_utc_datetime()
-      binary_obj.num_updates = 1
+      binary_obj.num_updates = 0
       session.add(para_data)
       session.add(binary_obj)
       return data
