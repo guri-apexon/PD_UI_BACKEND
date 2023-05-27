@@ -184,7 +184,7 @@ class DocumentparagraphsDb(SchemaBase):
         obj.last_updated = get_utc_datetime()
         obj.num_updates = obj.num_updates + 1
         if data.get('content', None):
-            obj.Value = data['content']
+            obj.Value = obj.strText = data['content']
         session.add(obj)
 
     @staticmethod
