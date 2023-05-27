@@ -96,9 +96,6 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         text, apart from keep existing record data """
         try:
             if len(header_link_id) > 1:
-                # db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).update(
-                #     {IqvdocumentlinkDb.iqv_standard_term: data.iqv_standard_term, IqvdocumentlinkDb.userId: data.user_id, IqvdocumentlinkDb.last_updated: datetime.now(timezone.utc), IqvdocumentlinkDb.predicted_term_source_system: 'QC1'})
-                # insert_meta_entity(db, 'header', "",data.iqv_standard_term)
                 obj = db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).first()
                 source_system = obj.predicted_term_source_system
                 if source_system.startswith('NLP') or source_system in ['', None]:
