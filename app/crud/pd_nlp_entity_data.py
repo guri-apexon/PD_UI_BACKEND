@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import logging
 import uuid
+from app import config
 from app.models.pd_iqvdocumentlink_db import IqvdocumentlinkDb
 from app.qc_ingest.model.pd_meta_entity_mapping_lookup import insert_meta_entity
 from app.utilities.config import settings
@@ -109,7 +110,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                 obj.iqv_standard_term = data.iqv_standard_term
                 obj.userId = data.user_id
                 obj.last_updated = datetime.now(timezone.utc)
-                obj.predicted_term_source_system = 'QC'
+                obj.predicted_term_source_system = config.QC
                 db.commit()
 
 
