@@ -9,8 +9,9 @@ from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
 from .model.documenttables_db import DocumenttablesDb, TableOp
 from .model.iqvfootnoterecord_db import IqvfootnoterecordDb
+from .model.iqvpage_roi_db import IqvpageroiDb
 from .iqvkeyvalueset_op import IqvkeyvaluesetOp
-from .model.__base__ import MissingParamException
+from .model.__base__ import MissingParamException, update_link_update_details, get_utc_datetime
 from .table_payload_wrapper import get_table_props
 from app.db.session import SessionLocal
 
@@ -155,11 +156,28 @@ def process(payload: list):
         return []
     mapper = RelationalMapper()
     uid_list=[]
+    link_id, user_id, is_section_header = None, None, False
     with SessionLocal() as session:
         for data in payload:  
-            process_data(session, mapper, data)
+            data = process_data(session, mapper, data)
             uid_list.append({'uuid':data.get('uuid',''),
                              'op_type':data.get('op_type',''),
                              'qc_change_type':data.get('qc_change_type','')})
 
+            if data.get('type') == 'header' and data.get('link_level') in ['1',1]:
+                link_id = None
+                is_section_header = True
+            
+            if is_section_header == False:
+                if link_id == None and data.get('link_id') in ['', None]:
+                    _id = data.get('line_id', '')[0:36] if data.get("line_id") not in ['', None] else data.get('uuid')
+                    obj = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == _id).first()
+                    if obj:
+                        link_id = obj.link_id
+                elif link_id == None and data.get('link_id') not in ['', None]:
+                    link_id = data.get('link_id')
+                user_id = data.get('userId')
+        if link_id not in ['', None] and user_id != None:
+            update_link_update_details(session, link_id, user_id, get_utc_datetime())
+            session.commit()
     return uid_list
