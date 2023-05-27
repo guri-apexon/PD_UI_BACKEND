@@ -113,7 +113,8 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                 obj.userId = data.user_id
                 obj.last_updated = datetime.now(timezone.utc)
                 obj.predicted_term_source_system = 'QC'
-                db.add(obj)
+                db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).update(
+                        {IqvdocumentlinkDb.iqv_standard_term: data.iqv_standard_term, IqvdocumentlinkDb.userId: data.user_id, IqvdocumentlinkDb.last_updated: datetime.now(timezone.utc), IqvdocumentlinkDb.predicted_term_source_system: 'QC1'})
                 db.commit()
 
 
