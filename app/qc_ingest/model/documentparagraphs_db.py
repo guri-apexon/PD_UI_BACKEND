@@ -162,7 +162,7 @@ class DocumentparagraphsDb(SchemaBase):
         
         para_data.hierarchy = 'paragraph'
         para_data.group_type = 'DocumentParagraphs'
-        para_data.Value = para_data.strText = data['content'] if data.get('content',None) else ""
+        para_data.Value = para_data.strText = data.get('content','')
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 0
         session.add(para_data)
@@ -182,7 +182,7 @@ class DocumentparagraphsDb(SchemaBase):
         update_existing_props(obj, data)
         obj.last_updated = get_utc_datetime()
         obj.num_updates = obj.num_updates + 1
-        obj.Value = obj.strText = data['content'] if data.get('content',None) else ""
+        obj.Value = obj.strText = data.get('content','')
         session.add(obj)
 
     @staticmethod
