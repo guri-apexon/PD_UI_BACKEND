@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 import logging
 import uuid
+from app import config
 from app.models.pd_iqvdocumentlink_db import IqvdocumentlinkDb
+from app.qc_ingest.model.pd_meta_entity_mapping_lookup import insert_meta_entity
 from app.utilities.config import settings
 from app.models.pd_nlp_entity_db import NlpEntityDb
 from app.schemas.pd_nlp_entity_db import NlpEntityCreate, NlpEntityUpdate
@@ -95,9 +97,22 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
         text, apart from keep existing record data """
         try:
             if len(header_link_id) > 1:
-                db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).update(
-                    {IqvdocumentlinkDb.iqv_standard_term: data.iqv_standard_term, IqvdocumentlinkDb.userId: data.user_id, IqvdocumentlinkDb.last_updated: datetime.now(timezone.utc), IqvdocumentlinkDb.predicted_term_source_system: 'QC'})
+                obj = db.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == header_link_id).first()
+                source_system = obj.predicted_term_source_system
+                if source_system.startswith('NLP') or source_system in ['', None]:
+                    category = 'header'
+                    if int(obj.LinkLevel) > 1:
+                        if data.iqv_standard_term.startswith('cpt_assessments'):
+                            category = 'assessments'
+                        else:
+                            category = 'subheader'
+                    insert_meta_entity(db, category, data.standard_entity_name, data.iqv_standard_term)
+                obj.iqv_standard_term = data.iqv_standard_term
+                obj.userId = data.user_id
+                obj.last_updated = datetime.now(timezone.utc)
+                obj.predicted_term_source_system = config.QC
                 db.commit()
+
 
             entity_text = data.standard_entity_name
             entity_objs = self.get_records(db, aidoc_id, link_id, entity_text)

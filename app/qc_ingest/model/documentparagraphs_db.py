@@ -162,10 +162,9 @@ class DocumentparagraphsDb(SchemaBase):
         
         para_data.hierarchy = 'paragraph'
         para_data.group_type = 'DocumentParagraphs'
-        if data.get('content', None):
-            para_data.Value = para_data.strText = data['content']
+        para_data.Value = para_data.strText = data.get('content','')
         para_data.last_updated = get_utc_datetime()
-        para_data.num_updates = 1
+        para_data.num_updates = 0
         session.add(para_data)
         return data
 #
@@ -179,11 +178,11 @@ class DocumentparagraphsDb(SchemaBase):
         if not obj:
             _id = data['id']
             raise MissingParamException(f'{_id} in document paragraph db ')
+        data['link_id'] = obj.link_id
         update_existing_props(obj, data)
         obj.last_updated = get_utc_datetime()
         obj.num_updates = obj.num_updates + 1
-        if data.get('content', None):
-            obj.Value = data['content']
+        obj.Value = obj.strText = data.get('content','')
         session.add(obj)
 
     @staticmethod
