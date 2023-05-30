@@ -784,7 +784,7 @@ class DocTableHelper():
         table_index = None
         for i in range(len(obj)):
             if table_roi_id == obj[i][0]:
-                table_index = i
+                table_index = i + 1
                 break
         return table_index
 
