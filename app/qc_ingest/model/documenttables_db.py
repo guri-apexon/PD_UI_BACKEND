@@ -541,8 +541,6 @@ class DocTableHelper():
                 child_cell_id_list.append(child_obj.id)
                 para_obj = session.query(DocumentparagraphsDb).filter(
                     DocumentparagraphsDb.id == child_obj.id).first()
-                session.query(DocumentparagraphsDb).filter(
-                    DocumentparagraphsDb.parent_id == child_obj.id).delete()
                 update_roi_index(session, para_obj.doc_id, para_obj.SequenceID, CurdOp.DELETE) 
                 session.delete(para_obj)
                 session.query(DocumenttablesDb).filter(
@@ -606,36 +604,23 @@ class DocTableHelper():
             col_data.DocumentSequenceIndex = int(col_idx)
             col_data.last_updated = get_utc_datetime()
             col_data.num_updates = 0
-            if i == 0 :
-                col_data.Value = content
-            else:
-                col_data.strText = content
+            col_data.Value = col_data.strText = content
             parent_id = _id
             session.add(col_data)
         
-        _id = None
-        for i in range(2):
-            para_data = DocumentparagraphsDb(**row_data)
-            para_data.hierarchy = 'paragraph'
-            if i == 0:
-                para_data.group_type = 'DocumentParagraphs'     
-                para_data.id = _id = parent_id
-                para_data.parent_id = para_data.doc_id
-                para_data.DocumentSequenceIndex = int(sequence_index)
-                para_data.SequenceID = int(sequence_id)
-                para_data.Value = content
-            else:
-                _id = str(uuid.uuid4())
-                para_data.id = _id
-                para_data.group_type = 'ChildBoxes'
-                para_data.strText = content
-                para_data.parent_id = parent_id
-                para_data.DocumentSequenceIndex = int(col_idx)
-                para_data.SequenceID = 0
-            parent_id = _id
-            para_data.last_updated = get_utc_datetime()
-            para_data.num_updates = 0
-            session.add(para_data)
+        para_data = DocumentparagraphsDb(**row_data)
+        para_data.hierarchy = 'paragraph'
+        para_data.group_type = 'DocumentParagraphs'     
+        para_data.id = parent_id
+        para_data.parent_id = para_data.doc_id
+        para_data.DocumentSequenceIndex = int(sequence_index)
+        para_data.SequenceID = int(sequence_id)
+        para_data.tableCell_rowIndex = int(row_idx)
+        para_data.tableCell_colIndex = int(col_idx)
+        para_data.Value = para_data.strText = content
+        para_data.last_updated = get_utc_datetime()
+        para_data.num_updates = 0
+        session.add(para_data)
                     
 
     def insert_row(self, session, table_roi_id, row_idx, data, userid):
@@ -659,20 +644,17 @@ class DocTableHelper():
             update_roi_index(session, table_obj.doc_id, col_sequence_id, CurdOp.CREATE)
             self.add_col(session, row_data, col_idx, col_data['val'], col_sequence_index, col_sequence_id)
 
-    def update_cell_info(self, session, content, col_uid, userid, table_name):
-        if not col_uid:
-            raise MissingParamException('col_uid')
-        obj = session.query(table_name).filter(table_name.id == col_uid).first()
-        child_obj = session.query(table_name).filter(table_name.parent_id == col_uid).first()
-        if not obj or not child_obj:
-            raise MissingParamException(f'{col_uid} in {table_name}')
-        obj.Value = child_obj.strText = content
-        obj.userId = child_obj.userId = userid
-        obj.last_updated = child_obj.last_updated = get_utc_datetime()
-        obj.num_updates = obj.num_updates + 1
-        child_obj.num_updates = child_obj.num_updates + 1
-        session.add(obj)
-        session.add(child_obj)
+    def update_cell_info(self, session, content, col_uid, child_cell_id, userid):
+        
+        obj_list = session.query(IqvpageroiDb).filter(IqvpageroiDb.id.in_((col_uid,child_cell_id))).all()
+        if not obj_list and len(obj_list)==0:
+            raise MissingParamException(f'{col_uid}, {child_cell_id} in {IqvpageroiDb.__tablename__}')
+        for obj in obj_list:
+            obj.Value = obj.strText = content
+            obj.userId = userid
+            obj.last_updated = get_utc_datetime()
+            obj.num_updates = obj.num_updates + 1
+            session.add(obj)
 
 
     def create_table(self, session, data, num_rows, num_cols, rows_data):
@@ -706,8 +688,6 @@ class DocTableHelper():
                 child_col_ids = session.query(DocumenttablesDb.id).filter(
                     DocumenttablesDb.parent_id == col_id.id).all()
                 for child_col_id in child_col_ids:
-                    session.query(DocumentparagraphsDb).filter(
-                        DocumentparagraphsDb.parent_id == child_col_id[0]).delete()
                     para_obj = session.query(DocumentparagraphsDb).filter(
                         DocumentparagraphsDb.id == child_col_id[0]).first()
                     update_roi_index(session, para_obj.doc_id, para_obj.SequenceID, CurdOp.DELETE)
@@ -746,8 +726,6 @@ class DocTableHelper():
                 child_cell_id_list.append(child_obj[0])
                 para_obj = session.query(DocumentparagraphsDb).filter(
                     DocumentparagraphsDb.id == child_obj[0]).first()
-                session.query(DocumentparagraphsDb).filter(
-                    DocumentparagraphsDb.parent_id == child_obj[0]).delete()
                 update_roi_index(session, para_obj.doc_id, para_obj.SequenceID, CurdOp.DELETE)
                 session.delete(para_obj)
                 cell_id_list.append(cell_data.id)
@@ -819,8 +797,6 @@ class DocTableHelper():
                 if not col_data.get('cell_roi', None):
                     col_data['cell_roi'] = self._get_cell_roi_id(
                         session, row_idx, col_idx)
-                self.update_cell_info(
-                    session, col_data['val'], col_data['cell_roi'], userid, DocumenttablesDb)
                 child_cell_id = self._get_child_cell_roi_id(session, col_data['cell_roi'])
                 self.update_cell_info(
-                    session, col_data['val'], child_cell_id, userid, DocumentparagraphsDb) 
+                    session, col_data['val'], col_data['cell_roi'], child_cell_id, userid)
