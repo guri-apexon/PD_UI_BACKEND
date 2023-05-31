@@ -17,7 +17,7 @@ from app.models.pd_protocol_qc_summary_data import PDProtocolQCSummaryData
 from app.models.pd_workflow import PD_WorkFlow_Status
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
 from app.utilities.config import settings
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def update_elstic(es_dict, update_id):
@@ -417,8 +417,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             db.rollback()
             return False, f"Exception occured during updating {current_qc_status} to {target_status} in DB [{str(ex)}]"
 
-    def change_status(self, db: Session, doc_id: str, target_status: str,
-                               current_timestamp=datetime.utcnow()) -> Tuple[bool, str]:
+    def change_status(self, db: Session, doc_id: str, target_status: str) -> Tuple[bool, str]:
         """
         Changes status on the given doc_id
         """
@@ -433,6 +432,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             return True, f"Protocol's Status is already in {target_status}"
 
         try:
+            current_timestamp = datetime.now(timezone.utc)
             prot_metadata_doc.qcStatus = target_status
             prot_metadata_doc.lastQcUpdated = current_timestamp
             prot_metadata_doc.lastUpdated = current_timestamp

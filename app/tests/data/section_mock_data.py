@@ -58,7 +58,7 @@ configuration_api_data = [
      "clinical_terms,time_points,preferred_terms,redaction_attributes,references","Study-Specific Safety Assessments",200,"all configration variables with section text"),
     ("00d9456f-b5d3-4045-b76f-3bdecbe99775","","a1b79393-a1b7-11ed-b15c-005056ab6469","1150903","005",
      "clinical_terms,preferred_terms,redaction_attributes,references,properties,time_points","",200,"all configration variables with link id"),
-    ("21cb6042-fe5f-4230-94f2-5593fb33f522","","5449e3cc-ea85-11ed-8d56-005056ab6469","1150903","005",
+    ("56f6ba1b-b5b5-40f7-a9bb-0a511fe8657d","","d3795bb7-fe08-11ed-835c-005056ab6469","1150903","005",
      "clinical_terms,preferred_terms,redaction_attributes,references,properties,time_points","test",200,"all configration variables with link id"),
     ("5c784c05-fbd3-4786-b0e4", "1", "", "1034911",
      "SSRUT_GEN_001","","", 404, "This document is not available in our database"),
