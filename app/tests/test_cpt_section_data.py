@@ -15,11 +15,11 @@ logger = logging.getLogger("unit-test")
 
 
 @pytest.mark.parametrize("doc_id, link_level, link_id, user_id, protocol, status_code, comments", [
-    ("21cb6042-fe5f-4230-94f2-5593fb33f522", '3', "5449e3cc-ea85-11ed-8d56-005056ab6469", "Dig2_Batch_Tester",
+    ("56f6ba1b-b5b5-40f7-a9bb-0a511fe8657d", '3', "d3795bb7-fe08-11ed-835c-005056ab6469", "Dig2_Batch_Tester",
      "cicl.06ed2096-0749-4ead-a892-9e57ead4fcbc", 200, "doc id and with link id and link_level 3"),
     ("1698be28-1cf3-466e-8f56-5fc920029056", "1", "", "1036048",
      "FEED_TEST4", 404, "doc id changes"),
-    ("21cb6042-fe5f-4230-94f2-5593fb33f522", "1", "5449e3cc-ea85-11ed-8d56-005056ab6469", "Dig2_Batch_Tester",
+    ("56f6ba1b-b5b5-40f7-a9bb-0a511fe8657d", "1", "d3795bb7-fe08-11ed-835c-005056ab6469", "Dig2_Batch_Tester",
      "cicl.06ed2096-0749-4ead-a892-9e57ead4fcbc", 200, "doc id and link id present with level 1 all data"),
     ("4c7ea27b-8a6b-4bf0-a8ed-2c1e49bbdc8c", "1", "46bac1b7-9197-11ed-b507-005056ab6469", "Dig2_Batch_Tester",
      "005", 200, "doc id and link id with enriched data")
