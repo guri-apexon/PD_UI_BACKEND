@@ -56,13 +56,7 @@ class DocumentpartslistDb(SchemaBase):
             
             prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()
             if not prev_data:
-                prev_data = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == cid).first()
-                if prev_data.hierarchy == 'table':
-                    while prev_data.hierarchy == 'table':
-                        prev_data = session.query(IqvpageroiDb).filter(and_(IqvpageroiDb.doc_id == prev_data.doc_id, IqvpageroiDb.DocumentSequenceIndex == prev_data.DocumentSequenceIndex - 1)).first()
-                    prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == prev_data.id).first()
-                else:
-                    raise MissingParamException(f'{cid} in document partlist db ')
+                raise MissingParamException(f'{cid} in document partlist db ')
             prev_dict=schema_to_dict(prev_data)
             para_data = DocumentpartslistDb(**prev_dict)
             _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
@@ -72,7 +66,7 @@ class DocumentpartslistDb(SchemaBase):
             para_data.sequence_id=prev_data.sequence_id-1 if is_next_elm else prev_data.sequence_id+1
             doc_id=prev_data.doc_id
             para_data.parent_id = doc_id
-            update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,para_data.sequence_id, CurdOp.CREATE) 
+            update_partlist_index(session, DocumentpartslistDb.__tablename__, doc_id, para_data.link_id, para_data.sequence_id, CurdOp.CREATE) 
         para_data.hierarchy = 'document'
         para_data.group_type = 'DocumentPartsList' 
         para_data.last_updated = get_utc_datetime()
@@ -84,9 +78,13 @@ class DocumentpartslistDb(SchemaBase):
     def update(session,data):
         """
         """
-        obj = session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == data['id']).first()
+        if data.get('type') == 'table':
+            _id = data.get('table_roi_id','')
+            data['id'] = _id
+        else:
+            _id=data.get('id','')
+        obj = session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == _id).first()
         if not obj:
-            _id=data['id']
             raise MissingParamException(f'{_id} in document partlist db ')     
         update_existing_props(obj,data)
         obj.userId = data.get('userId')
@@ -96,13 +94,12 @@ class DocumentpartslistDb(SchemaBase):
 
     @staticmethod
     def delete(session, data):
+        if data.get('type') == 'table':
+            _id = data.get('table_roi_id','')
+        else:
+            _id=data.get('id','')
         obj = session.query(DocumentpartslistDb).filter(
-            DocumentpartslistDb.id == data['id']).first()
+            DocumentpartslistDb.id == _id).first()
         if not obj:
-            _id=data['id']
             raise MissingParamException(f'{_id} in document partlist db ')
-        sequence_id = obj.sequence_id
-        doc_id=obj.doc_id
         session.delete(obj)
-        update_partlist_index(session, DocumentpartslistDb.__tablename__,doc_id,
-                        sequence_id, CurdOp.DELETE)
