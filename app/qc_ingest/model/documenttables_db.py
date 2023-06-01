@@ -276,7 +276,7 @@ class DocumenttablesDb(SchemaBase):
                         session, table_roi_id, table_data, userid)
 
                 elif op_type == TableOp.DELETE_ROW:
-                    doc_table_helper.delete_row(session, table_roi_id, table_data)
+                    doc_table_helper.delete_row(session, table_data)
                     if len(op_parameter) == count:
                         doc_table_helper._update_table_row_index(session, DocumenttablesDb.__tablename__, table_roi_id, 0, CurdOp.DELETE)
                     count +=1
@@ -291,13 +291,13 @@ class DocumenttablesDb(SchemaBase):
 
         doc_table_helper.update_footnote(session, data)
         
-        iqv_standard_term  = data.get('iqv_standard_term')
+        iqv_standard_term  = data.get('iqv_standard_term','')
         obj = session.query(DocumenttablesDb).filter(DocumenttablesDb.id == table_roi_id).first()
         if not obj:
             raise MissingParamException("{table_roi_id} in Documenttables DB")
         if iqv_standard_term and iqv_standard_term != obj.iqv_standard_term:
-            source_system = obj.predicted_term_source_system
-            if source_system.startswith('NLP') or source_system in ['',None]:
+            source_system = '' if obj.predicted_term_source_system == None else obj.predicted_term_source_system
+            if source_system.startswith('NLP') or source_system == '':
                 insert_meta_entity(session, 'table', data.get('TableName'), iqv_standard_term)
             obj.predicted_term_source_system = SOURCE
             obj.iqv_standard_term = iqv_standard_term
@@ -340,7 +340,7 @@ class DocTableHelper():
         para_data.group_type = 'DocumentTables'
         para_data.id = _id
         para_data.Value = ''
-        para_data.iqv_standard_term = iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else ""
+        para_data.iqv_standard_term = iqv_standard_term = data.get('iqv_standard_term','')
         source_system = ""
         if iqv_standard_term != "":
             source_system = SOURCE
@@ -353,7 +353,7 @@ class DocTableHelper():
         para_data.parent_id = data['doc_id'] = doc_id
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 0
-        update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
+        update_roi_index(session, doc_id, para_data.link_id, para_data.SequenceID, CurdOp.CREATE)
         session.add(para_data)
         return para_data
     
@@ -528,7 +528,7 @@ class DocTableHelper():
                 # first update indexes then update..
                 self._update_table_col_index(
                     session, DocumenttablesDb.__tablename__, row_id, col_idx, CurdOp.CREATE)
-                update_roi_index(session, row_obj.doc_id, col_sequence_id, CurdOp.CREATE)
+                update_roi_index(session, row_obj.doc_id, row_obj.link_id, col_sequence_id, CurdOp.CREATE)
                 self.add_col(session, row_dict, col_idx, col_data['val'], col_sequence_index, col_sequence_id)
 
     def delete_column(self, session, table_data):
@@ -539,10 +539,8 @@ class DocTableHelper():
                 child_obj = session.query(DocumenttablesDb).filter(
                     DocumenttablesDb.parent_id == cell_id).first()
                 child_cell_id_list.append(child_obj.id)
-                para_obj = session.query(DocumentparagraphsDb).filter(
-                    DocumentparagraphsDb.id == child_obj.id).first()
-                update_roi_index(session, para_obj.doc_id, para_obj.SequenceID, CurdOp.DELETE) 
-                session.delete(para_obj)
+                session.query(DocumentparagraphsDb).filter(
+                    DocumentparagraphsDb.id == child_obj.id).delete()
                 session.query(DocumenttablesDb).filter(
                     DocumenttablesDb.id == cell_id).delete()
                 session.query(DocumenttablesDb).filter(
@@ -641,7 +639,7 @@ class DocTableHelper():
         for col_idx, col_data in data.items():
             col_sequence_index = sequence_index + (len(data)*(row_idx+1))-(len(data)-(col_idx+1))
             col_sequence_id = sequence_id + (len(data)*(row_idx+1))-(len(data)-(col_idx+1))
-            update_roi_index(session, table_obj.doc_id, col_sequence_id, CurdOp.CREATE)
+            update_roi_index(session, table_obj.doc_id, table_obj.link_id, col_sequence_id, CurdOp.CREATE)
             self.add_col(session, row_data, col_idx, col_data['val'], col_sequence_index, col_sequence_id)
 
     def update_cell_info(self, session, content, col_uid, child_cell_id, userid):
@@ -671,7 +669,7 @@ class DocTableHelper():
             for col_idx, col_val in row_data.items():
                 sequence_index += 1
                 sequence_id += 1
-                update_roi_index(session, table_entry.doc_id, sequence_id, CurdOp.CREATE)
+                update_roi_index(session, table_entry.doc_id, table_entry.link_id, sequence_id, CurdOp.CREATE)
                 self.add_col(session, row_dict, col_idx, col_val['val'], sequence_index, sequence_id)
         return table_entry.id
 
@@ -688,10 +686,8 @@ class DocTableHelper():
                 child_col_ids = session.query(DocumenttablesDb.id).filter(
                     DocumenttablesDb.parent_id == col_id.id).all()
                 for child_col_id in child_col_ids:
-                    para_obj = session.query(DocumentparagraphsDb).filter(
-                        DocumentparagraphsDb.id == child_col_id[0]).first()
-                    update_roi_index(session, para_obj.doc_id, para_obj.SequenceID, CurdOp.DELETE)
-                    session.delete(para_obj)
+                    session.query(DocumentparagraphsDb).filter(
+                        DocumentparagraphsDb.id == child_col_id[0]).delete()
                     session.query(IqvkeyvaluesetDb).filter(
                     IqvkeyvaluesetDb.parent_id == child_col_id[0]).delete()
                 session.query(DocumenttablesDb).filter(
@@ -704,15 +700,10 @@ class DocTableHelper():
         # delete table
         session.query(IqvkeyvaluesetDb).filter(
             IqvkeyvaluesetDb.parent_id == table_id).delete()
-        obj = session.query(DocumenttablesDb).filter(
-            DocumenttablesDb.id == table_id).first()
-        doc_id = obj.doc_id
-        sequence_id = obj.SequenceID
-        session.delete(obj)
-        # update roi index
-        update_roi_index(session, doc_id, sequence_id, CurdOp.DELETE)
+        session.query(DocumenttablesDb).filter(
+            DocumenttablesDb.id == table_id).delete()
 
-    def delete_row(self, session, table_id, table_data):
+    def delete_row(self, session, table_data):
 
         for row_idx, row_data in table_data.items():
             row_id = row_data[0]['row_roi_id']
@@ -724,11 +715,9 @@ class DocTableHelper():
                 child_obj = session.query(DocumenttablesDb.id).filter(
                     DocumenttablesDb.parent_id == cell_data.id).first()
                 child_cell_id_list.append(child_obj[0])
-                para_obj = session.query(DocumentparagraphsDb).filter(
-                    DocumentparagraphsDb.id == child_obj[0]).first()
-                update_roi_index(session, para_obj.doc_id, para_obj.SequenceID, CurdOp.DELETE)
-                session.delete(para_obj)
                 cell_id_list.append(cell_data.id)
+                session.query(DocumentparagraphsDb).filter(
+                    DocumentparagraphsDb.id == child_obj[0]).delete()
             session.query(DocumenttablesDb).filter(
                 DocumenttablesDb.parent_id.in_(cell_id_list)).delete()
             session.query(DocumenttablesDb).filter(
