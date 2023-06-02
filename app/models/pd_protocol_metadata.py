@@ -42,14 +42,14 @@ class PD_Protocol_Metadata(Base):
     environment = Column(String, nullable=True)
     uploadDate = Column(DateTime(timezone=True), nullable=True)
     timeCreated = Column(DateTime(timezone=True), nullable=True)
-    lastUpdated = Column(DateTime(timezone=True), nullable=True)
+    lastUpdated = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     userCreated = Column(String, nullable=True)
     userUpdated = Column(String, nullable=True)
     approvalDate = Column(DateTime(timezone=True), nullable=True)
     isActive = Column(Boolean, default=True)
     nctId = Column(String, nullable=True)
     source = Column(String, nullable=True)
-    lastQcUpdated = Column(DateTime(timezone=True), nullable=True)
+    lastQcUpdated = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
     def as_dict(self):
         obj = {col.name: getattr(self, col.name) for col in self.__table__.columns}

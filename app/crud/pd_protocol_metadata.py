@@ -432,10 +432,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             return True, f"Protocol's Status is already in {target_status}"
 
         try:
-            current_timestamp = datetime.now(timezone.utc)
             prot_metadata_doc.qcStatus = target_status
-            prot_metadata_doc.lastQcUpdated = current_timestamp
-            prot_metadata_doc.lastUpdated = current_timestamp
             prot_metadata_doc.source = config.SOURCE
 
             db.commit()
