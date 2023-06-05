@@ -36,16 +36,6 @@ def update_link_update_details(session, link_id, user_id, last_updated):
     sql = f'UPDATE {table_name} SET "userId" = \'{user_id}\', "last_updated" = \'{last_updated}\', "num_updates" = "num_updates" + 1 WHERE "id" = \'{link_id}\''
     session.execute(sql)
 
-
-def update_table_index(session,table_index, doc_id, op_code):
-    """
-
-    """
-    table_name = 'iqvfootnoterecord_db'
-    sql = f'UPDATE {table_name} SET "table_sequence_index" = "table_sequence_index" {op_code} 1 WHERE "doc_id" = \'{doc_id}\' AND \
-                "table_sequence_index" >= {int(table_index)}'
-    session.execute(sql)
-
 def update_attachment_footnote_index(session, table_roi_id, sequnce_index, op_code):
     """
 
@@ -57,24 +47,14 @@ def update_attachment_footnote_index(session, table_roi_id, sequnce_index, op_co
     session.execute(sql)
 
 
-def update_footnote_index(session, table_roi_id, sequnce_index, op_code):
-    """
-
-    """
-    table_name = 'iqvfootnoterecord_db'
-    sql = f'UPDATE {table_name} SET "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "table_roi_id" = \'{table_roi_id}\' AND \
-                "DocumentSequenceIndex" >= {sequnce_index}'
-    session.execute(sql)
-
-
-def update_roi_index(session, doc_id, sequence_id, op):
+def update_roi_index(session, doc_id, link_id, sequence_id, op):
     """
 
     """
     for table_name, group_type in [("documentparagraphs_db", "DocumentParagraphs"), ("documenttables_db", "DocumentTables")]:
         op_code = '+' if op == CurdOp.CREATE else '-'
         sql = f'UPDATE {table_name} SET "SequenceID" = "SequenceID" {op_code} 1 ,\
-            "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "doc_id" = \'{doc_id}\' AND \
+            "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "doc_id" = \'{doc_id}\' AND "link_id" = \'{link_id}\' AND \
                 "SequenceID" >= {sequence_id}  AND "group_type" = \'{group_type}\' '
         session.execute(sql)
 
@@ -90,13 +70,13 @@ def update_link_index(session, table_name, doc_id, sequence_idx, op):
     session.execute(sql)
 
 
-def update_partlist_index(session, table_name, doc_id, sequence_id, op):
+def update_partlist_index(session, table_name, doc_id, link_id, sequence_id, op):
     """
 
     """
     op_code = '+' if op == CurdOp.CREATE else '-'
     sql = f'UPDATE {table_name} SET "sequence_id" = "sequence_id" {op_code} 1 \
-        WHERE "sequence_id" >= {sequence_id} AND "doc_id" = \'{doc_id}\' AND "group_type" = \'DocumentPartsList\' '
+        WHERE "sequence_id" >= {sequence_id} AND "doc_id" = \'{doc_id}\'  AND "link_id" = \'{link_id}\' AND "group_type" = \'DocumentPartsList\' '
     session.execute(sql)
 
 

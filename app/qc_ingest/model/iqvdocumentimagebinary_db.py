@@ -67,7 +67,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data.parent_id = doc_id
       para_data.last_updated = get_utc_datetime()
       para_data.num_updates = 0
-      update_roi_index(session, doc_id, para_data.SequenceID, CurdOp.CREATE)
+      update_roi_index(session, doc_id, para_data.link_id , para_data.SequenceID, CurdOp.CREATE)
 
       binary_obj = IqvdocumentimagebinaryDb()
       update_existing_props(binary_obj, prev_dict)
@@ -128,9 +128,6 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       if not obj:
          _id = data['id']
          raise MissingParamException(f'{_id} is missing from paragraph db')
-      sequence_id = obj.SequenceID
-      doc_id = obj.doc_id
       session.delete(obj)
-      update_roi_index(session, doc_id, sequence_id, CurdOp.DELETE)
       session.query(IqvdocumentimagebinaryDb).filter(
           IqvdocumentimagebinaryDb.para_id == data['id']).delete()

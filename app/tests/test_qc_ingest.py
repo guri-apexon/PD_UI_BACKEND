@@ -2,7 +2,6 @@ import logging
 import pytest
 import json
 from app.db.session import SessionLocal
-from app.qc_ingest.model.iqvfootnoterecord_db import IqvfootnoterecordDb
 from app.main import app
 from fastapi.testclient import TestClient
 from app.qc_ingest.model.documenttables_db import DocTableHelper, DocumenttablesDb
@@ -107,12 +106,12 @@ def get_line_id(uuid):
 def get_table_footnote_data(uuid):
     data = list()
     with SessionLocal() as session:
-        obj = session.query(IqvfootnoterecordDb).filter(IqvfootnoterecordDb.table_roi_id == uuid).order_by(IqvfootnoterecordDb.DocumentSequenceIndex).all()
+        obj = session.query(DocumenttablesDb).filter(and_(DocumenttablesDb.parent_id == uuid,DocumenttablesDb.group_type == "Attachments")).order_by(DocumenttablesDb.DocumentSequenceIndex).all()
         if not obj:
            data = list()
         for row in obj:
-           data.append({"AttachmentId": row.roi_id,
-                    "Text": row.footnote_text}) 
+           data.append({"AttachmentId": row.id,
+                    "Text": row.Value}) 
         return data
 
 

@@ -8,7 +8,6 @@ from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
 from .model.documenttables_db import DocumenttablesDb, TableOp
-from .model.iqvfootnoterecord_db import IqvfootnoterecordDb
 from .model.iqvpage_roi_db import IqvpageroiDb
 from .iqvkeyvalueset_op import IqvkeyvaluesetOp
 from .model.__base__ import MissingParamException, update_link_update_details, get_utc_datetime
@@ -39,7 +38,7 @@ class RelationalMapper():
         },
         "table":{
             "name": DocumenttablesDb,
-            "children":[IqvfootnoterecordDb, IqvkeyvaluesetOp]
+            "children":[DocumentpartslistDb, IqvkeyvaluesetOp]
 
         }
 
