@@ -1,9 +1,11 @@
 from sqlalchemy import Column,and_, DateTime
-from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException
+from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException, get_utc_datetime
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP,FLOAT
 import uuid
 from datetime import datetime
+from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from .documentparagraphs_db import DocumentparagraphsDb
+from app.config import SOURCE
 import logging
 
 LINKS_INFO = ["link_id",
@@ -21,11 +23,11 @@ class IqvdocumentlinkDb(SchemaBase):
     id = Column(VARCHAR(128), primary_key=True, nullable=False)
     doc_id = Column(TEXT)
     link_id = Column(TEXT)
-    link_id_level2 = Column(TEXT)
-    link_id_level3 = Column(TEXT)
-    link_id_level4 = Column(TEXT)
-    link_id_level5 = Column(TEXT)
-    link_id_level6 = Column(TEXT)
+    link_id_level2 = Column(TEXT, default='')
+    link_id_level3 = Column(TEXT, default='')
+    link_id_level4 = Column(TEXT, default='')
+    link_id_level5 = Column(TEXT, default='')
+    link_id_level6 = Column(TEXT, default='')
     link_id_subsection1 = Column(TEXT)
     link_id_subsection2 = Column(TEXT)
     link_id_subsection3 = Column(TEXT)
@@ -35,18 +37,18 @@ class IqvdocumentlinkDb(SchemaBase):
     group_type = Column(TEXT)
     LinkType = Column(TEXT)
     DocumentSequenceIndex = Column(INTEGER, nullable=False)
-    LinkPage = Column(INTEGER, nullable=False)
+    LinkPage = Column(INTEGER, nullable=False, default=1)
     LinkLevel = Column(INTEGER, nullable=False)
     LinkText = Column(TEXT)
     LinkPrefix = Column(TEXT)
     userId = Column(VARCHAR(100))
-    last_updated = Column(DateTime(timezone=True),
-                            default=datetime.utcnow, nullable=False)
-    num_updates = Column(INTEGER, default=1)
+    last_updated = Column(DateTime(timezone=True), nullable=True)
+    num_updates = Column(INTEGER, default=0)
     predicted_term = Column(TEXT,default='')
     predicted_term_confidence = Column(FLOAT,default=0.0)
     predicted_term_source_system = Column(TEXT,default='')
     predicted_term_system_version = Column(TEXT,default='')
+    para_id = Column(TEXT,default='')
 
 
     @staticmethod
@@ -108,7 +110,6 @@ class IqvdocumentlinkDb(SchemaBase):
         else:
             next_data = IqvdocumentlinkDb.get_link_id(session,data['next_detail'])
             curr_dict = schema_to_dict(next_data)
-            curr_dict['DocumentSequenceIndex']=curr_dict['DocumentSequenceIndex']-1
             if not data.get('next_id',None):
                 data['next_id']=IqvdocumentlinkDb.get_line_id_for_top_link(session, data['next_detail']['link_id'])
         return curr_dict
@@ -120,32 +121,47 @@ class IqvdocumentlinkDb(SchemaBase):
         data : prev data
 
         """
-        curr_dict=IqvdocumentlinkDb.get_curr_segment_info(session,data)
-        para_data = IqvdocumentlinkDb(**curr_dict)
-        _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
-        data['uuid'] = _id
-        #if link level not mentioned add at same level of 
-        link_level= data['link_level'] if data.get("link_level",None) else para_data.LinkLevel
-        link_str=LINKS_INFO[int(link_level)-1]
-        setattr(para_data,link_str,_id)
-        data[link_str]=_id
-        update_existing_props(para_data, data)
+        if data.get('is_section_completely_new') == True:
+            para_data = IqvdocumentlinkDb()
+            _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
+            data['uuid'] = para_data.id = para_data.link_id = _id
+            para_data.DocumentSequenceIndex = 0
+            para_data.LinkLevel = 1
+            para_data.doc_id = para_data.parent_id = data.get('doc_id')
+            para_data.userId = data.get('userId')
+        else:
+            curr_dict=IqvdocumentlinkDb.get_curr_segment_info(session,data)
+            para_data = IqvdocumentlinkDb(**curr_dict)
+            _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
+            data['uuid'] = _id
+            #if link level not mentioned add at same level of 
+            link_level= data['link_level'] if data.get("link_level",None) else para_data.LinkLevel
+            link_str=LINKS_INFO[int(link_level)-1]
+            setattr(para_data,link_str,_id)
+            data[link_str]=_id
+            update_existing_props(para_data, data)
+            para_data.LinkLevel = data.get('link_level', para_data.LinkLevel)
+            para_data.id = _id
+            doc_id = para_data.doc_id
+            para_data.parent_id=doc_id
+            update_link_index(session, IqvdocumentlinkDb.__tablename__,
+                            doc_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         para_data.hierarchy = 'document'
         para_data.group_type = 'DocumentLinks'
         para_data.LinkType = 'toc'
         para_data.LinkPrefix = data.get('link_prefix', '')
-        para_data.LinkText = link_text = data.get('link_text', '')
-        para_data.iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else link_text
-        para_data.LinkLevel = data.get('link_level', para_data.LinkLevel)
-        para_data.id = _id
-        doc_id = para_data.doc_id
-        para_data.parent_id=doc_id
-        update_link_index(session, IqvdocumentlinkDb.__tablename__,
-                          doc_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
+        para_data.LinkText = data.get('link_text', '')
+        para_data.iqv_standard_term = iqv_standard_term = data.get('iqv_standard_term','')
+        source_system = ""
+        if iqv_standard_term != "":
+            source_system = SOURCE
+        para_data.predicted_term_source_system = source_system
+        para_data.last_updated = get_utc_datetime()
+        para_data.num_updates = 0
         session.add(para_data)
         data['is_link']=True
         if not data['content']:
-            data['content']=para_data.LinkPrefix+' '+para_data.LinkText
+            data['content']=para_data.LinkPrefix+para_data.LinkText
         return data
 
     @staticmethod
@@ -157,30 +173,46 @@ class IqvdocumentlinkDb(SchemaBase):
             raise Exception(f'unable to find link object ')
         if not data.get('id',None):
             data['id']=IqvdocumentlinkDb.get_line_id_for_top_link(session,data['link_id'])
-        link_text= data['link_text'] if data.get('link_text',None) else obj.LinkText
-        link_prefix= data['link_prefix'] if data.get('link_prefix',None) else obj.LinkPrefix
-        iqv_standard_term = data['iqv_standard_term'] if data.get('iqv_standard_term',None) else link_text
+        link_text= data.get('link_text','')
+        link_prefix= data.get('link_prefix','')
+        iqv_standard_term = data.get('iqv_standard_term','')
+        user_id = data.get('userId','')
+        last_updated = get_utc_datetime()
+        source_system = '' if obj.predicted_term_source_system == None else obj.predicted_term_source_system
+        if iqv_standard_term != obj.iqv_standard_term:
+            if source_system.startswith('NLP') or source_system in '':
+                category = 'header'
+                if int(data.get('link_level')) >1:
+                    if iqv_standard_term.startswith('cpt_assessments'):
+                        category = 'assessments'
+                    else:
+                        category = 'subheader'
+                insert_meta_entity(session, category, link_text, iqv_standard_term)
+            source_system = SOURCE
         if data.get('content',None):
-            data['content']=link_text
-        sql = f'UPDATE {IqvdocumentlinkDb.__tablename__} SET "LinkText" = \'{link_text}\' , \
-                    "LinkPrefix" = \'{link_prefix}\' , \
-                    "iqv_standard_term" = \'{iqv_standard_term}\' , \
-                    "last_updated" = \'{datetime.utcnow()}\' , \
-                    "num_updates" = "num_updates" + 1  \
-                    WHERE  "id" = \'{obj.id}\' '
-        session.execute(sql)
+            data['content'] = link_text
+        link_obj = session.query(IqvdocumentlinkDb).filter(IqvdocumentlinkDb.id == obj.id).first()
+        link_obj.LinkText = link_text
+        link_obj.LinkPrefix = link_prefix
+        link_obj.iqv_standard_term = iqv_standard_term
+        link_obj.userId = user_id
+        link_obj.predicted_term_source_system = source_system
+        link_obj.last_updated = last_updated
+        link_obj.num_updates = link_obj.num_updates + 1
+        session.add(link_obj)
 
     @staticmethod
     def delete(session, data):
-        obj=IqvdocumentlinkDb.get_link_id(session,data)
-        if not obj:
-            raise Exception(f'unable to find link object ')
-        sequence_id = obj.DocumentSequenceIndex
-        doc_id = obj.doc_id
-        if not data.get('id',None):
-            data['id']=IqvdocumentlinkDb.get_line_id_for_top_link(session,data['link_id'])
-        update_link_index(session, IqvdocumentlinkDb.__tablename__, doc_id,
-                          sequence_id, CurdOp.DELETE)
-        sql_query = f'DELETE FROM {IqvdocumentlinkDb.__tablename__} WHERE "id"=\'{obj.id}\''
-        session.execute(sql_query)
+        if data.get('is_section_header') == False or data.get('delete_section_header') == True:
+            obj=IqvdocumentlinkDb.get_link_id(session,data)
+            if not obj:
+                raise Exception(f'unable to find link object ')
+            sequence_id = obj.DocumentSequenceIndex
+            doc_id = obj.doc_id
+            if not data.get('id',None):
+                data['id']=IqvdocumentlinkDb.get_line_id_for_top_link(session,data['link_id'])
+            update_link_index(session, IqvdocumentlinkDb.__tablename__, doc_id,
+                            sequence_id, CurdOp.DELETE)
+            sql_query = f'DELETE FROM {IqvdocumentlinkDb.__tablename__} WHERE "id"=\'{obj.id}\''
+            session.execute(sql_query)
 

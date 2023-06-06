@@ -1,5 +1,5 @@
 from sqlalchemy import and_
-from .model.__base__ import schema_to_dict, MissingParamException, get_table_index
+from .model.__base__ import schema_to_dict, MissingParamException
 from .model.documenttables_db import DocumenttablesDb, DocTableHelper
 from .model.iqvkeyvalueset_db import IqvkeyvaluesetDb
 import uuid
@@ -129,22 +129,23 @@ class PropertiesMaker():
         """
         doc_table_helper = DocTableHelper()
         table_name = data.get('TableName', "")
-        if not table_index or not table_roi_id:
+        if table_index == None or not table_roi_id:
             raise MissingParamException('table_index or table_roi_id')
         table_roi_data = session.query(DocumenttablesDb).filter(
             DocumenttablesDb.id == table_roi_id).first()
         prev_dict = schema_to_dict(table_roi_data)
         link_roi, link_level = self.get_link_details(prev_dict)
-        table_properties_list = self.update_table_properties(
-            session, table_roi_id, table_name, table_index, prev_dict, link_roi, link_level)
-        for table_properties in table_properties_list:
-                session.add(table_properties)  
-        table_data = doc_table_helper.get_table(session, table_roi_id)
-        for row in table_data.values():
-            table_cell_properties_list = self.update_table_cell_properties(
-                row, table_index, table_name, prev_dict, session, link_roi, link_level)
-            for table_cell_properties in table_cell_properties_list:
-                session.add(table_cell_properties)
+        if data.get('op_params'):
+            table_properties_list = self.update_table_properties(
+                session, table_roi_id, table_name, table_index, prev_dict, link_roi, link_level)
+            for table_properties in table_properties_list:
+                    session.add(table_properties)
+            table_data = doc_table_helper.get_table(session, table_roi_id)
+            for row in table_data.values():
+                table_cell_properties_list = self.update_table_cell_properties(
+                    row, table_index, table_name, prev_dict, session, link_roi, link_level)
+                for table_cell_properties in table_cell_properties_list:
+                    session.add(table_cell_properties)
         if data.get('AttachmentListProperties'):
             table_footnote_data = doc_table_helper.get_table_footnote_data(
                 session, table_roi_id)
@@ -167,7 +168,8 @@ class IqvkeyvaluesetOp():
         table_roi_id = data.get('uuid')
         doc_id = data.get('doc_id')
         properties_maker = PropertiesMaker()
-        table_index = get_table_index(session, doc_id, table_roi_id)
+        doc_table_helper = DocTableHelper()
+        table_index = doc_table_helper.get_table_index(session, doc_id, table_roi_id)
         properties_maker.update_keyvalueset_db(
             session, data, table_roi_id, table_index)
         obj = session.query(IqvkeyvaluesetDb).filter(and_(
@@ -201,7 +203,7 @@ class IqvkeyvaluesetOp():
         """
         table_index = data.get('TableIndex', None)
         table_roi_id = data.get('table_roi_id', None)
-        if not table_index or not table_roi_id:
+        if table_index == None or not table_roi_id:
             raise MissingParamException('table_index or table_roi_id')
         obj = session.query(IqvkeyvaluesetDb).filter(and_(IqvkeyvaluesetDb.doc_id == data.get(
             'doc_id'), IqvkeyvaluesetDb.key == 'TableIndex')).all()

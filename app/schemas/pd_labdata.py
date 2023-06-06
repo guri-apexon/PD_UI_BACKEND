@@ -41,3 +41,7 @@ class LabDataDelete(BaseModel):
 
 class LabData(BaseModel):
     data: LabDataDelete
+
+
+class LabDataTableCreate(BaseModel):
+    data: LabDataBase

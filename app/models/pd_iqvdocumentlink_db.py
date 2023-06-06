@@ -29,6 +29,7 @@ class IqvdocumentlinkDb(Base):
     group_type = Column(String , nullable=True)
     hierarchy = Column(String , nullable=True)
     DocumentSequenceIndex = Column(Integer , nullable=True)
+    predicted_term_source_system = Column(String , nullable=True)
     last_updated = Column(DateTime(timezone=True),
                             default=datetime.utcnow, nullable=False)
     userId = Column(String, nullable=True)
