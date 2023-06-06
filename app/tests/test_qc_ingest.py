@@ -220,3 +220,20 @@ def test_document_table_curd_all_modifiction(new_token_on_headers, qc_ingest_tes
     assert data == {}
     table_footnote_data = get_table_footnote_data(uuid)
     assert table_footnote_data == []
+
+
+@pytest.mark.parametrize("qc_ingest_test_data", [(r"./app/tests/data/qc_ingest_text_curd_data.json")])
+def test_document_line_curd_fail(new_token_on_headers, qc_ingest_test_data):
+    """
+        create,update,delete line
+    """
+    curr_uid = str(uuid.uuid4())
+    logger.info(f'current uid is {curr_uid}')
+    with open(qc_ingest_test_data, 'r') as f:
+        data = f.read()
+        test_payload_list = json.loads(data)
+    payload = test_payload_list[0]
+    payload['prev_detail']['line_id'] = ''
+    get_qc_ingest = client.post(
+        TEST_END_POINT, json=[payload], headers=new_token_on_headers)
+    assert get_qc_ingest.status_code == 500
