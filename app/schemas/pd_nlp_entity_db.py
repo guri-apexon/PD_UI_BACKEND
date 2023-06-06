@@ -97,6 +97,7 @@ class NlpEntityUpdate(BaseModel):
     confidence: str = ''
     start: str = ''
     text_len: str = ''
+    clinical_terms: str = ''
 
 
 class NlpEntityData(BaseModel):

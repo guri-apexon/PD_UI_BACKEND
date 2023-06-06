@@ -79,3 +79,12 @@ REGEX_EMP_ID_ALPHA_REPLACE = re.compile('^[a-zA-Z]+')
 # Value for QC
 QC = 'QC'
 
+#sequence for UI display
+WORKFLOW_ORDER = ["triage", "digitizer1",
+                  "digitizer2", "extraction",
+                  "digitizer2_omopgenerate",
+                  "i2e_omop_update",
+                  "digitizer2_omopupdate",
+                  "digitizer2_compare",
+                  "meta_tagging", "meta_extraction", "analyzer", "es_ingestion",
+                  "email_notification"]

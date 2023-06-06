@@ -8,6 +8,7 @@ from sqlalchemy.sql import text
 
 from app import crud
 from app import config
+from app.config import WORKFLOW_ORDER
 from app.crud.base import CRUDBase
 from app.models.pd_protocol_data import PD_Protocol_Data
 from app.models.pd_protocol_metadata import PD_Protocol_Metadata
@@ -16,7 +17,7 @@ from app.models.pd_protocol_qc_summary_data import PDProtocolQCSummaryData
 from app.models.pd_workflow import PD_WorkFlow_Status
 from app.schemas.pd_protocol_metadata import ProtocolMetadataCreate, ProtocolMetadataUpdate
 from app.utilities.config import settings
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def update_elstic(es_dict, update_id):
@@ -169,7 +170,20 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             .all()
         db.close()
         all_wf_data = [wf._asdict() for wf in wfs]
-        return all_wf_data
+        sorted_all_wf_data = self.sort_all_services(all_wf_data)
+        return sorted_all_wf_data
+
+    def sort_all_services(self,all_wf_data):
+        """This Function is used to sort all the workflows in correct sequence of execution"""
+        sorted_all_wf_data = []
+        for wf_data in all_wf_data:
+            sorted_wf_data = []
+            for service in WORKFLOW_ORDER:
+                if service in wf_data['wfAllServices']:
+                    sorted_wf_data.append(service)
+            wf_data['wfAllServices'] = sorted_wf_data
+            sorted_all_wf_data.append(wf_data)
+        return sorted_all_wf_data
 
     def arrange_wf_data(self, protocol_metadata):
         """This functions checks if running workflows are present in wfData, if not present function must
@@ -403,8 +417,7 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             db.rollback()
             return False, f"Exception occured during updating {current_qc_status} to {target_status} in DB [{str(ex)}]"
 
-    def change_status(self, db: Session, doc_id: str, target_status: str,
-                               current_timestamp=datetime.utcnow()) -> Tuple[bool, str]:
+    def change_status(self, db: Session, doc_id: str, target_status: str) -> Tuple[bool, str]:
         """
         Changes status on the given doc_id
         """
@@ -419,9 +432,11 @@ class CRUDProtocolMetadata(CRUDBase[PD_Protocol_Metadata, ProtocolMetadataCreate
             return True, f"Protocol's Status is already in {target_status}"
 
         try:
+            current_timestamp = datetime.now(timezone.utc)
             prot_metadata_doc.qcStatus = target_status
             prot_metadata_doc.lastQcUpdated = current_timestamp
-            prot_metadata_doc.source = config.QC_SOURCE
+            prot_metadata_doc.lastUpdated = current_timestamp
+            prot_metadata_doc.source = config.SOURCE
 
             db.commit()
             db.refresh(prot_metadata_doc)

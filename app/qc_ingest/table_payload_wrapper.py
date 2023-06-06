@@ -95,12 +95,22 @@ def get_sorted_wrapped_table_props(wrapped_table_props: dict):
     get sorted table properties based on priority opertion list
     """
     sorted_wrapped_table_props = list()
+    table_props_dict = dict()
     op_priority = [Oprations.DELETE_ROW, Oprations.DELETE_COLUMN,
-                   Oprations.UPDATE_TABLE, Oprations.INSERT_COLUMN, Oprations.INSERT_ROW]
+                    Oprations.INSERT_COLUMN, Oprations.INSERT_ROW, Oprations.UPDATE_TABLE]
+    for table_props in wrapped_table_props:
+        if table_props['op_type'] in table_props_dict.keys():
+            table_props_dict[table_props['op_type']].append(table_props['op_params'])
+        else:
+            table_props_dict[table_props['op_type']] = [table_props['op_params']]
     for op in op_priority:
-        for table_props in wrapped_table_props:
-            if table_props['op_type'] == op and table_props not in sorted_wrapped_table_props:
-                sorted_wrapped_table_props.append(table_props)
+        for op_type, op_params in table_props_dict.items():
+            if op_type == op:
+                if op_type in [Oprations.INSERT_COLUMN, Oprations.INSERT_ROW]:
+                    for op_param in op_params:
+                        sorted_wrapped_table_props.append({'op_type':op_type,'op_params':[op_param]})
+                else:
+                    sorted_wrapped_table_props.append({'op_type':op_type,'op_params':op_params})
     return sorted_wrapped_table_props
 
 
@@ -109,6 +119,7 @@ def get_modify_wrapped_table_props(wrapped_table_props: dict, table_props: list)
     get modify table properties 
     """
     column_props = {Oprations.UPDATE_TABLE: [], Oprations.INSERT_COLUMN: [], Oprations.DELETE_COLUMN: []}
+    row_seq = 0
     for column_data in table_props:
         op_params = list()
         row_props = dict()
@@ -132,11 +143,12 @@ def get_modify_wrapped_table_props(wrapped_table_props: dict, table_props: list)
                     else:
                         new_op_type = Oprations.DELETE_COLUMN
                     column_props[new_op_type].append(
-                        {row_idx: {str(column['col_indx']): get_prop_dict(column)}})
+                        {str(row_seq): {str(column['col_indx']): get_prop_dict(column)}})
 
                 elif column.get('op_type') == Oprations.MODIFY:
                     column_props[Oprations.UPDATE_TABLE].append(
                         {row_idx: {str(column['col_indx']): get_prop_dict(column)}})
+            row_seq += 1
 
         else:
             raise MissingParamException(" or invalid operation type ")
@@ -165,20 +177,24 @@ def get_table_props(action_type: str, data: dict):
         if not data.get('content', None):
             raise MissingParamException('content')
         content = data['content']
-        if not content.get('TableProperties', None):
-            raise MissingParamException('.TableProperties.')
-        table_props = content['TableProperties']
         data['TableIndex'] = content.get('TableIndex')
         data['TableName'] = content.get('TableName')
-        footnote_list = content.get('AttachmentListProperties')
-        if isinstance(table_props, str):
-            table_props = json.loads(table_props)
-        if action_type == Oprations.ADD:
-            wrapped_table_props = get_add_wrapped_table_props(
-                wrapped_table_props, table_props)
-        if action_type == Oprations.MODIFY:
-            wrapped_table_props = get_modify_wrapped_table_props(
-                wrapped_table_props, table_props)
+        if not content.get('TableProperties', None):
+            if not content.get('AttachmentListProperties', None):
+                raise MissingParamException('TableProperties and AttachmentListProperties')
+            else:
+                footnote_list = content.get('AttachmentListProperties')
+        else:
+            table_props = content['TableProperties']
+            footnote_list = content.get('AttachmentListProperties')
+            if isinstance(table_props, str):
+                table_props = json.loads(table_props)
+            if action_type == Oprations.ADD:
+                wrapped_table_props = get_add_wrapped_table_props(
+                    wrapped_table_props, table_props)
+            if action_type == Oprations.MODIFY:
+                wrapped_table_props = get_modify_wrapped_table_props(
+                    wrapped_table_props, table_props)
 
     if action_type == Oprations.DELETE:
         wrapped_table_props.append({"op_type": Oprations.DELETE_TABLE,
