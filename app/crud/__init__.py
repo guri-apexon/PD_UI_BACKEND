@@ -7,7 +7,6 @@ from .pd_protocols import pd_protocols
 from .pd_redact_profile import pd_redact_profile
 from .pd_protocol_summary_entities import pd_protocol_summary_entities
 from .pd_user_protocols import pd_user_protocols
-from .pd_document_links import get_document_links
 from .pd_recent_search import pd_recent_search
 from .pd_saved_search import pd_saved_search
 from .pd_search import query_elastic
@@ -18,8 +17,5 @@ from .pd_user import user
 from .pd_login import login
 from .pd_roles import roles
 from .pd_ldap_user_details import get_ldap_user_details
-from .pd_document_object import get_document_object
-from .pd_document_config_terms import get_document_terms_data
-from .pd_document_config_terms import link_id_link_level_based_on_section_text
 from app.crud.pd_notifications_opertions import get_notifications_from_db, read_or_delete_notification
 from .pd_labdata import labdata_content
