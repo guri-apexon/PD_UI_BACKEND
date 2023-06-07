@@ -67,3 +67,16 @@ def test_audit_info_get_curd(new_token_on_headers, audit_info_test_data):
     for data in test_payload_dict:
         put_audit_info = get_audit_info_api_response(data, new_token_on_headers)
         assert put_audit_info.status_code == 200
+
+
+@pytest.mark.parametrize("audit_info_test_data", [(r"./app/tests/data/audit_info_curd_data.json")])
+def test_audit_info_get_curd_fail(new_token_on_headers, audit_info_test_data):
+    """
+        get audit info
+    """
+    with open(audit_info_test_data, 'r') as f:
+        data = f.read()
+        test_payload_dict = json.loads(data)
+    test_payload_dict[0]['line_id'] = ''
+    put_audit_info = get_audit_info_api_response(test_payload_dict[0], new_token_on_headers)
+    assert put_audit_info.status_code == 500
