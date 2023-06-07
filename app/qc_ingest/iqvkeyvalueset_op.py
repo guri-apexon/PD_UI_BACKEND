@@ -205,6 +205,8 @@ class IqvkeyvaluesetOp():
         """
         table_index = data.get('TableIndex', None)
         table_roi_id = data.get('table_roi_id', None)
+        if table_index == None or not table_roi_id:
+            raise MissingParamException('table_index or table_roi_id')
         obj = session.query(IqvkeyvaluesetDb).filter(and_(IqvkeyvaluesetDb.doc_id == data.get(
             'doc_id'), IqvkeyvaluesetDb.key == 'TableIndex')).all()
         id_list = list()
@@ -217,5 +219,3 @@ class IqvkeyvaluesetOp():
             for i in id_list:
                 obj = session.query(IqvkeyvaluesetDb).filter(
                     IqvkeyvaluesetDb.id == i[0]).update({IqvkeyvaluesetDb.value: i[1]})
-        if table_index == None or not table_roi_id:
-            raise MissingParamException('table_index or table_roi_id')
