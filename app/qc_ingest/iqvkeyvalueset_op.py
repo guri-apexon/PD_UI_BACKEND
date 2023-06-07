@@ -170,18 +170,20 @@ class IqvkeyvaluesetOp():
         properties_maker = PropertiesMaker()
         doc_table_helper = DocTableHelper()
         table_index = doc_table_helper.get_table_index(session, doc_id, table_roi_id)
-        properties_maker.update_keyvalueset_db(
-            session, data, table_roi_id, table_index)
         obj = session.query(IqvkeyvaluesetDb).filter(and_(
             IqvkeyvaluesetDb.doc_id == doc_id, IqvkeyvaluesetDb.key == 'TableIndex')).all()
         id_list = list()
-        for row in obj:
-            table_index_value = int(((row.value).split("."))[0])
-            if table_index_value >= int(table_index):
-                id_list.append([row.id, table_index_value + 1])
-        for i in id_list:
-            obj = session.query(IqvkeyvaluesetDb).filter(
-                IqvkeyvaluesetDb.id == i[0]).update({IqvkeyvaluesetDb.value: i[1]})
+        if obj:
+            for row in obj:
+                table_index_value = int(((row.value).split("."))[0])
+                if table_index_value >= int(table_index):
+                    id_list.append([row.id, table_index_value + 1])
+        if id_list:
+            for i in id_list:
+                obj = session.query(IqvkeyvaluesetDb).filter(
+                    IqvkeyvaluesetDb.id == i[0]).update({IqvkeyvaluesetDb.value: i[1]})
+        properties_maker.update_keyvalueset_db(
+            session, data, table_roi_id, table_index)
         return data
 
     @staticmethod
@@ -208,10 +210,12 @@ class IqvkeyvaluesetOp():
         obj = session.query(IqvkeyvaluesetDb).filter(and_(IqvkeyvaluesetDb.doc_id == data.get(
             'doc_id'), IqvkeyvaluesetDb.key == 'TableIndex')).all()
         id_list = list()
-        for row in obj:
-            table_index_value = int(((row.value).split("."))[0])
-            if table_index_value >= int(table_index):
-                id_list.append([row.id, table_index_value - 1])
-        for i in id_list:
-            obj = session.query(IqvkeyvaluesetDb).filter(
-                IqvkeyvaluesetDb.id == i[0]).update({IqvkeyvaluesetDb.value: i[1]})
+        if obj:
+            for row in obj:
+                table_index_value = int(((row.value).split("."))[0])
+                if table_index_value >= int(table_index):
+                    id_list.append([row.id, table_index_value - 1])
+        if id_list:
+            for i in id_list:
+                obj = session.query(IqvkeyvaluesetDb).filter(
+                    IqvkeyvaluesetDb.id == i[0]).update({IqvkeyvaluesetDb.value: i[1]})
