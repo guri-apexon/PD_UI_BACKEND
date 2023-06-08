@@ -69,3 +69,17 @@ def test_section_lock_get_curd_fail(new_token_on_headers, section_lock_test_data
     get_section_lock = client.get(
         TEST_END_POINT_GET, params=test_payload_dict, headers=new_token_on_headers)
     assert get_section_lock.status_code == 500
+
+
+
+@pytest.mark.parametrize("submit_protocol_workflow_data", [(r"./app/tests/data/submit_protocol_workflow_data.json")])
+def test_submit_protocol_workflow(new_token_on_headers, submit_protocol_workflow_data):
+    """
+        get section lock info
+    """
+    with open(submit_protocol_workflow_data, 'r') as f:
+        data = f.read()
+        test_payload_dict = json.loads(data)
+    get_section_lock = client.post(
+        "/api/section_lock/submit_protocol_workflow", json=test_payload_dict, headers=new_token_on_headers)
+    assert get_section_lock.status_code == 200
