@@ -47,7 +47,7 @@ def update_attachment_footnote_index(session, table_roi_id, sequnce_index, op_co
     session.execute(sql)
 
 
-def update_roi_index(session, doc_id, link_id, sequence_id, op):
+def update_roi_index(session, doc_id, link_id, sequence_idx, op):
     """
 
     """
@@ -55,7 +55,7 @@ def update_roi_index(session, doc_id, link_id, sequence_id, op):
         op_code = '+' if op == CurdOp.CREATE else '-'
         sql = f'UPDATE {table_name} SET "SequenceID" = "SequenceID" {op_code} 1 ,\
             "DocumentSequenceIndex" = "DocumentSequenceIndex" {op_code} 1 WHERE "doc_id" = \'{doc_id}\' AND "link_id" = \'{link_id}\' AND \
-                "SequenceID" >= {sequence_id}  AND "group_type" = \'{group_type}\' '
+                "DocumentSequenceIndex" >= {sequence_idx}  AND "group_type" = \'{group_type}\' '
         session.execute(sql)
 
 

@@ -353,7 +353,7 @@ class DocTableHelper():
         para_data.parent_id = data['doc_id'] = doc_id
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 0
-        update_roi_index(session, doc_id, para_data.link_id, para_data.SequenceID, CurdOp.CREATE)
+        update_roi_index(session, doc_id, para_data.link_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         session.add(para_data)
         return para_data
     
@@ -528,7 +528,7 @@ class DocTableHelper():
                 # first update indexes then update..
                 self._update_table_col_index(
                     session, DocumenttablesDb.__tablename__, row_id, col_idx, CurdOp.CREATE)
-                update_roi_index(session, row_obj.doc_id, row_obj.link_id, col_sequence_id, CurdOp.CREATE)
+                update_roi_index(session, row_obj.doc_id, row_obj.link_id, col_sequence_index, CurdOp.CREATE)
                 self.add_col(session, row_dict, col_idx, col_data['val'], col_sequence_index, col_sequence_id)
 
     def delete_column(self, session, table_data):
@@ -639,7 +639,7 @@ class DocTableHelper():
         for col_idx, col_data in data.items():
             col_sequence_index = sequence_index + (len(data)*(row_idx+1))-(len(data)-(col_idx+1))
             col_sequence_id = sequence_id + (len(data)*(row_idx+1))-(len(data)-(col_idx+1))
-            update_roi_index(session, table_obj.doc_id, table_obj.link_id, col_sequence_id, CurdOp.CREATE)
+            update_roi_index(session, table_obj.doc_id, table_obj.link_id, col_sequence_index, CurdOp.CREATE)
             self.add_col(session, row_data, col_idx, col_data['val'], col_sequence_index, col_sequence_id)
 
     def update_cell_info(self, session, content, col_uid, child_cell_id, userid):
@@ -669,7 +669,7 @@ class DocTableHelper():
             for col_idx, col_val in row_data.items():
                 sequence_index += 1
                 sequence_id += 1
-                update_roi_index(session, table_entry.doc_id, table_entry.link_id, sequence_id, CurdOp.CREATE)
+                update_roi_index(session, table_entry.doc_id, table_entry.link_id, sequence_index, CurdOp.CREATE)
                 self.add_col(session, row_dict, col_idx, col_val['val'], sequence_index, sequence_id)
         return table_entry.id
 

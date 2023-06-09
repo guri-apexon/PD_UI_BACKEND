@@ -67,7 +67,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data.parent_id = doc_id
       para_data.last_updated = get_utc_datetime()
       para_data.num_updates = 0
-      update_roi_index(session, doc_id, para_data.link_id , para_data.SequenceID, CurdOp.CREATE)
+      update_roi_index(session, doc_id, para_data.link_id , para_data.DocumentSequenceIndex, CurdOp.CREATE)
 
       binary_obj = IqvdocumentimagebinaryDb()
       update_existing_props(binary_obj, prev_dict)

@@ -158,7 +158,7 @@ class DocumentparagraphsDb(SchemaBase):
                 1 if is_top_elm else prev_data.SequenceID+1
             doc_id = prev_data.doc_id
             para_data.parent_id = doc_id
-            update_roi_index(session, doc_id, para_data.link_id, para_data.SequenceID, CurdOp.CREATE)
+            update_roi_index(session, doc_id, para_data.link_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         
         para_data.hierarchy = 'paragraph'
         para_data.group_type = 'DocumentParagraphs'
