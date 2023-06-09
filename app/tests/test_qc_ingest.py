@@ -98,9 +98,7 @@ def get_table_index_value(doc_id, uuid):
 
 def get_line_id(uuid):
     with SessionLocal() as session:
-        row_id = session.query(DocumenttablesDb.id).filter(and_(DocumenttablesDb.parent_id == uuid,DocumenttablesDb.group_type == "ChildBoxes")).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
-        col_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == row_id[0]).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
-        line_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == col_id[0]).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
+        line_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == uuid).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
         return line_id[0]
 
 def get_table_footnote_data(uuid):
