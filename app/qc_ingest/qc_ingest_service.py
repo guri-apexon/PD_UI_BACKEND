@@ -9,7 +9,6 @@ from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
 from .model.documenttables_db import DocumenttablesDb, TableOp
 from .model.iqvpage_roi_db import IqvpageroiDb
-from .iqvkeyvalueset_op import IqvkeyvaluesetOp
 from .model.__base__ import MissingParamException, update_link_update_details, get_utc_datetime
 from .table_payload_wrapper import get_table_props
 from app.db.session import SessionLocal
@@ -38,7 +37,7 @@ class RelationalMapper():
         },
         "table":{
             "name": DocumenttablesDb,
-            "children":[DocumentpartslistDb, IqvkeyvaluesetOp]
+            "children":[DocumentpartslistDb]
 
         }
 
@@ -72,13 +71,7 @@ class RelationalMapper():
 
 
 def get_table_roi_id(session, line_id):
-    col_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == line_id).first()
-    if not col_id:
-        raise MissingParamException('record for line_id in Documenttables DB')
-    row_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == col_id[0]).first()
-    if not row_id:
-        raise MissingParamException('row_id for line_id in Documenttables DB')
-    table_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == row_id[0]).first()
+    table_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == line_id).first()
     if not table_id:
         raise MissingParamException('table_id for line_id in Documenttables DB')
     return table_id[0]
