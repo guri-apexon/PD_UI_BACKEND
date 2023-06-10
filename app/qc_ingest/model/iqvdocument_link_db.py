@@ -2,7 +2,7 @@ from sqlalchemy import Column,and_, DateTime
 from .__base__ import SchemaBase, schema_to_dict, update_link_index, CurdOp, update_existing_props,MissingParamException, get_utc_datetime
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER,BOOLEAN,TIMESTAMP,FLOAT
 import uuid
-from datetime import datetime
+from .iqvpage_roi_db import IqvpageroiDb
 from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from .documentparagraphs_db import DocumentparagraphsDb
 from app.config import SOURCE
@@ -77,14 +77,14 @@ class IqvdocumentlinkDb(SchemaBase):
         """
         
         """
-        obj_list=session.query(DocumentparagraphsDb.id,DocumentparagraphsDb.SequenceID).filter(and_(DocumentparagraphsDb.link_id == link_id,
-                                                        DocumentparagraphsDb.link_id_level2 == '',
-                                                        DocumentparagraphsDb.link_id_level3 == '',
-                                                        DocumentparagraphsDb.link_id_level4 == '',
-                                                        DocumentparagraphsDb.link_id_level5 == '',
-                                                        DocumentparagraphsDb.link_id_level6 == '',
-                                                        DocumentparagraphsDb.group_type == 'DocumentParagraphs',
-                                                        DocumentparagraphsDb.hierarchy == 'paragraph'
+        obj_list=session.query(IqvpageroiDb.id,IqvpageroiDb.SequenceID).filter(and_(IqvpageroiDb.link_id == link_id,
+                                                        IqvpageroiDb.link_id_level2 == '',
+                                                        IqvpageroiDb.link_id_level3 == '',
+                                                        IqvpageroiDb.link_id_level4 == '',
+                                                        IqvpageroiDb.link_id_level5 == '',
+                                                        IqvpageroiDb.link_id_level6 == '',
+                                                        IqvpageroiDb.group_type.in_(('DocumentParagraphs','DocumentTables')),
+                                                        IqvpageroiDb.hierarchy.in_(('paragraph','table'))
                                                         )
                                                    ).all()
         min_seq_id,best_match_id=1e10,None
