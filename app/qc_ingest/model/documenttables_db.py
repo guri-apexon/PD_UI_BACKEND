@@ -1,7 +1,6 @@
 from sqlalchemy import Column, and_, DateTime
 from .__base__ import SchemaBase, schema_to_dict, update_existing_props, update_roi_index, update_attachment_footnote_index, CurdOp, MissingParamException, get_utc_datetime
 from .iqvpage_roi_db import IqvpageroiDb
-from .documentparagraphs_db import DocumentparagraphsDb
 from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN,FLOAT
 import uuid
@@ -324,10 +323,15 @@ class DocTableHelper():
         else:
             cid = data['next_id']
             is_top_elm = True
-        prev_data = session.query(IqvpageroiDb).filter(
-            and_(IqvpageroiDb.id == cid, IqvpageroiDb.group_type != 'ChildBoxes')).first()
+        prev_data = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == cid).first()
         if not prev_data:
             raise MissingParamException(cid)
+        elif prev_data.hierarchy == 'table':
+                doc_table_helper = DocTableHelper()
+                table_id = doc_table_helper.get_table_roi_id(session, cid)
+                prev_data=session.query(IqvpageroiDb).filter(IqvpageroiDb.id == table_id).first()
+                if prev_data.group_type != 'DocumentTables':
+                    raise MissingParamException('wrong prev line id {cid}')
         prev_dict = schema_to_dict(prev_data)
         para_data = DocumenttablesDb(**prev_dict)
         _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
@@ -676,6 +680,12 @@ class DocTableHelper():
                 table_index = i + 1
                 break
         return table_index
+
+    def get_table_roi_id(self, session, line_id):
+        table_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == line_id).first()
+        if not table_id:
+            raise MissingParamException('table_id for line_id in Documenttables DB')
+        return table_id[0]
 
     def get_table_footnote_data(self, session, table_id):
         data = list()
