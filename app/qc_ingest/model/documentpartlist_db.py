@@ -74,7 +74,10 @@ class DocumentpartslistDb(SchemaBase):
             doc_id=prev_data.doc_id
             para_data.parent_id = doc_id
             update_partlist_index(session, DocumentpartslistDb.__tablename__, doc_id, para_data.link_id, para_data.sequence_id, CurdOp.CREATE) 
-        para_data.hierarchy = 'document'
+        if data.get('type') == 'table':
+            para_data.hierarchy = 'table'
+        else:
+            para_data.hierarchy = 'paragraph'
         para_data.group_type = 'IQVDocumentParts' 
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 0
