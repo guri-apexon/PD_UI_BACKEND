@@ -70,6 +70,11 @@ class RelationalMapper():
             child_table.delete(session, data)
 
 
+def get_table_line_id(session, table_id):
+    if table_id == None:
+        raise MissingParamException('Previous object table uuid was missing')
+    line_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == table_id).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
+    return line_id[0]
     
 def get_content_info(data: dict, session):
     """
@@ -143,9 +148,16 @@ def process(payload: list):
         return []
     mapper = RelationalMapper()
     uid_list=[]
+    previous_data_type, previous_uuid = None, None
     link_id, user_id, is_section_header = None, None, False
     with SessionLocal() as session:
-        for data in payload:  
+        for data in payload:
+            if previous_data_type == 'table':
+                data['prev_detail']['line_id'] = get_table_line_id(session, previous_uuid)
+                previous_data_type, previous_uuid = None, None
+            if data.get('qc_change_type') == 'add' and data.get('type') == 'table':
+                previous_data_type = data.get('type')
+                previous_uuid = data.get('uuid')
             data = process_data(session, mapper, data)
             uid_list.append({'uuid':data.get('uuid',''),
                              'op_type':data.get('op_type',''),
