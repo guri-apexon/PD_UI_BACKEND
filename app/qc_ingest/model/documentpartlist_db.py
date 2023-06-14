@@ -3,6 +3,7 @@ from .__base__ import SchemaBase,schema_to_dict,update_partlist_index,CurdOp,upd
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION,TEXT,VARCHAR,INTEGER
 import uuid
 from .iqvpage_roi_db import IqvpageroiDb
+from .documenttables_db import DocTableHelper
 from datetime import datetime
 
 
@@ -56,7 +57,13 @@ class DocumentpartslistDb(SchemaBase):
             
             prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()
             if not prev_data:
-                raise MissingParamException(f'{cid} in document partlist db ')
+                prev_data = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == cid).first()
+                if prev_data.hierarchy == 'table':
+                    doc_table_helper = DocTableHelper()
+                    table_id = doc_table_helper.get_table_roi_id(session, cid)
+                    prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == table_id).first()
+                else:
+                    raise MissingParamException(f'{cid} in document partlist db ')
             prev_dict=schema_to_dict(prev_data)
             para_data = DocumentpartslistDb(**prev_dict)
             _id = data['uuid'] if data.get('uuid',None) else str(uuid.uuid4())
@@ -67,8 +74,11 @@ class DocumentpartslistDb(SchemaBase):
             doc_id=prev_data.doc_id
             para_data.parent_id = doc_id
             update_partlist_index(session, DocumentpartslistDb.__tablename__, doc_id, para_data.link_id, para_data.sequence_id, CurdOp.CREATE) 
-        para_data.hierarchy = 'document'
-        para_data.group_type = 'DocumentPartsList' 
+        if data.get('type') == 'table':
+            para_data.hierarchy = 'table'
+        else:
+            para_data.hierarchy = 'paragraph'
+        para_data.group_type = 'IQVDocumentParts' 
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 0
         session.add(para_data)

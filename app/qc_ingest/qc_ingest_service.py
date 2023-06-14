@@ -7,9 +7,8 @@ from .model.documentparagraphs_db import DocumentparagraphsDb
 from .model.iqvdocumentimagebinary_db import IqvdocumentimagebinaryDb
 from .model.documentpartlist_db import DocumentpartslistDb
 from .model.iqvdocument_link_db import IqvdocumentlinkDb
-from .model.documenttables_db import DocumenttablesDb, TableOp
+from .model.documenttables_db import DocumenttablesDb, TableOp, DocTableHelper
 from .model.iqvpage_roi_db import IqvpageroiDb
-from .iqvkeyvalueset_op import IqvkeyvaluesetOp
 from .model.__base__ import MissingParamException, update_link_update_details, get_utc_datetime
 from .table_payload_wrapper import get_table_props
 from app.db.session import SessionLocal
@@ -38,7 +37,7 @@ class RelationalMapper():
         },
         "table":{
             "name": DocumenttablesDb,
-            "children":[DocumentpartslistDb, IqvkeyvaluesetOp]
+            "children":[DocumentpartslistDb]
 
         }
 
@@ -71,18 +70,6 @@ class RelationalMapper():
             child_table.delete(session, data)
 
 
-def get_table_roi_id(session, line_id):
-    col_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == line_id).first()
-    if not col_id:
-        raise MissingParamException('record for line_id in Documenttables DB')
-    row_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == col_id[0]).first()
-    if not row_id:
-        raise MissingParamException('row_id for line_id in Documenttables DB')
-    table_id = session.query(DocumenttablesDb.parent_id).filter(DocumenttablesDb.id == row_id[0]).first()
-    if not table_id:
-        raise MissingParamException('table_id for line_id in Documenttables DB')
-    return table_id[0]
-
     
 def get_content_info(data: dict, session):
     """
@@ -97,7 +84,8 @@ def get_content_info(data: dict, session):
                 line_id = data.get('line_id', '')[0:36]
                 if not line_id:
                     raise MissingParamException('line_id')
-                data['table_roi_id'] = get_table_roi_id(session, line_id)
+                doc_table_helper = DocTableHelper()
+                data['table_roi_id'] = doc_table_helper.get_table_roi_id(session, line_id)
             table_props, footnote_list = get_table_props(action_type, data)
         if action_type == TableOp.ADD:
             prev_details = data.get('prev_detail',{})

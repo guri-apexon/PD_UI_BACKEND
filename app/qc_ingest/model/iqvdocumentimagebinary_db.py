@@ -3,7 +3,7 @@ from .__base__ import SchemaBase, schema_to_dict, update_roi_index, CurdOp, upda
 from . import DocumentparagraphsDb
 from .iqvpage_roi_db import IqvpageroiDb
 import uuid
-from datetime import datetime, timezone
+from .documenttables_db import DocTableHelper
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER, BYTEA
 import base64
 
@@ -52,6 +52,12 @@ class IqvdocumentimagebinaryDb(SchemaBase):
           IqvpageroiDb.id == cid).first()
       if not prev_data:
          raise MissingParamException(f'{cid} is missing from paragraph db')
+      elif prev_data.hierarchy == 'table':
+         doc_table_helper = DocTableHelper()
+         table_id = doc_table_helper.get_table_roi_id(session, cid)
+         prev_data=session.query(IqvpageroiDb).filter(IqvpageroiDb.id == table_id).first()
+         if prev_data.group_type != 'DocumentTables':
+            raise MissingParamException('wrong prev line id {cid}')
       prev_dict = schema_to_dict(prev_data)
       para_data = DocumentparagraphsDb(**prev_dict)
       _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
@@ -67,7 +73,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data.parent_id = doc_id
       para_data.last_updated = get_utc_datetime()
       para_data.num_updates = 0
-      update_roi_index(session, doc_id, para_data.link_id , para_data.SequenceID, CurdOp.CREATE)
+      update_roi_index(session, doc_id, para_data.link_id , para_data.DocumentSequenceIndex, CurdOp.CREATE)
 
       binary_obj = IqvdocumentimagebinaryDb()
       update_existing_props(binary_obj, prev_dict)
