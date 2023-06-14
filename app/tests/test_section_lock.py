@@ -71,15 +71,33 @@ def test_section_lock_get_curd_fail(new_token_on_headers, section_lock_test_data
     assert get_section_lock.status_code == 500
 
 
-
 @pytest.mark.parametrize("submit_protocol_workflow_data", [(r"./app/tests/data/submit_protocol_workflow_data.json")])
-def test_submit_protocol_workflow(new_token_on_headers, submit_protocol_workflow_data):
+def test_submit_protocol_workflow(new_token_on_headers, submit_protocol_workflow_data, mocker):
     """
-        get section lock info
+    Test SubmitProtocolWorkflow endpoint
     """
+    # Load test data from JSON file
     with open(submit_protocol_workflow_data, 'r') as f:
         data = f.read()
         test_payload_dict = json.loads(data)
-    get_section_lock = client.post(
-        "/api/section_lock/submit_protocol_workflow", json=test_payload_dict, headers=new_token_on_headers)
-    assert get_section_lock.status_code == 200
+
+    # Mock the section_lock_service.remove function
+    mocked_remove = mocker.patch('app.routers.section_lock.section_lock_service.remove')
+    mocked_remove.return_value = {"message": "Lock removed successfully."}, True
+
+    # Send a request to the SubmitProtocolWorkflow endpoint
+    response = client.post(
+        "/api/section_lock/submit_protocol_workflow",
+        json=test_payload_dict,
+        headers=new_token_on_headers
+    )
+
+    # Assert the response status code is 200
+    assert response.status_code == 200
+
+    # Assert the response body
+    response_data = response.json()
+    assert response_data == {"success": True, "info": "Lock removed successfully."}
+
+    # Assert that the section_lock_service.remove function was called with the correct payload
+    mocked_remove.assert_called_once_with(test_payload_dict)
