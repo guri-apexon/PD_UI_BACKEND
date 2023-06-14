@@ -74,6 +74,8 @@ def get_table_line_id(session, table_id):
     if table_id == None:
         raise MissingParamException('Previous object table uuid was missing')
     line_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == table_id).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
+    if not line_id:
+            raise MissingParamException('line_id for table_id in Documenttables DB')
     return line_id[0]
     
 def get_content_info(data: dict, session):
