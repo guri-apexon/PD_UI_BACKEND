@@ -152,11 +152,11 @@ def process(payload: list):
     link_id, user_id, is_section_header = None, None, False
     with SessionLocal() as session:
         for data in payload:
-            if previews_data_type == 'table':
+            if previous_data_type == 'table':
                 data['prev_detail']['line_id'] = get_table_line_id(session, previous_uuid)
                 previous_data_type, previous_uuid = None, None
             if data.get('qc_change_type') == 'add' and data.get('type') == 'table':
-                previews_data_type = data.get('type')
+                previous_data_type = data.get('type')
                 previous_uuid = data.get('uuid')
             data = process_data(session, mapper, data)
             uid_list.append({'uuid':data.get('uuid',''),
