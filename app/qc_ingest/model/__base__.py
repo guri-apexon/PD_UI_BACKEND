@@ -76,7 +76,7 @@ def update_partlist_index(session, table_name, doc_id, link_id, sequence_id, op)
     """
     op_code = '+' if op == CurdOp.CREATE else '-'
     sql = f'UPDATE {table_name} SET "sequence_id" = "sequence_id" {op_code} 1 \
-        WHERE "sequence_id" >= {sequence_id} AND "doc_id" = \'{doc_id}\'  AND "link_id" = \'{link_id}\' AND "group_type" = \'DocumentPartsList\' '
+        WHERE "sequence_id" >= {sequence_id} AND "doc_id" = \'{doc_id}\'  AND "link_id" = \'{link_id}\' AND "group_type" = \'IQVDocumentParts\' '
     session.execute(sql)
 
 

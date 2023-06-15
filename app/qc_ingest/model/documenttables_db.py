@@ -686,6 +686,15 @@ class DocTableHelper():
         if not table_id:
             raise MissingParamException('table_id for line_id in Documenttables DB')
         return table_id[0]
+    
+    
+    def get_table_line_id(self, session, table_id):
+        if table_id == None:
+            raise MissingParamException('Previous object table uuid was missing')
+        line_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == table_id).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
+        if not line_id:
+                raise MissingParamException('line_id for table_id in Documenttables DB')
+        return line_id[0]
 
     def get_table_footnote_data(self, session, table_id):
         data = list()

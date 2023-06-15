@@ -69,7 +69,6 @@ class RelationalMapper():
         for child_table in rel_map['children']:
             child_table.delete(session, data)
 
-
     
 def get_content_info(data: dict, session):
     """
@@ -134,6 +133,19 @@ def process_data(session, mapper, data: dict):
     return data
 
 
+def get_updated_data(session, data, previous_data_type, previous_uuid):
+    if previous_data_type == 'table':
+        if data.get('qc_change_type') == 'add':
+            if previous_uuid == data['prev_detail']['line_id']:
+                doc_table_helper = DocTableHelper()
+                data['prev_detail']['line_id'] = doc_table_helper.get_table_line_id(session, previous_uuid)
+        previous_data_type, previous_uuid = None, None
+    if data.get('qc_change_type') == 'add' and data.get('type') == 'table':
+        previous_data_type = data.get('type')
+        previous_uuid = data.get('uuid')
+    return data, previous_data_type, previous_uuid
+
+
 def process(payload: list):
     """
     commit for every part in payload 
@@ -143,11 +155,14 @@ def process(payload: list):
         return []
     mapper = RelationalMapper()
     uid_list=[]
+    previous_data_type, previous_uuid = None, None
     link_id, user_id, is_section_header = None, None, False
     with SessionLocal() as session:
-        for data in payload:  
+        for data in payload:
+            data, previous_data_type, previous_uuid = get_updated_data(session, data, previous_data_type, previous_uuid)
             data = process_data(session, mapper, data)
             uid_list.append({'uuid':data.get('uuid',''),
+                             'line_id':data.get('line_id',''),
                              'op_type':data.get('op_type',''),
                              'qc_change_type':data.get('qc_change_type','')})
 
