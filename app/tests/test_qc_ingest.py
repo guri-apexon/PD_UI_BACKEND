@@ -97,9 +97,10 @@ def get_table_index_value(doc_id, uuid):
         return table_index
 
 def get_line_id(uuid):
+    doc_table_helper = DocTableHelper()
     with SessionLocal() as session:
-        line_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == uuid).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
-        return line_id[0]
+        line_id = doc_table_helper.get_table_line_id(session, uuid)
+        return line_id
 
 def get_table_footnote_data(uuid):
     data = list()
