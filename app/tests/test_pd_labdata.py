@@ -1,4 +1,6 @@
 import logging
+import uuid
+
 import pytest
 from app.db.session import SessionLocal
 from app.main import app
@@ -93,7 +95,8 @@ def test_delete_labdata(doc_id, roi_id, table_roi_id, status_code, new_token_on_
 
 
 @pytest.mark.parametrize("doc_id, status_code", [
-    ("3b44c1d5-f5f7-44ab-901a-3f53c2ba751d", status.HTTP_200_OK)
+    ("3b44c1d5-f5f7-44ab-901a-3f53c2ba751d", status.HTTP_200_OK),
+    (str(uuid.uuid4()), status.HTTP_200_OK)
 ])
 def test_create_lab_data_table(doc_id, status_code, new_token_on_headers):
     create_labdata_table = client.post("api/lab_data/lab_data_table_create",
