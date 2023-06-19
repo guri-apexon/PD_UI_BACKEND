@@ -147,7 +147,7 @@ class DocumentparagraphsDb(SchemaBase):
                 IqvpageroiDb.id == cid).first()
             if not prev_data:
                 raise MissingParamException(cid)
-            elif prev_data.hierarchy == 'table':
+            elif prev_data.hierarchy == 'table' and prev_data.group_type != 'DocumentTables':
                 doc_table_helper = DocTableHelper()
                 table_id = doc_table_helper.get_table_roi_id(session, cid)
                 prev_data=session.query(IqvpageroiDb).filter(IqvpageroiDb.id == table_id).first()

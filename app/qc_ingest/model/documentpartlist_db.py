@@ -58,7 +58,7 @@ class DocumentpartslistDb(SchemaBase):
             prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()
             if not prev_data:
                 prev_data = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == cid).first()
-                if prev_data.hierarchy == 'table':
+                if prev_data.hierarchy == 'table' and prev_data.group_type != 'DocumentTables':
                     doc_table_helper = DocTableHelper()
                     table_id = doc_table_helper.get_table_roi_id(session, cid)
                     prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == table_id).first()
