@@ -326,12 +326,12 @@ class DocTableHelper():
         prev_data = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == cid).first()
         if not prev_data:
             raise MissingParamException(cid)
-        elif prev_data.hierarchy == 'table':
-                doc_table_helper = DocTableHelper()
-                table_id = doc_table_helper.get_table_roi_id(session, cid)
-                prev_data=session.query(IqvpageroiDb).filter(IqvpageroiDb.id == table_id).first()
-                if prev_data.group_type != 'DocumentTables':
-                    raise MissingParamException('wrong prev line id {cid}')
+        elif prev_data.hierarchy == 'table' and prev_data.group_type != 'DocumentTables':
+            doc_table_helper = DocTableHelper()
+            table_id = doc_table_helper.get_table_roi_id(session, cid)
+            prev_data=session.query(IqvpageroiDb).filter(IqvpageroiDb.id == table_id).first()
+            if prev_data.group_type != 'DocumentTables':
+                raise MissingParamException('wrong prev line id {cid}')
         prev_dict = schema_to_dict(prev_data)
         para_data = DocumenttablesDb(**prev_dict)
         _id = data['uuid'] if data.get('uuid', None) else str(uuid.uuid4())
@@ -686,6 +686,15 @@ class DocTableHelper():
         if not table_id:
             raise MissingParamException('table_id for line_id in Documenttables DB')
         return table_id[0]
+    
+    
+    def get_table_line_id(self, session, table_id):
+        if table_id == None:
+            raise MissingParamException('Previous object table uuid was missing')
+        line_id = session.query(DocumenttablesDb.id).filter(DocumenttablesDb.parent_id == table_id).order_by(DocumenttablesDb.DocumentSequenceIndex).first()
+        if not line_id:
+                raise MissingParamException('line_id for table_id in Documenttables DB')
+        return line_id[0]
 
     def get_table_footnote_data(self, session, table_id):
         data = list()
