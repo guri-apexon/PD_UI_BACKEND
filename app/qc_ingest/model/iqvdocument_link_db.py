@@ -77,7 +77,7 @@ class IqvdocumentlinkDb(SchemaBase):
         """
         
         """
-        obj_list=session.query(IqvpageroiDb.id,IqvpageroiDb.SequenceID).filter(and_(IqvpageroiDb.link_id == link_id,
+        obj_list=session.query(IqvpageroiDb.id,IqvpageroiDb.DocumentSequenceIndex).filter(and_(IqvpageroiDb.link_id == link_id,
                                                         IqvpageroiDb.link_id_level2 == '',
                                                         IqvpageroiDb.link_id_level3 == '',
                                                         IqvpageroiDb.link_id_level4 == '',
