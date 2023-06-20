@@ -20,27 +20,22 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
     """
 
     def get(self, db: Session, doc_id: str, link_id: str):
-        try:
-            all_term_data = db.query(NlpEntityDb).filter(
-                NlpEntityDb.doc_id == doc_id).filter(
-                NlpEntityDb.link_id == link_id).distinct(NlpEntityDb.parent_id).all()
-        except Exception as ex:
-            all_term_data = []
-            logger.exception("Exception in retrieval of data from table", ex)
+
+        all_term_data = db.query(NlpEntityDb).filter(
+            NlpEntityDb.doc_id == doc_id).filter(
+            NlpEntityDb.link_id == link_id).distinct(NlpEntityDb.parent_id).all()
         return all_term_data
 
     @staticmethod
     def get_records(db: Session, doc_id: str, link_id: str, entity_text: str):
         """ To fetch records based on doc, link and entity text """
-        entity_rec = []
-        try:
-            entity_rec = db.query(NlpEntityDb).filter(
-                NlpEntityDb.doc_id == doc_id).filter(
-                NlpEntityDb.link_id == link_id).filter(
-                NlpEntityDb.standard_entity_name == entity_text
-            ).distinct(NlpEntityDb.parent_id).all()
-        except Exception as ex:
-            logger.exception("Exception in retrieval of data from table", ex)
+
+        entity_rec = db.query(NlpEntityDb).filter(
+            NlpEntityDb.doc_id == doc_id).filter(
+            NlpEntityDb.link_id == link_id).filter(
+            NlpEntityDb.standard_entity_name == entity_text
+        ).distinct(NlpEntityDb.parent_id).all()
+
         return entity_rec
 
     @staticmethod
