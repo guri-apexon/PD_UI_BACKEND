@@ -52,7 +52,7 @@ class DocumentpartslistDb(SchemaBase):
             else:
                 cid=data.get('next_id','')
                 is_next_elm=True
-            if not cid and data['is_link']:
+            if not cid and data.get('is_link') == True:
                 return data
             
             prev_data=session.query(DocumentpartslistDb).filter(DocumentpartslistDb.id == cid).first()

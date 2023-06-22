@@ -138,9 +138,9 @@ class DocumentparagraphsDb(SchemaBase):
             else:
                 cid = data.get('next_id', None)
                 is_top_elm = True
-            if not cid and data['is_link']:
+            if not cid and data.get('is_link') == True:
                 return data
-            if not data['content'] and data['is_link']:
+            if not data['content'] and data.get('is_link') == True:
                 data['content'] = data['link_text']
 
             prev_data = session.query(IqvpageroiDb).filter(
