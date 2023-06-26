@@ -15,7 +15,7 @@ client = TestClient(app)
 @pytest.mark.parametrize(
     ["aidocid", "qc_status", "insert_flag"],
     [
-        # ('171ef754-2a33-4c8d-8a90-009941ddbba0', config.QcStatus.QC1.value, 1),
+        ('171ef754-2a33-4c8d-8a90-009941ddbba0', config.QcStatus.QC1.value, 1),
         ('171ef754-2a33-4c8d-8a90-009941ddb', config.QcStatus.QC1.value, 0)
 
      ])

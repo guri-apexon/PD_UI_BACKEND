@@ -19,4 +19,3 @@ from .pd_roles import roles
 from .pd_ldap_user_details import get_ldap_user_details
 from app.crud.pd_notifications_opertions import get_notifications_from_db, read_or_delete_notification
 from .pd_labdata import labdata_content
-from .pd_document_object import get_document_object

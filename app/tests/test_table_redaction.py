@@ -22,10 +22,10 @@ logger = logging.getLogger("unit-test")
 
 @pytest.mark.parametrize("user_id, protocol, aidocid, redact_flag, hide_table_json_flag, return_refreshed_table_html, comments",
                          [
-                            #  ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", True, False, True, "Readacted HTML and does not contain properties"),
-                            #  ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", True, True, True, "Readacted HTML and contains the properties"),
-                            #  ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", False, True, True, "Unreadacted HTML and contains the properties"),
-                            #  ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", False, False, True, "Unreadacted HTML and does not contain properties"),
+                             ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", True, False, True, "Readacted HTML and does not contain properties"),
+                             ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", True, True, True, "Readacted HTML and contains the properties"),
+                             ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", False, True, True, "Unreadacted HTML and contains the properties"),
+                             ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", False, False, True, "Unreadacted HTML and does not contain properties"),
                              # ("1061485", "TAK-861-1001", "1fd2c7c3-394c-4ce3-9ed9-6ef0c92a836d", )
                          ])
 def test_table_redaction(new_token_on_headers, user_id, protocol, aidocid, redact_flag, hide_table_json_flag,

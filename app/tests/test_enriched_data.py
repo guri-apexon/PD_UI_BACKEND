@@ -5,6 +5,8 @@ from app.main import app
 from fastapi.testclient import TestClient
 from fastapi import status
 from app.models.pd_nlp_entity_db import NlpEntityDb
+from app.crud.pd_nlp_entity_data import nlp_entity_content
+from app.models.pd_documenttables_db import DocumenttablesDb
 
 client = TestClient(app)
 db = SessionLocal()
@@ -36,16 +38,18 @@ def collect_protocol_data():
     doc_id = entity_obj.doc_id
     link_id = entity_obj.link_id
     enriched_text = entity_obj.standard_entity_name
-    return doc_id, link_id, enriched_text, status.HTTP_200_OK
+    return [(doc_id, link_id, enriched_text, '', status.HTTP_200_OK),
+            (doc_id, link_id, enriched_text, "0a55c529-fee8-11ed-a5c3-005056ab6469", status.HTTP_200_OK),
+            (doc_id, link_id, enriched_text, link_id, status.HTTP_401_UNAUTHORIZED)]
 
 
-@pytest.mark.parametrize("doc_id, link_id, enriched_text, status_code",
-                         [collect_protocol_data()])
+@pytest.mark.parametrize("doc_id, link_id, enriched_text, header_link_id, status_code",
+                         collect_protocol_data())
 def test_create_new_entity(doc_id, link_id, enriched_text,
-                           status_code, new_token_on_headers):
+                           status_code, header_link_id,new_token_on_headers):
     """ To verify newly created entity with updated clinical terms """
     create_entity = client.post("/api/cpt_data/update_enriched_data",
-                                params={"doc_id": doc_id, "link_id": link_id},
+                                params={"doc_id": doc_id, "link_id": link_id, "header_link_id": header_link_id},
                                 json={
                                     "data" : {
                                         "standard_entity_name": "emicizumab",
@@ -74,4 +78,15 @@ def test_create_new_entity(doc_id, link_id, enriched_text,
         _ = db.query(NlpEntityDb).filter(NlpEntityDb.id.in_(ids)).delete()
         db.commit()
 
-    assert create_entity.status_code == status.HTTP_200_OK
+    assert create_entity.status_code == status_code
+
+
+@pytest.mark.parametrize("doc_id, link_id, comments",
+                         [
+                             ("5a5db927-74b3-4b5a-8d2b-ad022d01c967", "5d5e6dd2-7b35-4c1d-b3d8-98b0bc914f5a", "count nlp entites with nlp get function")
+                         ])
+def test_get_nlp_record(doc_id, link_id, comments):
+    get_records_count = len(nlp_entity_content.get(db, doc_id, link_id))
+    assert get_records_count <= db.query(NlpEntityDb).filter(
+            NlpEntityDb.doc_id == doc_id).filter(
+            NlpEntityDb.link_id == link_id).distinct(NlpEntityDb.parent_id).count()
