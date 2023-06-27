@@ -61,7 +61,7 @@ class CRUDUserSearch(CRUDBase[User, UserUpdate, UserCreate]):
                             login_id=login_id,
                             user_type=obj_in.user_type,
                             reason_for_change=obj_in.reason_for_change,
-                            new_document_version=False,
+                            new_document_version=True,
                             edited=False,
                             qc_complete=False
                             )
