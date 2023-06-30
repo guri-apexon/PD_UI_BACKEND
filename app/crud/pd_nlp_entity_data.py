@@ -142,6 +142,7 @@ class NlpEntityCrud(CRUDBase[NlpEntityDb, NlpEntityCreate, NlpEntityUpdate]):
                 db.commit()
             return results
         except Exception as ex:
+            db.rollback()
             raise HTTPException(status_code=401, detail=f"Exception in Saving JSON data to DB {str(ex)}")
 
 
