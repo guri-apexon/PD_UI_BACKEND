@@ -100,6 +100,7 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
             return True
 
         except Exception as ex:
+            db.rollback()
             logger.exception("Exception in updating data from table {}".format(ex))
             raise HTTPException(status_code=406, detail=f"Exception in Updating JSON data to DB {str(ex)}")
 
@@ -129,6 +130,7 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
     def create_lab_data_table(self, db: Session, dt):
 
         records = self.get_records(db, dt.doc_id)
+        connection = None
         if not records:
 
             table_roi_id = str(uuid.uuid1())
@@ -191,6 +193,9 @@ class LabDataCrud(CRUDBase[IqvlabparameterrecordDb, LabDataCreate, LabDataUpdate
             except Exception as ex:
                 logger.exception("Exception in updating data from table", ex)
                 raise HTTPException(status_code=406, detail=f"Exception in Updating JSON data to DB {str(ex)}")
+            finally:
+                if connection:
+                    connection.close()
 
         return records
 

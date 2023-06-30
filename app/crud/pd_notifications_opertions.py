@@ -45,6 +45,7 @@ def read_or_delete_notification(db: Session, aidocId: str, id: str, protocol: st
         db.commit()
         return {"status":"success","id":id}
     except Exception as ex:
+        db.rollback()
         logger.exception(f"exception occured to {action} the notification ,doc_id {aidocId}, id {id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f"Exception to read/delete notification {str(ex)}")
