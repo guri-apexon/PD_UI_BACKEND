@@ -50,6 +50,8 @@ flake8:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - merge_requests
       - /^pd-release/*/
     variables:
@@ -72,6 +74,8 @@ unit-tests:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - merge_requests
       - /^pd-release/*/
     variables:
@@ -97,6 +101,8 @@ Perform Sonarqube Analysis and quality gate:  # for all environments
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - merge_requests
       - /^pd-release/*/
     variables:
@@ -122,6 +128,8 @@ build:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - merge_requests
       - /^pd-release/*/
     variables:
@@ -146,6 +154,8 @@ deploy-dev1:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - merge_requests
       - /^pd-release/*/
     variables:
@@ -169,6 +179,8 @@ deploy-dev2:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - merge_requests
       - /^pd-release/*/
     variables:
@@ -239,6 +251,8 @@ build-test:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - merge_requests
       - /^pd-release/*/
     variables: 
@@ -263,6 +277,8 @@ deploy-test:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "test"
@@ -309,6 +325,8 @@ build-svt:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
@@ -332,6 +350,8 @@ deploy-svt:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
@@ -353,6 +373,8 @@ deploy-svt2:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "svt"
@@ -421,6 +443,8 @@ build-uat:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
@@ -444,6 +468,8 @@ deploy-uat:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
@@ -465,6 +491,8 @@ deploy-uat2:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables: 
       - $ENVIRONMENT== "uat"
@@ -533,6 +561,8 @@ build-uat1:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - feature/ci-cd-uat1
       - /^pd-release/*/
     variables:
@@ -557,6 +587,8 @@ deploy-uat1:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - feature/ci-cd-uat1
       - /^pd-release/*/
     variables:
@@ -604,6 +636,8 @@ build-prod:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "prod"
@@ -627,6 +661,8 @@ deploy-prod:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "prod"
@@ -648,6 +684,8 @@ deploy-prod2:
   only:
     refs:
       - develop
+      - develop-2.0.1
+      - develop-2.1
       - /^pd-release/*/
     variables:
       - $ENVIRONMENT== "prod"
