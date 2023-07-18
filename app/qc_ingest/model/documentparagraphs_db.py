@@ -168,6 +168,8 @@ class DocumentparagraphsDb(SchemaBase):
         
         para_data.hierarchy = 'paragraph'
         para_data.group_type = 'DocumentParagraphs'
+        para_data.m_ROI_TYPEVal = 400
+        para_data.IsTableCell = False
         para_data.Value = para_data.strText = data.get('content','')
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 0

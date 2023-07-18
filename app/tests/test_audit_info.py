@@ -79,4 +79,4 @@ def test_audit_info_get_curd_fail(new_token_on_headers, audit_info_test_data):
         test_payload_dict = json.loads(data)
     test_payload_dict[0]['line_id'] = ''
     put_audit_info = get_audit_info_api_response(test_payload_dict[0], new_token_on_headers)
-    assert put_audit_info.status_code == 500
+    assert put_audit_info.status_code == 400

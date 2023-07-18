@@ -21,7 +21,7 @@ async def get_section_lock(
         result = section_lock_service.get({"link_id": link_id, "doc_id": doc_id})
         return {"success": True,"info":result}
     except Exception as ex:
-        raise HTTPException(status_code=500,
+        raise HTTPException(status_code=400,
                             detail=f"Exception occurred section lock GET method: {str(ex)}")
 
 
@@ -75,5 +75,5 @@ async def get_document_lock_status(
         result = section_lock_service.get_document_lock_status({"doc_id": doc_id, "user_id": user_id})
         return {"document_lock_status": True} if result else {"document_lock_status": False}
     except Exception as ex:
-        raise HTTPException(status_code=500,
+        raise HTTPException(status_code=400,
                             detail=f"Exception occurred document lock status: {str(ex)}")

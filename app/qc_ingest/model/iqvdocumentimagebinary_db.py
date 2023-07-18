@@ -71,6 +71,7 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       para_data.SequenceID = prev_data.SequenceID-1 if is_next_elm else prev_data.SequenceID+1
       doc_id = prev_data.doc_id
       para_data.parent_id = doc_id
+      para_data.IsTableCell = False
       para_data.last_updated = get_utc_datetime()
       para_data.num_updates = 0
       update_roi_index(session, doc_id, para_data.link_id , para_data.DocumentSequenceIndex, CurdOp.CREATE)
