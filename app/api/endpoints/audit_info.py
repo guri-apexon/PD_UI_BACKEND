@@ -37,6 +37,6 @@ async def get_audit_info(
         result = audit_info_service.get(payload)
         return {"success": True,"info":result}
     except Exception as ex:
-        raise HTTPException(status_code=500,
+        raise HTTPException(status_code=400,
                             detail=f"Exception occurred audit info GET method: {str(ex)}")
 

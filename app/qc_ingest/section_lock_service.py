@@ -18,49 +18,56 @@ def get(data: dict):
         data = IqvsectionlockDb.get_record(session, data)
     return data
 
-
 def put(data: dict):
     """
     put section lock info
     """
-    with SessionLocal() as session:
-        data = IqvsectionlockDb.update_record(session, data)
-        session.commit()
-    return data
+    try:
+        with SessionLocal() as session:
+            data = IqvsectionlockDb.update_record(session, data)
+            session.commit()
+        return data
+    except Exception as e:
+        session.rollback()
+        raise Exception(str(e))
 
 
 def get_section_loc_records(doc_id: str):
     """
     To get section loc records based on document
     """
-    with SessionLocal() as session:
-        current_timestamp = get_utc_datetime()
-        today_date = current_timestamp.date()
-        # current day check is there section locks exits or not =>
-        # sent validation error
-        section_lock = session.query(IqvsectionlockDb).filter(
-            IqvsectionlockDb.doc_id == doc_id, IqvsectionlockDb.link_id != '',
-            extract('month', IqvsectionlockDb.last_updated) == today_date.month,
-            extract('year', IqvsectionlockDb.last_updated) == today_date.year,
-            extract('day', IqvsectionlockDb.last_updated) == today_date.day).all()
-        if section_lock:
-            return {'message': 'Another user is now using this document, Please try after some time'}
-        else:
-            # check is there dummy record available or not => no record =>
+    try:
+        with SessionLocal() as session:
+            current_timestamp = get_utc_datetime()
+            today_date = current_timestamp.date()
+            # current day check is there section locks exits or not =>
             # sent validation error
             section_lock = session.query(IqvsectionlockDb).filter(
-                IqvsectionlockDb.doc_id == doc_id,
-                IqvsectionlockDb.link_id == '',
-                IqvsectionlockDb.userId == '').first()
+                IqvsectionlockDb.doc_id == doc_id, IqvsectionlockDb.link_id != '',
+                extract('month', IqvsectionlockDb.last_updated) == today_date.month,
+                extract('year', IqvsectionlockDb.last_updated) == today_date.year,
+                extract('day', IqvsectionlockDb.last_updated) == today_date.day).all()
             if section_lock:
-                # Collect records of section lock and remove it
-                session.query(IqvsectionlockDb).filter(
-                    IqvsectionlockDb.doc_id == doc_id).delete()
+                return {'message': 'Another user is now using this document, Please try after some time'}
             else:
-                return {
-                    'message': 'Document does not have any update to run workflow'}
-        session.commit()
-        return {'message': 'Success'}
+                # check is there dummy record available or not => no record =>
+                # sent validation error
+                section_lock = session.query(IqvsectionlockDb).filter(
+                    IqvsectionlockDb.doc_id == doc_id,
+                    IqvsectionlockDb.link_id == '',
+                    IqvsectionlockDb.userId == '').first()
+                if section_lock:
+                    # Collect records of section lock and remove it
+                    session.query(IqvsectionlockDb).filter(
+                        IqvsectionlockDb.doc_id == doc_id).delete()
+                else:
+                    return {
+                        'message': 'Document does not have any update to run workflow'}
+            session.commit()
+            return {'message': 'Success'}
+    except Exception as e:
+        session.rollback()
+        raise Exception(str(e))
 
 
 def remove(data: dict):

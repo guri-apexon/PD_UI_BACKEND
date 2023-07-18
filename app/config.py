@@ -24,6 +24,17 @@ class QcStatus(Enum):
     COMPLETED = 'QC_COMPLETED'
     QC = 'QC'
 
+# -------- m_ROI_TYPEVal
+@unique
+class ROITYPEVal(Enum):
+    """m_ROI_TYPEVal"""
+    TABLE = 500
+    ROW = 502
+    COLUMN = 501
+    FOOTNOTE = 510
+    TEXT = 400
+    IMAGE = 100
+
 VALID_QC_STATUS = [status.value for status in QcStatus]
 
 OVERRIDE_QC_FIELDS = ()
