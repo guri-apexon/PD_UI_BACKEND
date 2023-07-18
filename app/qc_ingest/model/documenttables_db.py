@@ -4,7 +4,7 @@ from .iqvpage_roi_db import IqvpageroiDb
 from .pd_meta_entity_mapping_lookup import insert_meta_entity
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTEGER, BOOLEAN,FLOAT
 import uuid
-from app.config import SOURCE
+from app.config import SOURCE, ROITYPEVal
 from copy import deepcopy
 from collections import defaultdict
 
@@ -353,7 +353,7 @@ class DocTableHelper():
         para_data.parent_id = data['doc_id'] = doc_id
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 0
-        para_data.m_ROI_TYPEVal = 500
+        para_data.m_ROI_TYPEVal = ROITYPEVal.TABLE.value #Table
         para_data.IsTableCell = False
         update_roi_index(session, doc_id, para_data.link_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         session.add(para_data)
@@ -384,7 +384,7 @@ class DocTableHelper():
                 para_data.Value = footnote.get('Text', '')
                 para_data.last_updated = get_utc_datetime()
                 para_data.num_updates = 1
-                para_data.m_ROI_TYPEVal = 510
+                para_data.m_ROI_TYPEVal = ROITYPEVal.FOOTNOTE.value #Footnote
                 para_data.IsTableCell = False
                 session.add(deepcopy(para_data))
         return data
@@ -424,7 +424,7 @@ class DocTableHelper():
                     obj.id = footnote['AttachmentId'] = uid
                     obj.DocumentSequenceIndex = sequnce_index
                     obj.Value = text_value
-                    obj.m_ROI_TYPEVal = 510
+                    obj.m_ROI_TYPEVal = ROITYPEVal.FOOTNOTE.value #Footnote
                     obj.IsTableCell = False
                     session.add(obj)
                     update_attachment_footnote_index(
@@ -563,7 +563,7 @@ class DocTableHelper():
         row_data.tableCell_colIndex = -1
         row_data.DocumentSequenceIndex = int(row_idx)
         row_data.Value = ''
-        row_data.m_ROI_TYPEVal = 502
+        row_data.m_ROI_TYPEVal = ROITYPEVal.ROW.value #Row
         row_data.IsTableCell = False
         row_data.last_updated = get_utc_datetime()
         row_data.num_updates = 0
@@ -587,7 +587,7 @@ class DocTableHelper():
         col_data.DocumentSequenceIndex = int(col_idx)
         col_data.last_updated = get_utc_datetime()
         col_data.num_updates = 1
-        col_data.m_ROI_TYPEVal = 501
+        col_data.m_ROI_TYPEVal = ROITYPEVal.COLUMN.value #Column
         col_data.IsTableCell = True
         col_data.Value = col_data.strText = col_val['val']
         col_data.BulletIndentationLevel = col_val['rowspan']
