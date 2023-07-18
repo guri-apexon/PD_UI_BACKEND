@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, TEXT, VARCHAR, INTE
 import uuid
 from .documenttables_db import DocTableHelper
 from .iqvpage_roi_db import IqvpageroiDb
+from app.config import ROITYPEVal
 
 
 class DocumentparagraphsDb(SchemaBase):
@@ -168,7 +169,7 @@ class DocumentparagraphsDb(SchemaBase):
         
         para_data.hierarchy = 'paragraph'
         para_data.group_type = 'DocumentParagraphs'
-        para_data.m_ROI_TYPEVal = 400
+        para_data.m_ROI_TYPEVal = ROITYPEVal.TEXT.value #Text
         para_data.IsTableCell = False
         para_data.Value = para_data.strText = data.get('content','')
         para_data.last_updated = get_utc_datetime()
