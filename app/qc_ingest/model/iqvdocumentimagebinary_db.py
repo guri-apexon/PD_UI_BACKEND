@@ -6,6 +6,7 @@ import uuid
 from .documenttables_db import DocTableHelper
 from sqlalchemy.dialects.postgresql import TEXT, VARCHAR, INTEGER, BYTEA
 import base64
+from app.config import ROITYPEVal
 
 
 class IqvdocumentimagebinaryDb(SchemaBase):
@@ -64,13 +65,14 @@ class IqvdocumentimagebinaryDb(SchemaBase):
       update_existing_props(para_data, data)
       para_data.hierarchy = 'paragraph'
       para_data.group_type = 'DocumentParagraphs'
-      para_data.m_ROI_TYPEVal=100 #image
+      para_data.m_ROI_TYPEVal = ROITYPEVal.IMAGE.value #Image
       para_data.Value = para_data.strText = ''
       para_data.id = _id
       para_data.DocumentSequenceIndex = prev_data.DocumentSequenceIndex-1 if is_next_elm else prev_data.DocumentSequenceIndex+1
       para_data.SequenceID = prev_data.SequenceID-1 if is_next_elm else prev_data.SequenceID+1
       doc_id = prev_data.doc_id
       para_data.parent_id = doc_id
+      para_data.IsTableCell = False
       para_data.last_updated = get_utc_datetime()
       para_data.num_updates = 0
       update_roi_index(session, doc_id, para_data.link_id , para_data.DocumentSequenceIndex, CurdOp.CREATE)

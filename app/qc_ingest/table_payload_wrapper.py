@@ -19,6 +19,8 @@ def get_prop_dict(column: dict):
     """
     prop_dict = {
         "content": column['value'],
+        "rowspan": column.get('rowspan',1),
+        "colspan": column.get('colspan',1),
         "roi_id": {
             "table_roi_id": "",
             "row_roi_id": "",
