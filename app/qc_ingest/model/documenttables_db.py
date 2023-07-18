@@ -23,7 +23,7 @@ class ParseTable():
             col_idx = int(float(col_idx))
             roi_data = col_data.get('roi_id', {})
             col_vals[col_idx] = {'val': col_data.get('content', ''), 'row_roi_id': row_roi_id,
-                                 'cell_roi': roi_data.get('datacell_roi_id', '')}
+                                 'rowspan': col_data.get('rowspan'),'colspan': col_data.get('colspan'),'cell_roi': roi_data.get('datacell_roi_id', '')}
         return row_idx, col_vals
 
     def parse(self, table_data):
@@ -353,6 +353,8 @@ class DocTableHelper():
         para_data.parent_id = data['doc_id'] = doc_id
         para_data.last_updated = get_utc_datetime()
         para_data.num_updates = 0
+        para_data.m_ROI_TYPEVal = 500
+        para_data.IsTableCell = False
         update_roi_index(session, doc_id, para_data.link_id, para_data.DocumentSequenceIndex, CurdOp.CREATE)
         session.add(para_data)
         return para_data
@@ -382,6 +384,8 @@ class DocTableHelper():
                 para_data.Value = footnote.get('Text', '')
                 para_data.last_updated = get_utc_datetime()
                 para_data.num_updates = 1
+                para_data.m_ROI_TYPEVal = 510
+                para_data.IsTableCell = False
                 session.add(deepcopy(para_data))
         return data
     
@@ -420,6 +424,8 @@ class DocTableHelper():
                     obj.id = footnote['AttachmentId'] = uid
                     obj.DocumentSequenceIndex = sequnce_index
                     obj.Value = text_value
+                    obj.m_ROI_TYPEVal = 510
+                    obj.IsTableCell = False
                     session.add(obj)
                     update_attachment_footnote_index(
                         session, table_roi_id, sequnce_index, '+')
@@ -517,7 +523,7 @@ class DocTableHelper():
                 # first update indexes then update..
                 self._update_table_col_index(
                     session, DocumenttablesDb.__tablename__, row_id, col_idx, CurdOp.CREATE)
-                self.add_col(session, row_dict, col_idx, col_data['val'])
+                self.add_col(session, row_dict, col_idx, col_data)
 
     def delete_column(self, session, table_data):
         for row_idx, row_data in table_data.items():
@@ -557,12 +563,14 @@ class DocTableHelper():
         row_data.tableCell_colIndex = -1
         row_data.DocumentSequenceIndex = int(row_idx)
         row_data.Value = ''
+        row_data.m_ROI_TYPEVal = 502
+        row_data.IsTableCell = False
         row_data.last_updated = get_utc_datetime()
         row_data.num_updates = 0
         session.add(row_data)
         return row_data
 
-    def add_col(self, session, row_data: dict, col_idx: int, content: str):
+    def add_col(self, session, row_data: dict, col_idx: int, col_val: dict):
         """
         row_data: for copying default values. 
         """
@@ -579,7 +587,11 @@ class DocTableHelper():
         col_data.DocumentSequenceIndex = int(col_idx)
         col_data.last_updated = get_utc_datetime()
         col_data.num_updates = 1
-        col_data.Value = col_data.strText = content
+        col_data.m_ROI_TYPEVal = 501
+        col_data.IsTableCell = True
+        col_data.Value = col_data.strText = col_val['val']
+        col_data.BulletIndentationLevel = col_val['rowspan']
+        col_data.m_WORD_LAYOUTVal = col_val['colspan']
         session.add(col_data)
 
                     
@@ -598,15 +610,17 @@ class DocTableHelper():
         row_data = self.add_row(session, table_dict, row_idx)
         row_data = schema_to_dict(row_data)
         for col_idx, col_data in data.items():
-            self.add_col(session, row_data, col_idx, col_data['val'])
+            self.add_col(session, row_data, col_idx, col_data)
 
-    def update_cell_info(self, session, content, col_uid, userid):
+    def update_cell_info(self, session, col_val, col_uid, userid):
         if not col_uid:
             raise MissingParamException('col_uid')
         obj = session.query(DocumenttablesDb).filter(DocumenttablesDb.id == col_uid).first()
         if not obj:
             raise MissingParamException(f'{col_uid} in {DocumenttablesDb.__tablename__}')
-        obj.Value = obj.strText = content
+        obj.Value = obj.strText = col_val['val']
+        obj.BulletIndentationLevel = col_val['rowspan']
+        obj.m_WORD_LAYOUTVal = col_val['colspan']
         obj.userId = userid
         obj.last_updated = get_utc_datetime()
         obj.num_updates = obj.num_updates + 1
@@ -623,7 +637,7 @@ class DocTableHelper():
             row_entry = self.add_row(session, table_entry_dict, row_idx)
             row_dict = schema_to_dict(row_entry)
             for col_idx, col_val in row_data.items():
-                self.add_col(session, row_dict, col_idx, col_val['val'])
+                self.add_col(session, row_dict, col_idx, col_val)
         return table_entry.id
 
     def delete_table(self, session, table_id):
@@ -721,4 +735,4 @@ class DocTableHelper():
                     col_data['cell_roi'] = self._get_cell_roi_id(
                         session, row_idx, col_idx)
                 self.update_cell_info(
-                    session, col_data['val'], col_data['cell_roi'], userid)
+                    session, col_data, col_data['cell_roi'], userid)

@@ -22,37 +22,49 @@
                             "col_indx": "0",
                             "op_type": null,
                             "cell_id": "",
-                            "value": "0 new"
+                            "value": "0 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "1",
                             "op_type": null,
                             "cell_id": "",
-                            "value": "1 new"
+                            "value": "1 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "",
                             "cell_id": "",
-                            "value": "2 new"
+                            "value": "2 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "3",
                             "op_type": "",
                             "cell_id": "",
-                            "value": "3 new"
+                            "value": "3 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "4",
                             "op_type": "",
                             "cell_id": null,
-                            "value": "4 new"
+                            "value": "4 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "5",
                             "op_type": "",
                             "cell_id": null,
-                            "value": "5 new"
+                            "value": "5 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         }
                     ]
                 },
@@ -64,31 +76,41 @@
                             "col_indx": "0",
                             "op_type": null,
                             "cell_id": "",
-                            "value": "1"
+                            "value": "1",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "1",
                             "op_type": null,
                             "cell_id": "",
-                            "value": "2"
+                            "value": "2",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "add",
                             "cell_id": "",
-                            "value": "3 mod"
+                            "value": "3 mod",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "delete",
                             "cell_id": "",
-                            "value": "3"
+                            "value": "3",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "4",
                             "op_type": "add",
                             "cell_id": null,
-                            "value": "5 mod"
+                            "value": "5 mod",
+                            "rowspan": 1,
+                            "colspan": 1
                         }
                     ]
                 },
@@ -100,31 +122,41 @@
                             "col_indx": "0",
                             "op_type": "modify",
                             "cell_id": "",
-                            "value": "6 mod"
+                            "value": "6 mod",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "1",
                             "op_type": "modify",
                             "cell_id": "",
-                            "value": "7 mod"
+                            "value": "7 mod",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "add",
                             "cell_id": "",
-                            "value": "8 new"
+                            "value": "8 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "delete",
                             "cell_id": "",
-                            "value": "8"
+                            "value": "8",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "4",
                             "op_type": "add",
                             "cell_id": null,
-                            "value": "10 new"
+                            "value": "10 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         }
                     ]
                 },
@@ -136,31 +168,41 @@
                             "col_indx": "0",
                             "op_type": "modify",
                             "cell_id": "",
-                            "value": "11 mod"
+                            "value": "11 mod",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "1",
                             "op_type": "modify",
                             "cell_id": "",
-                            "value": "12 mod"
+                            "value": "12 mod",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "add",
                             "cell_id": "",
-                            "value": "13 new"
+                            "value": "13 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "delete",
                             "cell_id": "",
-                            "value": "13"
+                            "value": "13",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "4",
                             "op_type": "add",
                             "cell_id": "",
-                            "value": "15 new"
+                            "value": "15 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         }
                     ]
                 },
@@ -172,25 +214,33 @@
                             "col_indx": "0",
                             "op_type": "modify",
                             "cell_id": "",
-                            "value": "16 mod"
+                            "value": "16 mod",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "add",
                             "cell_id": "",
-                            "value": "18 new"
+                            "value": "18 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "2",
                             "op_type": "delete",
                             "cell_id": "",
-                            "value": "18"
+                            "value": "18",
+                            "rowspan": 1,
+                            "colspan": 1
                         },
                         {
                             "col_indx": "4",
                             "op_type": "add",
                             "cell_id": "",
-                            "value": "20 new"
+                            "value": "20 new",
+                            "rowspan": 1,
+                            "colspan": 1
                         }
                     ]
                 },

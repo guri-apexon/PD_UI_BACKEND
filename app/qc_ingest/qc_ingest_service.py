@@ -158,28 +158,32 @@ def process(payload: list):
     previous_data_type, previous_uuid = None, None
     link_id, user_id, is_section_header = None, None, False
     with SessionLocal() as session:
-        for data in payload:
-            data, previous_data_type, previous_uuid = get_updated_data(session, data, previous_data_type, previous_uuid)
-            data = process_data(session, mapper, data)
-            uid_list.append({'uuid':data.get('uuid',''),
-                             'line_id':data.get('line_id',''),
-                             'op_type':data.get('op_type',''),
-                             'qc_change_type':data.get('qc_change_type','')})
+        try:
+            for data in payload:
+                data, previous_data_type, previous_uuid = get_updated_data(session, data, previous_data_type, previous_uuid)
+                data = process_data(session, mapper, data)
+                uid_list.append({'uuid':data.get('uuid',''),
+                                'line_id':data.get('line_id',''),
+                                'op_type':data.get('op_type',''),
+                                'qc_change_type':data.get('qc_change_type','')})
 
-            if data.get('type') == 'header' and data.get('link_level') in ['1',1]:
-                link_id = None
-                is_section_header = True
-            
-            if is_section_header == False:
-                if link_id == None and data.get('link_id') in ['', None]:
-                    _id = data.get('line_id', '')[0:36] if data.get("line_id") not in ['', None] else data.get('uuid')
-                    obj = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == _id).first()
-                    if obj:
-                        link_id = obj.link_id
-                elif link_id == None and data.get('link_id') not in ['', None]:
-                    link_id = data.get('link_id')
-                user_id = data.get('userId')
-        if link_id not in ['', None] and user_id != None:
-            update_link_update_details(session, link_id, user_id, get_utc_datetime())
-            session.commit()
+                if data.get('type') == 'header' and data.get('link_level') in ['1',1]:
+                    link_id = None
+                    is_section_header = True
+                
+                if is_section_header == False:
+                    if link_id == None and data.get('link_id') in ['', None]:
+                        _id = data.get('line_id', '')[0:36] if data.get("line_id") not in ['', None] else data.get('uuid')
+                        obj = session.query(IqvpageroiDb).filter(IqvpageroiDb.id == _id).first()
+                        if obj:
+                            link_id = obj.link_id
+                    elif link_id == None and data.get('link_id') not in ['', None]:
+                        link_id = data.get('link_id')
+                    user_id = data.get('userId')
+            if link_id not in ['', None] and user_id != None:
+                update_link_update_details(session, link_id, user_id, get_utc_datetime())
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            raise Exception(str(e))
     return uid_list
