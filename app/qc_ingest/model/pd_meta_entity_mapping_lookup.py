@@ -20,6 +20,6 @@ def insert_meta_entity(session, category, input_text, iqv_standard_term):
    meta_entity.input_text = input_text
    meta_entity.iqv_standard_term = iqv_standard_term
    meta_entity.startdate = get_utc_datetime()
-   meta_entity.isvalid = True
+   meta_entity.isvalid = False
    meta_entity.version = "EM_" + str(meta_entity.startdate.strftime("%Y-%m-%d"))
    session.add(meta_entity)
